@@ -4,6 +4,13 @@ Track what's been done and what still needs doing across sessions. Add a dated s
 
 ---
 
+## 2026-07-29 — Switched to Workers static assets + GitHub CI
+
+- Deleted the direct-upload Pages project (`folder-structure-4zp.pages.dev` is gone). Cloudflare cannot convert direct-upload projects to git-connected, and the dashboard's git flow now creates **Workers with static assets**, not Pages
+- `wrangler.jsonc` converted from Pages format (`pages_build_output_dir`) to Workers format (`assets.directory: "./dist"`); `npm run deploy` now calls `wrangler deploy` (not `wrangler pages deploy`). Validated with `wrangler deploy --dry-run`: 48 assets read, config accepted
+- **CI settings** (dashboard, Workers → connect to git): build `npm install && npm run build`, deploy `npx wrangler deploy`, non-production branch builds on. The `npm install &&` prefix is load-bearing — design-system.css is gitignored and the build script exits without it
+- Don't mix the two routes: a Pages-format config plus a Workers project (or vice versa) creates a second competing project
+
 ## 2026-07-29 — Cloudflare Pages deploy prep
 
 - Deploy route: **direct upload via wrangler** (no GitHub remote yet; the design-system package installs from a GitHub repo a CF build container can't fetch, so git-integration builds are off the table for now)

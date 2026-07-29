@@ -161,21 +161,23 @@
 </ul>
 <hr>
 <h2 id="deployment">Deployment</h2>
-<p>This project deploys to <strong>Cloudflare Pages by direct upload</strong> (project <code>folder-structure</code>, live at <code>https://folder-structure-4zp.pages.dev/</code>). The repo is not yet connected to GitHub, and the design system installs from a GitHub-hosted package a Cloudflare build container can&#39;t fetch — so there is no host-side build; the site is built locally and uploaded.</p>
-
-      <div class="code-block-wrapper">
-        <button class="button copy-btn is-icon-only" data-size="xsmall" data-clipboard-target="#code-2" data-tooltip="Copy" type="button" aria-label="Copy code"><span class="copy-btn-default"><div class="svg-icn"><svg data-icon="copy" aria-hidden="true" width="100%" height="100%" viewBox="0 0 24 24" fill="none"><path d="M8 14C8 15.1046 8.89543 16 10 16H18C19.1046 16 20 15.1046 20 14V6C20 4.89543 19.1046 4 18 4H10C8.89543 4 8 4.89543 8 6V14ZM6 18V2H22V18H6ZM2 22V6H4V20H18V22H2Z" fill="currentColor"/></svg></div></span><span class="copy-btn-copied"><div class="svg-icn"><svg data-icon="check" aria-hidden="true" width="100%" height="100%" viewBox="0 0 24 24" fill="none"><path d="M9.54998 18L3.84998 12.3L5.27498 10.875L8.13576 13.7358C8.91681 14.5168 10.1831 14.5168 10.9642 13.7358L18.725 5.97501L20.15 7.40001L9.54998 18Z" fill="currentColor"/></svg></div></span></button>
-        <pre><code id="code-2" class="language-bash">npm run deploy
-</code></pre>
-      </div>
-    
-<p>This runs <code>npm run build</code> — which assembles <code>dist/</code> via <code>scripts/build-dist.js</code> (only <code>index.html</code> + <code>assets/</code>; docs, templates, and markdown never reach the public host) — then <code>wrangler pages deploy</code> (config in <code>wrangler.jsonc</code>). Wrangler authenticates via <code>npx wrangler login</code> (one-time, per machine).</p>
+<p>This project deploys to <strong>Cloudflare Workers static assets</strong>, built by <strong>Workers Builds</strong> from the connected GitHub repo (<code>bydefaultstudio/folder-structure</code>). Every push to <code>main</code> deploys; other branches get preview builds. Config lives in <code>wrangler.jsonc</code> (<code>assets.directory</code> → <code>./dist</code>).</p>
+<p>Cloudflare&#39;s git-connection flow is set up with:</p>
+<ul>
+<li><strong>Build command:</strong> <code>npm install &amp;&amp; npm run build</code></li>
+<li><strong>Deploy command:</strong> <code>npx wrangler deploy</code></li>
+</ul>
+<p>The site is static — Workers with assets serves it without any Worker script of its own.</p>
 <p>Two prerequisites, both build-enforced:</p>
 <ul>
-<li><strong><code>npm install</code> must have run first</strong> — <code>assets/css/design-system.css</code> is gitignored and only exists after the postinstall sync; the build script refuses to run without it.</li>
-<li><strong>Deploy <code>dist/</code>, never the repo root</strong> — the root contains internal docs and tooling that must not be publicly served.</li>
+<li><strong><code>npm install</code> must run before the build</strong> — <code>assets/css/design-system.css</code> is gitignored and only exists after the postinstall sync; <code>scripts/build-dist.js</code> refuses to run without it. This is why the build command chains both.</li>
+<li><strong>Deploy <code>dist/</code>, never the repo root</strong> — the build script copies only <code>index.html</code> and <code>assets/</code>, so internal docs, templates, and markdown never reach the public host.</li>
 </ul>
-<p>If the repo is later connected to GitHub, Cloudflare&#39;s git integration would need a build that runs <code>npm install &amp;&amp; npm run build</code> with <code>dist</code> as the output directory — and access to the private design system package. Until then, direct upload is the deployment path. Dependabot (<code>.github/dependabot.yml</code>) still opens PRs for new design system versions; after merging one, run <code>npm install &amp;&amp; npm run deploy</code> to ship it.</p>
+<p><code>npm run deploy</code> runs the identical build-then-deploy locally (needs a one-time <code>npx wrangler login</code>), useful for an out-of-band push. Prefer letting CI deploy from <code>main</code> so the live site always matches the repo.</p>
+<p>This pairs with Dependabot (<code>.github/dependabot.yml</code>): when a new design system version is released it opens a PR, the preview build renders it, and merging deploys it automatically.</p>
+<blockquote>
+<p><strong>Note:</strong> the dashboard&#39;s &quot;Pages&quot; flow and the older <code>wrangler pages deploy</code> path are <em>not</em> used here — mixing them in would need a different <code>wrangler.jsonc</code> (<code>pages_build_output_dir</code>) and would create a second, competing project.</p>
+</blockquote>
 <hr>
 <h2 id="quick-checklist">Quick Checklist</h2>
 <ul>

@@ -1,6 +1,10 @@
 {
-  // Cloudflare Pages config — `npm run deploy` builds dist/ and uploads it.
+  // Cloudflare Workers static-assets config. CI (Workers Builds, connected
+  // to the GitHub repo) runs `npm install && npm run build` then
+  // `npx wrangler deploy`; `npm run deploy` does the same from a machine.
   "name": "folder-structure",
   "compatibility_date": "2026-07-29",
-  "pages_build_output_dir": "dist"
+  "assets": {
+    "directory": "./dist"
+  }
 }

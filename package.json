@@ -4,7 +4,7 @@
   "scripts": {
     "postinstall": "node scripts/sync-design-system.js",
     "build": "node scripts/build-dist.js",
-    "deploy": "npm run build && npx wrangler pages deploy",
+    "deploy": "npm run build && npx wrangler deploy",
     "docs:build": "node node_modules/@bydefaultstudio/design-system/dist/docs-kit/generate-docs.js",
     "docs:watch": "node node_modules/@bydefaultstudio/design-system/dist/docs-kit/watch-docs.js"
   },

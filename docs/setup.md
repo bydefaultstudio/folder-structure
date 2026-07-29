@@ -122,20 +122,25 @@ The documentation is ready to use, but you may want to:
 
 ## Deployment
 
-This project deploys to **Cloudflare Pages by direct upload** (project `folder-structure`, live at `https://folder-structure-4zp.pages.dev/`). The repo is not yet connected to GitHub, and the design system installs from a GitHub-hosted package a Cloudflare build container can't fetch — so there is no host-side build; the site is built locally and uploaded.
+This project deploys to **Cloudflare Workers static assets**, built by **Workers Builds** from the connected GitHub repo (`bydefaultstudio/folder-structure`). Every push to `main` deploys; other branches get preview builds. Config lives in `wrangler.jsonc` (`assets.directory` → `./dist`).
 
-```bash
-npm run deploy
-```
+Cloudflare's git-connection flow is set up with:
 
-This runs `npm run build` — which assembles `dist/` via `scripts/build-dist.js` (only `index.html` + `assets/`; docs, templates, and markdown never reach the public host) — then `wrangler pages deploy` (config in `wrangler.jsonc`). Wrangler authenticates via `npx wrangler login` (one-time, per machine).
+- **Build command:** `npm install && npm run build`
+- **Deploy command:** `npx wrangler deploy`
+
+The site is static — Workers with assets serves it without any Worker script of its own.
 
 Two prerequisites, both build-enforced:
 
-- **`npm install` must have run first** — `assets/css/design-system.css` is gitignored and only exists after the postinstall sync; the build script refuses to run without it.
-- **Deploy `dist/`, never the repo root** — the root contains internal docs and tooling that must not be publicly served.
+- **`npm install` must run before the build** — `assets/css/design-system.css` is gitignored and only exists after the postinstall sync; `scripts/build-dist.js` refuses to run without it. This is why the build command chains both.
+- **Deploy `dist/`, never the repo root** — the build script copies only `index.html` and `assets/`, so internal docs, templates, and markdown never reach the public host.
 
-If the repo is later connected to GitHub, Cloudflare's git integration would need a build that runs `npm install && npm run build` with `dist` as the output directory — and access to the private design system package. Until then, direct upload is the deployment path. Dependabot (`.github/dependabot.yml`) still opens PRs for new design system versions; after merging one, run `npm install && npm run deploy` to ship it.
+`npm run deploy` runs the identical build-then-deploy locally (needs a one-time `npx wrangler login`), useful for an out-of-band push. Prefer letting CI deploy from `main` so the live site always matches the repo.
+
+This pairs with Dependabot (`.github/dependabot.yml`): when a new design system version is released it opens a PR, the preview build renders it, and merging deploys it automatically.
+
+> **Note:** the dashboard's "Pages" flow and the older `wrangler pages deploy` path are *not* used here — mixing them in would need a different `wrangler.jsonc` (`pages_build_output_dir`) and would create a second, competing project.
 
 ---
 
