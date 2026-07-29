@@ -122,7 +122,7 @@ The documentation is ready to use, but you may want to:
 
 ## Deployment
 
-This project deploys to **Cloudflare Workers static assets**, built by **Workers Builds** from the connected GitHub repo (`bydefaultstudio/folder-structure`). Every push to `main` deploys; other branches get preview builds. Config lives in `wrangler.jsonc` (`assets.directory` → `./dist`).
+This project deploys to **Cloudflare Workers static assets**, built by **Workers Builds** from the connected GitHub repo (`bydefaultstudio/folder-structure`), and is live at **https://folder-structure.bydefault.studio**. Every push to `main` deploys; other branches get preview builds. Config lives in `wrangler.jsonc` (`assets.directory` → `./dist`).
 
 Cloudflare's git-connection flow is set up with:
 

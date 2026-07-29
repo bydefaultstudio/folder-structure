@@ -4,6 +4,18 @@ Track what's been done and what still needs doing across sessions. Add a dated s
 
 ---
 
+## 2026-07-29 — LIVE at folder-structure.bydefault.studio ✅
+
+Custom domain attached (by Erlen, in the dashboard). Verified end to end against the live origin:
+
+- **DNS + TLS**: resolves (172.67.182.50 / 104.21.83.218), HTTP/2, valid Google Trust Services cert (issued 28 Jul, expires 26 Oct 2026), auto-provisioned by the Custom Domain
+- **All assets 200 with correct MIME types**: HTML, all three stylesheets, all 10 JS modules, OG jpeg, both SVG sprites, favicon
+- **Nothing internal leaked** — 404 on `CLAUDE.md`, `PROJECT_BRIEF.md`, `PROJECT_PROGRESS.md`, `DESIGN.md`, `README.md`, `package.json`, `package-lock.json`, `wrangler.jsonc`, `docs/setup.md`, `docs/site/index.html`, `templates/page-template.html`, `scripts/build-dist.js`, `.git/config`. The `dist/`-only build contract holds in production
+- **Served HTML is byte-identical to local `dist/index.html`**, confirming the deployed version is the current commit
+- **App actually boots** (headless Chrome DOM dump of the live URL): 8 `role="treeitem"` nodes + `role="tree"` + 6 `aria-expanded` rendered by JS, against 0 tree nodes in the static HTML. Not just a static-asset check — the modules load and run in production
+
+**Open item — no HTTP→HTTPS redirect on this subdomain.** `http://folder-structure.bydefault.studio/` returns 200 rather than a 301, while `http://bydefault.studio/` does 301. Either zone-wide **Always Use HTTPS** is off, or it is being bypassed — a Worker on a Custom Domain is treated as the origin, and Rules evaluate before Workers. Fix with **Always Use HTTPS** (SSL/TLS → Edge Certificates) and, if that doesn't take effect, a **Redirect Rule** on the hostname, which reliably runs ahead of the Worker. Couldn't verify or change the setting: the read-only token has no zone-settings scope. Worth closing before launch, along with flipping `noindex` → `index, follow`.
+
 ## 2026-07-29 — CI green; canonical URLs moved to the custom domain
 
 - **Push-triggered CI confirmed working**: pushed `14f0c4c` at 21:22:33Z, Workers Builds deployed version `d330d926` at 21:22:59Z (26s), worker version count 3 → 4, `has_assets: true`. Builds show `source: "wrangler"` because the CI container runs `npx wrangler deploy`
