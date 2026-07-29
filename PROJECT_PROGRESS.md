@@ -4,6 +4,16 @@ Track what's been done and what still needs doing across sessions. Add a dated s
 
 ---
 
+## 2026-07-29 — Fixed first CI build failure (bun vs npm)
+
+Build #3667cdf3 failed at Installing: `no commit matching "semver:^1.5.0" found for "@bydefaultstudio/design-system"`.
+
+- **Root cause:** the template gitignores `package-lock.json`, so the repo shipped no lockfile. Cloudflare picks its package manager from the lockfile and, finding none, fell back to **bun** — which resolved the repo but cannot handle a `#semver:` range on a git dependency (npm can; tags v1.5.0/v1.6.0/v2.0.0 all exist)
+- **Fix:** stopped gitignoring `package-lock.json` and committed it, which forces npm. `.gitignore` carries a comment explaining why, so nobody re-ignores it
+- **Red herring ruled out:** npm records the dep as `git+ssh://git@github.com/…` in the lockfile, which looks unauthenticatable in a keyless container. Verified it isn't: `GIT_SSH_COMMAND=/bin/false npm ci` with a cold cache installs 1.6.0 fine — npm falls back to GitHub's anonymous HTTPS tarball for public repos. Tested against the exact committed package.json + lockfile
+- Also briefly switched the dep spec to `git+https://` and **reverted it** — bun's failure is about the `#semver:` range, not the protocol, so npm normalises it straight back to ssh and the change bought nothing
+- Lockfile regenerated from clean (`rm -rf package-lock.json node_modules && npm install`); it had been stale from the template, still naming the project `project-template`
+
 ## 2026-07-29 — Switched to Workers static assets + GitHub CI
 
 - Deleted the direct-upload Pages project (`folder-structure-4zp.pages.dev` is gone). Cloudflare cannot convert direct-upload projects to git-connected, and the dashboard's git flow now creates **Workers with static assets**, not Pages

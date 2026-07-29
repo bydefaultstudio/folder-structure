@@ -131,10 +131,11 @@ Cloudflare's git-connection flow is set up with:
 
 The site is static — Workers with assets serves it without any Worker script of its own.
 
-Two prerequisites, both build-enforced:
+Three prerequisites:
 
 - **`npm install` must run before the build** — `assets/css/design-system.css` is gitignored and only exists after the postinstall sync; `scripts/build-dist.js` refuses to run without it. This is why the build command chains both.
 - **Deploy `dist/`, never the repo root** — the build script copies only `index.html` and `assets/`, so internal docs, templates, and markdown never reach the public host.
+- **`package-lock.json` must stay committed** — unlike the template, this repo tracks its lockfile. Cloudflare picks its package manager by lockfile, and with none present it falls back to **bun**, which cannot resolve the design system's `#semver:^1.5.0` git range and fails the install outright. The committed lockfile forces npm, which resolves that range and — despite recording an `ssh://` URL for the GitHub dependency — fetches it over an anonymous HTTPS tarball, so the keyless build container needs no credentials.
 
 `npm run deploy` runs the identical build-then-deploy locally (needs a one-time `npx wrangler login`), useful for an out-of-band push. Prefer letting CI deploy from `main` so the live site always matches the repo.
 

@@ -6,8 +6,9 @@ dist/
 .env
 .cursor
 
-# Package files
-package-lock.json
+# package-lock.json is deliberately committed: CI detects npm from it
+# (without a lockfile Cloudflare falls back to bun, which cannot resolve
+# the design system's #semver: git range) and it pins the build.
 
 # Design system artefacts synced from @bydefaultstudio/design-system on npm install
 assets/css/design-system.css
