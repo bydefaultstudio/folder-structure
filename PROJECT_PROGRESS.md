@@ -4,6 +4,13 @@ Track what's been done and what still needs doing across sessions. Add a dated s
 
 ---
 
+## 2026-07-29 — CI green; canonical URLs moved to the custom domain
+
+- **Push-triggered CI confirmed working**: pushed `14f0c4c` at 21:22:33Z, Workers Builds deployed version `d330d926` at 21:22:59Z (26s), worker version count 3 → 4, `has_assets: true`. Builds show `source: "wrangler"` because the CI container runs `npx wrangler deploy`
+- `index.html` canonical / `og:url` / `og:image` / `twitter:url` / `twitter:image` moved from the deleted `folder-structure-4zp.pages.dev` to **`https://folder-structure.bydefault.studio`** — they were pointing at a dead origin, so social previews would have 404'd
+- **Still outstanding:** attach the custom domain in the dashboard (Workers → folder-structure → Domains & Routes). Claude has no write scope for this — the claude.ai Cloudflare MCP token is read-only and wrangler's OAuth token has no DNS write. Until it's attached, the canonical URL does not resolve (site is still `noindex`, so no SEO cost)
+- Reading build status via the MCP token returns empty arrays (no scope for the Builds API); worker `modified_on` + version list is the usable progress signal instead
+
 ## 2026-07-29 — Fixed first CI build failure (bun vs npm)
 
 Build #3667cdf3 failed at Installing: `no commit matching "semver:^1.5.0" found for "@bydefaultstudio/design-system"`.
