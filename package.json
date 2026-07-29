@@ -9,6 +9,6 @@
     "docs:watch": "node node_modules/@bydefaultstudio/design-system/dist/docs-kit/watch-docs.js"
   },
   "dependencies": {
-    "@bydefaultstudio/design-system": "github:bydefaultstudio/design-system-dist#semver:^1.5.0"
+    "@bydefaultstudio/design-system": "github:bydefaultstudio/design-system-dist#semver:^2.0.0"
   }
 }
