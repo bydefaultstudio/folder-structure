@@ -72,7 +72,8 @@
 
       <div class="code-block-wrapper">
         <button class="button copy-btn is-icon-only" data-size="xsmall" data-clipboard-target="#code-0" data-tooltip="Copy" type="button" aria-label="Copy code"><span class="copy-btn-default"><div class="svg-icn"><svg data-icon="copy" aria-hidden="true" width="100%" height="100%" viewBox="0 0 24 24" fill="none"><path d="M8 14C8 15.1046 8.89543 16 10 16H18C19.1046 16 20 15.1046 20 14V6C20 4.89543 19.1046 4 18 4H10C8.89543 4 8 4.89543 8 6V14ZM6 18V2H22V18H6ZM2 22V6H4V20H18V22H2Z" fill="currentColor"/></svg></div></span><span class="copy-btn-copied"><div class="svg-icn"><svg data-icon="check" aria-hidden="true" width="100%" height="100%" viewBox="0 0 24 24" fill="none"><path d="M9.54998 18L3.84998 12.3L5.27498 10.875L8.13576 13.7358C8.91681 14.5168 10.1831 14.5168 10.9642 13.7358L18.725 5.97501L20.15 7.40001L9.54998 18Z" fill="currentColor"/></svg></div></span></button>
-        <pre><code id="code-0">index.html              → Starter page (replace with project homepage)
+        <pre><code id="code-0">index.html              → The app: interactive folder-structure editor
+embed.html              → Read-only embed viewer (renders a tree from the URL fragment)
 CLAUDE.md               → Claude Code development rules (authoritative)
 README.md               → Project overview and getting started
 PROJECT_BRIEF.md        → Project brief and requirements
@@ -110,6 +111,8 @@ docs/                   → Documentation (markdown sources + generated site)
 <h2 id="assetsjs">assets/js/</h2>
 <ul>
 <li><code>theme-toggle.js</code> — dark-mode toggle: sets <code>data-theme</code> on <code>&lt;html&gt;</code>, persists to localStorage, defaults to the OS preference, and injects icons into <button type="button" class="token-copy is-class" data-copy=".dark-mode-toggle" aria-label="Copy .dark-mode-toggle"><code>.dark-mode-toggle</code></button> buttons.</li>
+<li><code>tree-share.js</code> — fragment codec for share and embed links (see <code>docs/tree-notation.md</code> → Share-Link Fragment Encoding). Loaded by both <code>index.html</code> and <code>embed.html</code>.</li>
+<li><code>embed.js</code> — bootstrap for <code>embed.html</code>: decodes the fragment, imports the tree read-only, wires zoom controls and the branding link.</li>
 </ul>
 <h2 id="assetsfonts">assets/fonts/</h2>
 <p>Self-hosted web font files, referenced by <code>@font-face</code> declarations in <code>theme.css</code>.</p>

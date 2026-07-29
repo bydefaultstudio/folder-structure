@@ -243,6 +243,41 @@ touch root/folder-a/file.txt
 </ul>
 <p>The copy-out text is always the standard <strong>vertical</strong> tree grammar above, regardless of the cascading visual layout — the diagram is a view, the notation is the interchange format.</p>
 <hr>
+<h2 id="share-link-fragment-encoding">Share-Link Fragment Encoding</h2>
+<p>Share and embed URLs carry the structure itself in the URL fragment — no backend, no storage. The codec lives in <code>assets/js/tree-share.js</code>; <code>/embed</code> renders the fragment read-only, and the main app imports it on load.</p>
+
+      <div class="code-block-wrapper">
+        <button class="button copy-btn is-icon-only" data-size="xsmall" data-clipboard-target="#code-6" data-tooltip="Copy" type="button" aria-label="Copy code"><span class="copy-btn-default"><div class="svg-icn"><svg data-icon="copy" aria-hidden="true" width="100%" height="100%" viewBox="0 0 24 24" fill="none"><path d="M8 14C8 15.1046 8.89543 16 10 16H18C19.1046 16 20 15.1046 20 14V6C20 4.89543 19.1046 4 18 4H10C8.89543 4 8 4.89543 8 6V14ZM6 18V2H22V18H6ZM2 22V6H4V20H18V22H2Z" fill="currentColor"/></svg></div></span><span class="copy-btn-copied"><div class="svg-icn"><svg data-icon="check" aria-hidden="true" width="100%" height="100%" viewBox="0 0 24 24" fill="none"><path d="M9.54998 18L3.84998 12.3L5.27498 10.875L8.13576 13.7358C8.91681 14.5168 10.1831 14.5168 10.9642 13.7358L18.725 5.97501L20.15 7.40001L9.54998 18Z" fill="currentColor"/></svg></div></span></button>
+        <pre><code id="code-6">https://folder-structure.bydefault.studio/embed#t=&lt;payload&gt;[&amp;theme=light|dark]
+</code></pre>
+      </div>
+    
+<ul>
+<li>The fragment is parsed as <code>URLSearchParams</code>. The payload is base64url (<code>A–Z a–z 0–9 - _</code>, padding stripped), so it never needs percent-encoding.</li>
+<li><code>payload = &lt;version char&gt; + &lt;base64url data&gt;</code>:</li>
+</ul>
+<div class="table-scroll"><table class="table">
+<thead>
+<tr>
+<th>Version</th>
+<th>Encoding</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><code>1</code></td>
+<td>deflate-raw-compressed UTF-8 of the unicode-tree serialization (normal path)</td>
+</tr>
+<tr>
+<td><code>0</code></td>
+<td>uncompressed UTF-8 (encoder fallback when <code>CompressionStream</code> is unavailable; decoders accept it forever)</td>
+</tr>
+</tbody></table></div>
+<ul>
+<li>Any other version char is a clean decode error — a future payload format fails loudly on old pages instead of rendering garbage.</li>
+<li>The canonical body is the <strong>unicode-tree serialization</strong>, so links inherit the serializer round-trip guarantee. Open/closed folder state is <strong>not</strong> encoded — imported structures open fully.</li>
+<li><code>theme=light|dark</code> forces a theme on <code>/embed</code> only (embeds in tools like Notion can&#39;t see the host&#39;s dark mode); without it the embed follows the viewer&#39;s OS preference. The main app ignores the param.</li>
+</ul>
+<hr>
 <h2 id="sources-amp-further-reading">Sources &amp; Further Reading</h2>
 <ul>
 <li><a href="https://www.jackbishop.co/posts/representing-folder-trees-docs-code" target="_blank" rel="noopener noreferrer">How to Represent Folder Trees in Docs and Code — Jack Bishop</a></li>
@@ -261,7 +296,7 @@ touch root/folder-a/file.txt
             <!-- Table of Contents -->
             <aside class="docs-toc">
       <span class="toc-header">On this page</span>
-      <div class="toc-wrapper"><nav class="toc"><ul class="toc-list"><li class="toc-item toc-level-2"><a href="#the-characters-box-drawing-characters" class="toc-link">The Characters: Box-Drawing Characters</a></li><li class="toc-item toc-level-2"><a href="#input-formats-paste-in" class="toc-link">Input Formats (paste-in)</a></li><li class="toc-item toc-level-2"><a href="#output-formats-copy-out" class="toc-link">Output Formats (copy-out)</a></li><li class="toc-item toc-level-2"><a href="#diagram-notation-mapping" class="toc-link">Diagram ↔ Notation Mapping</a></li><li class="toc-item toc-level-2"><a href="#sources-amp-further-reading" class="toc-link">Sources &amp; Further Reading</a></li></ul></nav></div>
+      <div class="toc-wrapper"><nav class="toc"><ul class="toc-list"><li class="toc-item toc-level-2"><a href="#the-characters-box-drawing-characters" class="toc-link">The Characters: Box-Drawing Characters</a></li><li class="toc-item toc-level-2"><a href="#input-formats-paste-in" class="toc-link">Input Formats (paste-in)</a></li><li class="toc-item toc-level-2"><a href="#output-formats-copy-out" class="toc-link">Output Formats (copy-out)</a></li><li class="toc-item toc-level-2"><a href="#diagram-notation-mapping" class="toc-link">Diagram ↔ Notation Mapping</a></li><li class="toc-item toc-level-2"><a href="#share-link-fragment-encoding" class="toc-link">Share-Link Fragment Encoding</a></li><li class="toc-item toc-level-2"><a href="#sources-amp-further-reading" class="toc-link">Sources &amp; Further Reading</a></li></ul></nav></div>
     </aside>
         </div>
 

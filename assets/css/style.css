@@ -361,6 +361,66 @@ body.is-app {
 }
 
 
+/* -- Embed page -- */
+/* embed.html only (body.is-embed): read-only viewer chrome. The
+   branding link mirrors the floating-chrome card treatment, and the
+   corner gutters tighten because embeds usually live in short
+   iframes (~480px). */
+
+.embed-branding {
+  position: fixed;
+  bottom: var(--space-s);
+  left: var(--space-s);
+  z-index: 700;
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-xs);
+  background-color: var(--background-primary);
+  border: var(--border-s) solid var(--border-faded);
+  border-radius: var(--radius-l);
+  padding: var(--space-2xs) var(--space-s);
+  box-shadow: 0 4px 16px var(--black-alpha-10);
+  color: var(--text-primary);
+  font-size: var(--font-xs);
+  text-decoration: none;
+}
+
+.embed-branding .svg-logo {
+  display: block;
+  width: 120px;
+  aspect-ratio: 246 / 25;
+}
+
+.is-embed .zoom-controls {
+  bottom: var(--space-s);
+  right: var(--space-s);
+}
+
+/* Decode-failure state: centred card over the empty canvas. */
+.embed-error {
+  position: fixed;
+  inset: 0;
+  z-index: 750;
+  display: grid;
+  place-items: center;
+  padding: var(--space-l);
+}
+
+.embed-error-card {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: var(--space-s);
+  max-width: 32rem;
+  text-align: center;
+  background-color: var(--background-primary);
+  border: var(--border-s) solid var(--border-faded);
+  border-radius: var(--radius-l);
+  padding: var(--space-l);
+  box-shadow: 0 4px 16px var(--black-alpha-10);
+}
+
+
 /* -- Dialogs -- */
 
 /* About dialog: wordmark centred above the description; the visually

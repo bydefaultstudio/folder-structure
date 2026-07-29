@@ -140,6 +140,28 @@ The copy-out text is always the standard **vertical** tree grammar above, regard
 
 ---
 
+## Share-Link Fragment Encoding
+
+Share and embed URLs carry the structure itself in the URL fragment — no backend, no storage. The codec lives in `assets/js/tree-share.js`; `/embed` renders the fragment read-only, and the main app imports it on load.
+
+```
+https://folder-structure.bydefault.studio/embed#t=<payload>[&theme=light|dark]
+```
+
+- The fragment is parsed as `URLSearchParams`. The payload is base64url (`A–Z a–z 0–9 - _`, padding stripped), so it never needs percent-encoding.
+- `payload = <version char> + <base64url data>`:
+
+| Version | Encoding |
+| --- | --- |
+| `1` | deflate-raw-compressed UTF-8 of the unicode-tree serialization (normal path) |
+| `0` | uncompressed UTF-8 (encoder fallback when `CompressionStream` is unavailable; decoders accept it forever) |
+
+- Any other version char is a clean decode error — a future payload format fails loudly on old pages instead of rendering garbage.
+- The canonical body is the **unicode-tree serialization**, so links inherit the serializer round-trip guarantee. Open/closed folder state is **not** encoded — imported structures open fully.
+- `theme=light|dark` forces a theme on `/embed` only (embeds in tools like Notion can't see the host's dark mode); without it the embed follows the viewer's OS preference. The main app ignores the param.
+
+---
+
 ## Sources & Further Reading
 
 - [How to Represent Folder Trees in Docs and Code — Jack Bishop](https://www.jackbishop.co/posts/representing-folder-trees-docs-code)

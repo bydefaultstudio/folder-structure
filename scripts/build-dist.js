@@ -3,6 +3,7 @@
 // templates, markdown, and tooling must never reach the published host.
 //
 //   index.html -> dist/index.html
+//   embed.html -> dist/embed.html
 //   assets/    -> dist/assets/
 //
 // Requires npm install to have run first: assets/css/design-system.css
@@ -23,6 +24,7 @@ fs.rmSync(dist, { recursive: true, force: true });
 fs.mkdirSync(dist);
 
 fs.copyFileSync(path.join(root, 'index.html'), path.join(dist, 'index.html'));
+fs.copyFileSync(path.join(root, 'embed.html'), path.join(dist, 'embed.html'));
 fs.cpSync(path.join(root, 'assets'), path.join(dist, 'assets'), {
   recursive: true,
   filter: (src) => path.basename(src) !== '.DS_Store',

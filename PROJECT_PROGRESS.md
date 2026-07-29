@@ -4,6 +4,27 @@ Track what's been done and what still needs doing across sessions. Add a dated s
 
 ---
 
+## 2026-07-30 — Expand/collapse-all toolbar toggle
+
+New icon-only button in the zoom cluster (after Fit to view) on both `index.html` and `embed.html`, using the tree's own `folder`/`folder-open` sprites from `project-icons.svg`. The icon previews the result of clicking: open folder = "Expand all" whenever any nested folder is closed (mixed or fully collapsed), closed folder = "Collapse all" only once every nested folder is open. Top-level folders (direct children of the virtual root) are excluded from the state check and forced open on collapse, so the first level always stays visible (per Erlen's spec).
+
+- **tree-model.js 1.2.0** — `setAllOpen(open)` + `allNestedOpen()` on the model API; emits `set-all-open` (full re-render via the reason-agnostic `fs:modelchange` listener). Like `toggle()`, deliberately not in undo history. `allNestedOpen()` returns false when nothing is nested so the button defaults to "expand all"
+- **app.js 1.2.0 / embed.js 1.1.0** — `toggle-all` action branch + `updateToggleAllButton()` (swaps sprite href, `data-icon`, aria-label, tooltip) wired to `fs:modelchange` and run at init; duplicated in embed.js mirroring the existing zoom-handler duplication (embed deliberately omits app.js)
+- Verified via node harness (stubbed globals): mixed→expand, full-expand→collapse, root stays open, manually-closed root reopened on collapse, no-nested-folders default, change events emitted
+
+The structure travels in the URL fragment — no backend, no storage (reverses the brief's "shareable URLs" non-goal, now marked shipped there). Grammar documented in `docs/tree-notation.md` → Share-Link Fragment Encoding: `#t=<version char><base64url payload>[&theme=light|dark]`, version `1` = deflate-raw of the unicode-tree text, `0` = uncompressed fallback.
+
+- **`tree-share.js` (new)** — pure fragment codec (`FolderStructure.share`): `encodeTree`, `parseFragment`, `decodePayload`, `decodeFragment`. Native `CompressionStream('deflate-raw')` + base64url, no deps
+- **`embed.html` + `embed.js` (new)** — read-only viewer at `/embed`: decodes the fragment, imports via the canonical recipe, fits. Loads model/parsers/layout/render/canvas/keyboard only — no tree-edit/app.js, which (plus CSS gating on `.is-edit-mode`) is what makes it read-only. Pan/zoom/click-to-toggle/keyboard nav all work; zoom cluster + "Made with" branding link (round-trips the same fragment into the editor); error card on bad/missing payloads; `noindex`. `&theme=` override for hosts whose dark mode can't reach the iframe
+- **`tree-model.js` 1.2.0** — `window.FolderStructureConfig` opt-outs: `{persist:false}` skips load/save (embed must never read or clobber the visitor's `folder-structure:v1`; save() fires on every view change incl. fit), `{sample:false}` starts empty (no sample flash before decode). Also `setAllOpen`/`allNestedOpen` powering the new expand/collapse-all zoom-cluster button on both pages (icon previews the action; top-level folders always stay open)
+- **`tree-keyboard.js` 1.2.0** — guards the unconditional `edit.getMode()` deref so keyboard nav works where tree-edit is absent
+- **Export dialog** — fifth segment "Embed": iframe snippet (or plain URL via "for Notion" checkbox), async preview guarded by a monotonic token against stale writes, empty-tree hint, >2,000-char URL warning. Hard-coded `https://` base (no http→https redirect on the subdomain; http would be mixed content in Notion)
+- **app.js 1.1.0** — share-link import on boot: decode fragment → import → `history.replaceState` clears the hash → toast with **Undo** (the safety net for the visitor's replaced tree). Import recipe deduped into `applyImportedTree` (shared with dialog import)
+- **build-dist.js** — now also copies `embed.html`; docs/setup.md build-contract bullet updated (+ note that `/embed` depends on no anti-framing headers)
+- Verified locally (Node codec suite + headless-Chrome/puppeteer against `dist/`): codec round-trip incl. unicode + uncompressed fallback + clean rejects; embed renders read-only (zero visible edit affordances) with working pan/zoom/click-toggle/keyboard; persistence isolation (embed never touches `folder-structure:v1`); error states; `theme=dark`; index share-link import with hash-clear + toast Undo; export-dialog race guard, plain-URL mode, empty-tree warning; cross-origin iframe render; `/embed` extensionless route 200 with no anti-framing headers under `wrangler dev`. Still pending post-deploy: a real Notion paste test on the live URL
+
+---
+
 ## 2026-07-29 — Edit UX: selection-driven actions chip, save-rename toggle
 
 Per Erlen's feedback (uncommitted; source `assets/` only, `dist/` rebuilds via CI):

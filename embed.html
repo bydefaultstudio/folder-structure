@@ -1,0 +1,117 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <!-- Essential -->
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Folder Structure Embed — Interactive Tree Diagram Viewer</title>
+  <meta name="description" content="A read-only embedded view of a folder structure diagram. Pan, zoom and expand folders right inside the page — created with the free Folder Structure tool." />
+
+  <!-- Canonical -->
+  <link rel="canonical" href="https://folder-structure.bydefault.studio/embed" />
+
+  <!-- Robots (embeds are per-user fragment views — never index) -->
+  <meta name="robots" content="noindex, nofollow" />
+
+  <!-- Open Graph -->
+  <meta property="og:type" content="website" />
+  <meta property="og:url" content="https://folder-structure.bydefault.studio/embed" />
+  <meta property="og:title" content="Folder Structure Embed — Interactive Tree Diagram Viewer" />
+  <meta property="og:description" content="A read-only embedded view of a folder structure diagram. Pan, zoom and expand folders right inside the page." />
+  <meta property="og:image" content="https://folder-structure.bydefault.studio/assets/images/og-default.jpg" />
+  <meta property="og:image:width" content="1200" />
+  <meta property="og:image:height" content="630" />
+  <meta property="og:image:alt" content="An interactive folder structure diagram" />
+  <meta property="og:site_name" content="Folder Structure" />
+  <meta property="og:locale" content="en_US" />
+
+  <!-- X (formerly Twitter) -->
+  <meta name="twitter:card" content="summary_large_image" />
+  <meta name="twitter:url" content="https://folder-structure.bydefault.studio/embed" />
+  <meta name="twitter:title" content="Folder Structure Embed — Interactive Tree Diagram Viewer" />
+  <meta name="twitter:description" content="A read-only embedded view of a folder structure diagram. Pan, zoom and expand folders right inside the page." />
+  <meta name="twitter:image" content="https://folder-structure.bydefault.studio/assets/images/og-default.jpg" />
+  <meta name="twitter:image:alt" content="An interactive folder structure diagram" />
+
+  <!-- Theme Color -->
+  <meta name="theme-color" content="#1A54D6" />
+
+  <!-- Favicons -->
+  <link rel="icon" href="assets/icons/favicon.ico">
+  <link rel="icon" type="image/svg+xml" href="assets/icons/favicon.svg">
+  <link rel="apple-touch-icon" href="assets/icons/apple-touch-icon.png">
+
+  <!-- Embed config + explicit theme override, before first paint.
+       No theme-toggle.js here: the CSS follows the viewer's OS theme
+       unless the fragment forces one (Notion dark mode can't reach a
+       cross-origin iframe, so authors append &theme=dark). -->
+  <script>
+    window.FolderStructureConfig = { persist: false, sample: false };
+    (function applyFragmentTheme() {
+      var match = /(?:^|[#&])theme=(dark|light)(?:&|$)/.exec(location.hash);
+      if (match) { document.documentElement.setAttribute('data-theme', match[1]); }
+    })();
+  </script>
+
+  <!-- Design System Framework -->
+  <link rel="stylesheet" href="assets/css/design-system.css" />
+  <!-- Brand Theme -->
+  <link rel="stylesheet" href="assets/css/theme.css" />
+  <!-- Project Styles -->
+  <link rel="stylesheet" href="assets/css/style.css" />
+</head>
+<body class="is-app is-embed">
+
+  <div class="app">
+
+    <div class="canvas-viewport">
+      <div class="canvas-surface">
+        <div class="tree-connectors" aria-hidden="true"></div>
+        <div class="tree" role="tree" aria-label="Folder structure"></div>
+        <div class="tree-gaps" aria-hidden="true"></div>
+        <span class="tree-label tree-measure-probe" aria-hidden="true">M</span>
+      </div>
+    </div>
+
+    <a class="embed-branding" href="https://folder-structure.bydefault.studio/" target="_blank" rel="noopener">
+      <span class="embed-branding-text">Made with</span>
+      <span class="svg-logo">
+        <svg viewBox="0 0 246 25" fill="none" width="100%" height="100%" aria-hidden="true"><use href="assets/icons/project-icons.svg#logo-wordmark"></use></svg>
+      </span>
+    </a>
+
+    <div class="zoom-controls" role="group" aria-label="Zoom">
+      <button class="button" type="button" data-variant="transparent" data-icon-only data-size="small" data-app-action="zoom-out" aria-label="Zoom out" data-tooltip="Zoom out" data-tooltip-position="top">
+        <span class="svg-icn" data-icon="minus"><svg fill="none" width="100%" height="100%" aria-hidden="true"><use href="assets/icons/icons.svg#minus"></use></svg></span>
+      </button>
+      <button class="button" type="button" data-variant="transparent" data-icon-only data-size="small" data-app-action="zoom-in" aria-label="Zoom in" data-tooltip="Zoom in" data-tooltip-position="top">
+        <span class="svg-icn" data-icon="add"><svg fill="none" width="100%" height="100%" aria-hidden="true"><use href="assets/icons/icons.svg#add"></use></svg></span>
+      </button>
+      <button class="button" type="button" data-variant="transparent" data-size="small" data-app-action="zoom-100" aria-label="Zoom to 100%" data-tooltip="Zoom to 100%" data-tooltip-position="top">100%</button>
+      <button class="button" type="button" data-variant="transparent" data-icon-only data-size="small" data-app-action="fit" aria-label="Fit diagram to view" data-tooltip="Fit to view" data-tooltip-position="top">
+        <span class="svg-icn" data-icon="full-screen"><svg fill="none" width="100%" height="100%" aria-hidden="true"><use href="assets/icons/icons.svg#full-screen"></use></svg></span>
+      </button>
+      <button class="button" type="button" data-variant="transparent" data-icon-only data-size="small" data-app-action="toggle-all" aria-label="Expand all folders" data-tooltip="Expand all" data-tooltip-position="top">
+        <span class="svg-icn" data-icon="folder-open"><svg fill="none" width="100%" height="100%" aria-hidden="true"><use href="assets/icons/project-icons.svg#folder-open"></use></svg></span>
+      </button>
+    </div>
+
+  </div>
+
+  <div class="embed-error is-hidden" role="alert">
+    <div class="embed-error-card">
+      <p class="embed-error-message"></p>
+      <a class="button" href="https://folder-structure.bydefault.studio/">Open Folder Structure</a>
+    </div>
+  </div>
+
+  <script src="assets/js/tree-model.js"></script>
+  <script src="assets/js/tree-parsers.js"></script>
+  <script src="assets/js/tree-layout.js"></script>
+  <script src="assets/js/tree-render.js"></script>
+  <script src="assets/js/tree-canvas.js"></script>
+  <script src="assets/js/tree-keyboard.js"></script>
+  <script src="assets/js/tree-share.js"></script>
+  <script src="assets/js/embed.js"></script>
+</body>
+</html>

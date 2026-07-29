@@ -116,6 +116,9 @@
       <button class="button" type="button" data-variant="transparent" data-icon-only data-size="small" data-app-action="fit" aria-label="Fit diagram to view" data-tooltip="Fit to view" data-tooltip-position="top">
         <span class="svg-icn" data-icon="full-screen"><svg fill="none" width="100%" height="100%" aria-hidden="true"><use href="assets/icons/icons.svg#full-screen"></use></svg></span>
       </button>
+      <button class="button" type="button" data-variant="transparent" data-icon-only data-size="small" data-app-action="toggle-all" aria-label="Expand all folders" data-tooltip="Expand all" data-tooltip-position="top">
+        <span class="svg-icn" data-icon="folder-open"><svg fill="none" width="100%" height="100%" aria-hidden="true"><use href="assets/icons/project-icons.svg#folder-open"></use></svg></span>
+      </button>
     </div>
 
   </div>
@@ -153,12 +156,18 @@
           <button class="segmented-control-btn" type="button" data-format="ascii-tree" aria-pressed="false">ASCII</button>
           <button class="segmented-control-btn" type="button" data-format="markdown-list" aria-pressed="false">Markdown</button>
           <button class="segmented-control-btn" type="button" data-format="path-list" aria-pressed="false">Paths</button>
+          <button class="segmented-control-btn" type="button" data-format="embed" aria-pressed="false">Embed</button>
         </div>
         <textarea class="export-output" rows="14" readonly aria-label="Exported structure"></textarea>
-        <label class="form-check">
+        <label class="form-check export-fence-row">
           <input type="checkbox" class="export-fence" />
           <span>Wrap in a <code>```text</code> code fence</span>
         </label>
+        <label class="form-check export-embed-url-row is-hidden">
+          <input type="checkbox" class="export-embed-url" />
+          <span>Plain URL only (for Notion)</span>
+        </label>
+        <p class="form-hint export-embed-warning is-hidden"></p>
       </div>
     </div>
     <div class="dialog-footer">
@@ -194,6 +203,7 @@
   <script src="assets/js/tree-model.js"></script>
   <script src="assets/js/tree-parsers.js"></script>
   <script src="assets/js/tree-serializers.js"></script>
+  <script src="assets/js/tree-share.js"></script>
   <script src="assets/js/tree-layout.js"></script>
   <script src="assets/js/tree-render.js"></script>
   <script src="assets/js/tree-canvas.js"></script>

@@ -6,13 +6,18 @@
    window.FolderStructure.model and listen for the 'fs:modelchange'
    event (detail: {reason, id}) dispatched after every mutation.
    Persists to localStorage (debounced) on model and view changes;
-   falls back to in-memory when storage is unavailable.
+   falls back to in-memory when storage is unavailable. Pages can opt
+   out before this script loads via window.FolderStructureConfig:
+   {persist:false} skips load/save entirely, {sample:false} starts
+   from an empty tree instead of the sample (embed.html uses both).
    ───────────────────────────── */
 
 (function () {
-  var VERSION = '1.0.0';
+  var VERSION = '1.2.0';
   var STORAGE_KEY = 'folder-structure:v1';
   var SAVE_DEBOUNCE_MS = 300;
+
+  var config = window.FolderStructureConfig || {};
 
   var state = {
     root: null,           // virtual root: {id:'root', type:'folder', open:true, children:[]}
@@ -239,6 +244,43 @@
     return node.open;
   }
 
+  // Global expand/collapse for the toolbar toggle. Top-level folders
+  // (direct children of the virtual root) always stay open so the first
+  // level of the diagram remains visible. Like toggle(), not in history.
+  function setAllOpen(open) {
+    function walk(node, depth) {
+      for (var i = 0; i < node.children.length; i++) {
+        var child = node.children[i];
+        if (child.type !== 'folder') { continue; }
+        child.open = open || depth === 0;
+        if (child.children) { walk(child, depth + 1); }
+      }
+    }
+    walk(state.root, 0);
+    emitChange('set-all-open', 'root');
+  }
+
+  // True when every folder below the top level is open — drives the
+  // expand/collapse-all toggle state. False when nothing is nested, so
+  // the toggle defaults to "expand all".
+  function allNestedOpen() {
+    var sawNested = false;
+    var allOpen = true;
+    function walk(node, depth) {
+      for (var i = 0; i < node.children.length; i++) {
+        var child = node.children[i];
+        if (child.type !== 'folder') { continue; }
+        if (depth > 0) {
+          sawNested = true;
+          if (!child.open) { allOpen = false; }
+        }
+        if (child.children) { walk(child, depth + 1); }
+      }
+    }
+    walk(state.root, 0);
+    return sawNested && allOpen;
+  }
+
   function replaceTree(newRoot) {
     snapshot();
     state.root = newRoot;
@@ -319,7 +361,7 @@
   }
 
   function save() {
-    if (!state.storageOk) { return; }
+    if (config.persist === false || !state.storageOk) { return; }
     try {
       localStorage.setItem(STORAGE_KEY, JSON.stringify({
         version: 1,
@@ -364,11 +406,15 @@
   //------- Init -------//
   //
 
+  function emptyRoot() {
+    return { id: 'root', name: 'root', type: 'folder', open: true, children: [] };
+  }
+
   function initTreeModel() {
-    var restored = load();
+    var restored = config.persist === false ? false : load();
     if (!restored) {
-      state.root = buildSample();
-      state.focusedId = state.root.children[0].id;
+      state.root = config.sample === false ? emptyRoot() : buildSample();
+      state.focusedId = state.root.children[0] ? state.root.children[0].id : null;
     }
     window.FolderStructure = window.FolderStructure || {};
     window.FolderStructure.model = {
@@ -385,6 +431,8 @@
       indent: indent,
       outdent: outdent,
       toggle: toggle,
+      setAllOpen: setAllOpen,
+      allNestedOpen: allNestedOpen,
       undo: undo,
       redo: redo,
       canUndo: function canUndo() { return history.length > 0; },

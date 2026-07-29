@@ -2,18 +2,26 @@
    APP
    ─────────────────────────────
    Boot orchestration and chrome wiring: toolbar actions, the import
-   and export dialogs (native <dialog>), clipboard copy, and toasts.
+   and export dialogs (native <dialog>), clipboard copy, toasts, and
+   share-link import from the URL fragment (see tree-share.js).
    Loads last — every other FolderStructure module is available.
    ───────────────────────────── */
 
 (function () {
-  var VERSION = '1.0.0';
+  var VERSION = '1.2.0';
   var TOAST_DURATION_MS = 5000;
+  // Hard-coded https: the subdomain serves plain http without a
+  // redirect, and an http embed URL is mixed content inside Notion.
+  var EMBED_BASE_URL = 'https://folder-structure.bydefault.studio/embed';
+  var URL_LENGTH_WARN = 2000;
 
   var importDialog = null;
   var exportDialog = null;
   var aboutDialog = null;
   var exportFormat = 'unicode-tree';
+  // Bumped on every preview refresh so a slow async embed encode can
+  // never overwrite the output of a later format selection.
+  var exportPreviewToken = 0;
 
   function fs() { return window.FolderStructure; }
 
@@ -83,18 +91,22 @@
       return;
     }
     error.classList.add('is-hidden');
-    var model = fs().model;
-    model.state.lastId = 0;
-    for (var i = 0; i < result.tree.children.length; i++) {
-      model.assignIds(result.tree.children[i]);
-    }
-    model.replaceTree(result.tree);
-    model.state.focusedId = result.tree.children[0] ? result.tree.children[0].id : null;
+    applyImportedTree(result.tree);
     importDialog.close();
     textarea.value = '';
     updateImportDetection();
     fs().canvas.fit();
     toast('Imported — ' + countNodes(result.tree) + ' items');
+  }
+
+  function applyImportedTree(tree) {
+    var model = fs().model;
+    model.state.lastId = 0;
+    for (var i = 0; i < tree.children.length; i++) {
+      model.assignIds(tree.children[i]);
+    }
+    model.replaceTree(tree);
+    model.state.focusedId = tree.children[0] ? tree.children[0].id : null;
   }
 
   function countNodes(root) {
@@ -110,13 +122,107 @@
   }
 
   //
+  //------- Share links -------//
+  //
+
+  function importFromFragment() {
+    if (!fs().share.parseFragment(location.hash)) { return; }
+    fs().share.decodeFragment(location.hash).then(
+      function handleShared(result) {
+        clearFragment();
+        if (!result) { return; }
+        var parsed = fs().parsers.parse(result.text);
+        if (!parsed) {
+          toast('Couldn’t read the shared link');
+          return;
+        }
+        applyImportedTree(parsed.tree);
+        fs().canvas.fit();
+        toast('Loaded shared structure — ' + countNodes(parsed.tree) + ' items', {
+          actionLabel: 'Undo',
+          onAction: undoSharedImport
+        });
+      },
+      function handleSharedFail() {
+        clearFragment();
+        toast('Couldn’t read the shared link');
+      }
+    );
+  }
+
+  function undoSharedImport() {
+    fs().model.undo();
+  }
+
+  // Clear the fragment so reloads and copied URLs don't re-import.
+  function clearFragment() {
+    history.replaceState(null, '', location.pathname + location.search);
+  }
+
+  //
   //------- Export -------//
   //
 
   function updateExportPreview() {
+    exportPreviewToken += 1;
+    toggleExportControls();
     var output = exportDialog.querySelector('.export-output');
+    output.placeholder = '';
+    if (exportFormat === 'embed') {
+      updateEmbedPreview(exportPreviewToken);
+      return;
+    }
     var fence = exportDialog.querySelector('.export-fence').checked;
     output.value = fs().serializers.serialize(fs().model.state.root, exportFormat, { fence: fence });
+  }
+
+  function toggleExportControls() {
+    var isEmbed = exportFormat === 'embed';
+    exportDialog.querySelector('.export-fence-row').classList.toggle('is-hidden', isEmbed);
+    exportDialog.querySelector('.export-embed-url-row').classList.toggle('is-hidden', !isEmbed);
+    if (!isEmbed) {
+      exportDialog.querySelector('.export-embed-warning').classList.add('is-hidden');
+    }
+  }
+
+  function showEmbedWarning(message) {
+    var warning = exportDialog.querySelector('.export-embed-warning');
+    warning.textContent = message;
+    warning.classList.remove('is-hidden');
+  }
+
+  function updateEmbedPreview(token) {
+    var output = exportDialog.querySelector('.export-output');
+    var urlOnly = exportDialog.querySelector('.export-embed-url').checked;
+    output.value = '';
+    if (!fs().model.state.root.children.length) {
+      showEmbedWarning('Your structure is empty — add folders or files before embedding.');
+      return;
+    }
+    output.placeholder = 'Generating link…';
+    var text = fs().serializers.serialize(fs().model.state.root, 'unicode-tree', { fence: false });
+    fs().share.encodeTree(text).then(
+      function handleEncoded(payload) {
+        if (token !== exportPreviewToken) { return; }
+        var url = EMBED_BASE_URL + '#t=' + payload;
+        output.placeholder = '';
+        output.value = urlOnly ? url : buildIframeSnippet(url);
+        if (url.length > URL_LENGTH_WARN) {
+          showEmbedWarning('This link is ' + url.length + ' characters. Browsers and iframes handle it fine, but some tools truncate URLs over ~2,000 characters.');
+        } else {
+          exportDialog.querySelector('.export-embed-warning').classList.add('is-hidden');
+        }
+      },
+      function handleEncodeFail() {
+        if (token !== exportPreviewToken) { return; }
+        output.placeholder = '';
+        showEmbedWarning('Couldn’t generate an embed link in this browser.');
+      }
+    );
+  }
+
+  function buildIframeSnippet(url) {
+    return '<iframe src="' + url + '" width="100%" height="480" style="border:0" loading="lazy" title="Folder structure diagram"></iframe>';
   }
 
   function handleExportFormatClick(event) {
@@ -187,6 +293,8 @@
       fs().model.redo();
     } else if (action === 'fit') {
       fs().canvas.fit();
+    } else if (action === 'toggle-all') {
+      fs().model.setAllOpen(!fs().model.allNestedOpen());
     } else if (action === 'zoom-in') {
       fs().canvas.zoomIn();
     } else if (action === 'zoom-out') {
@@ -194,6 +302,22 @@
     } else if (action === 'zoom-100') {
       fs().canvas.zoomTo100();
     }
+  }
+
+  // The expand/collapse-all button previews the result of clicking:
+  // open-folder icon = "expand all" until every nested folder is open,
+  // then closed-folder icon = "collapse all".
+  function updateToggleAllButton() {
+    var btn = document.querySelector('[data-app-action="toggle-all"]');
+    if (!btn) { return; }
+    var expanded = fs().model.allNestedOpen();
+    var symbol = expanded ? 'folder' : 'folder-open';
+    var label = expanded ? 'Collapse all folders' : 'Expand all folders';
+    btn.setAttribute('aria-label', label);
+    btn.setAttribute('data-tooltip', expanded ? 'Collapse all' : 'Expand all');
+    var icon = btn.querySelector('.svg-icn');
+    icon.setAttribute('data-icon', symbol);
+    icon.querySelector('use').setAttribute('href', 'assets/icons/project-icons.svg#' + symbol);
   }
 
   //
@@ -236,12 +360,15 @@
     document.addEventListener('click', handleToolbarClick);
     document.addEventListener('keydown', handleHistoryKeydown);
     document.addEventListener('fs:modelchange', updateHistoryButtons);
+    document.addEventListener('fs:modelchange', updateToggleAllButton);
     document.querySelector('#edit-mode-switch').addEventListener('change', handleEditSwitchChange);
     updateHistoryButtons();
+    updateToggleAllButton();
     importDialog.querySelector('.import-textarea').addEventListener('input', updateImportDetection);
     importDialog.querySelector('.import-run').addEventListener('click', runImport);
     exportDialog.querySelector('.export-formats').addEventListener('click', handleExportFormatClick);
     exportDialog.querySelector('.export-fence').addEventListener('change', updateExportPreview);
+    exportDialog.querySelector('.export-embed-url').addEventListener('change', updateExportPreview);
     exportDialog.querySelector('.export-copy').addEventListener('click', copyExport);
 
     window.FolderStructure = window.FolderStructure || {};
@@ -251,6 +378,7 @@
     if (!fs().model.restoredFromStorage) {
       fs().canvas.fit();
     }
+    importFromFragment();
     console.log('app.js v' + VERSION + ' initialised');
   }
 

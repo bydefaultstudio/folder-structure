@@ -16,7 +16,7 @@
    ───────────────────────────── */
 
 (function () {
-  var VERSION = '1.1.0';
+  var VERSION = '1.2.0';
 
   function model() { return window.FolderStructure.model; }
 
@@ -44,7 +44,9 @@
     if (!node) { return; }
     var ids = visibleIds();
     var index = ids.indexOf(id);
-    var editMode = window.FolderStructure.edit.getMode() === 'edit';
+    // tree-edit is absent on embed.html — navigation-only there.
+    var editApi = window.FolderStructure.edit;
+    var editMode = !!editApi && editApi.getMode() === 'edit';
     var key = event.key;
     var handled = true;
 

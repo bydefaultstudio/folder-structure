@@ -15,7 +15,8 @@ Do not add new top-level folders without updating this file.
 ## Structure
 
 ```
-index.html              → Starter page (replace with project homepage)
+index.html              → The app: interactive folder-structure editor
+embed.html              → Read-only embed viewer (renders a tree from the URL fragment)
 CLAUDE.md               → Claude Code development rules (authoritative)
 README.md               → Project overview and getting started
 PROJECT_BRIEF.md        → Project brief and requirements
@@ -54,6 +55,8 @@ The three-layer CSS contract. Load order matters — every page links them in th
 ## assets/js/
 
 - `theme-toggle.js` — dark-mode toggle: sets `data-theme` on `<html>`, persists to localStorage, defaults to the OS preference, and injects icons into `.dark-mode-toggle` buttons.
+- `tree-share.js` — fragment codec for share and embed links (see `docs/tree-notation.md` → Share-Link Fragment Encoding). Loaded by both `index.html` and `embed.html`.
+- `embed.js` — bootstrap for `embed.html`: decodes the fragment, imports the tree read-only, wires zoom controls and the branding link.
 
 ## assets/fonts/
 

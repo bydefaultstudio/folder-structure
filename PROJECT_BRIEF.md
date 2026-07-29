@@ -38,7 +38,7 @@ A visual editor and generator makes the structure unambiguous: see it as a tree,
 
 - No user accounts or saving — everything is client-side
 - No backend at all — pure static HTML/CSS/JS
-- No shareable URLs encoding a structure (could come later)
+- ~~No shareable URLs encoding a structure (could come later)~~ — shipped 2026-07 as fragment-encoded share/embed links (`/embed` + `#t=` fragments); still no backend or storage
 - No file/folder uploads — text input and manual editing only
 
 ---
