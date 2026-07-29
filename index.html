@@ -1,0 +1,205 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <!-- Essential -->
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Folder Structure — Visualise Any Folder Tree</title>
+  <meta name="description" content="Paste any folder structure and see it as an interactive diagram — or build one visually and copy clean, AI-ready tree text for Claude and other tools." />
+
+  <!-- Canonical -->
+  <link rel="canonical" href="https://folder-structure-4zp.pages.dev/" />
+
+  <!-- Robots (switch to index,follow at launch) -->
+  <meta name="robots" content="noindex, nofollow" />
+
+  <!-- Open Graph -->
+  <meta property="og:type" content="website" />
+  <meta property="og:url" content="https://folder-structure-4zp.pages.dev/" />
+  <meta property="og:title" content="Folder Structure — Visualise Any Folder Tree" />
+  <meta property="og:description" content="Paste any folder structure and see it as an interactive diagram — or build one visually and copy AI-ready tree text." />
+  <meta property="og:image" content="https://folder-structure-4zp.pages.dev/assets/images/og-default.jpg" />
+  <meta property="og:image:width" content="1200" />
+  <meta property="og:image:height" content="630" />
+  <meta property="og:image:alt" content="An interactive folder structure diagram" />
+  <meta property="og:site_name" content="Folder Structure" />
+  <meta property="og:locale" content="en_US" />
+
+  <!-- X (formerly Twitter) -->
+  <meta name="twitter:card" content="summary_large_image" />
+  <meta name="twitter:url" content="https://folder-structure-4zp.pages.dev/" />
+  <meta name="twitter:title" content="Folder Structure — Visualise Any Folder Tree" />
+  <meta name="twitter:description" content="Paste any folder structure and see it as an interactive diagram — or build one visually and copy AI-ready tree text." />
+  <meta name="twitter:image" content="https://folder-structure-4zp.pages.dev/assets/images/og-default.jpg" />
+  <meta name="twitter:image:alt" content="An interactive folder structure diagram" />
+
+  <!-- Theme Color -->
+  <meta name="theme-color" content="#1A54D6" />
+
+  <!-- Favicons -->
+  <link rel="icon" href="assets/icons/favicon.ico">
+  <link rel="icon" type="image/svg+xml" href="assets/icons/favicon.svg">
+  <link rel="apple-touch-icon" href="assets/icons/apple-touch-icon.png">
+
+  <!-- Design System Framework -->
+  <link rel="stylesheet" href="assets/css/design-system.css" />
+  <!-- Brand Theme -->
+  <link rel="stylesheet" href="assets/css/theme.css" />
+  <!-- Project Styles -->
+  <link rel="stylesheet" href="assets/css/style.css" />
+
+  <!-- Theme toggle (in <head> so dark mode applies before first paint) -->
+  <script src="assets/js/theme-toggle.js"></script>
+</head>
+<body class="is-app">
+
+  <div class="app">
+
+    <div class="canvas-viewport">
+      <div class="canvas-surface">
+        <div class="tree-connectors" aria-hidden="true"></div>
+        <div class="tree" role="tree" aria-label="Folder structure"></div>
+        <div class="tree-gaps" aria-hidden="true"></div>
+        <span class="tree-label tree-measure-probe" aria-hidden="true">M</span>
+      </div>
+    </div>
+
+    <header class="app-toolbar">
+      <button class="button" type="button" data-variant="transparent" data-size="small" data-app-action="import" data-tooltip="Paste a structure in" data-tooltip-position="bottom">
+        <span class="svg-icn" data-icon="download"><svg fill="none" width="100%" height="100%" aria-hidden="true"><use href="assets/icons/icons.svg#download"></use></svg></span>
+        <span class="button-text">Import</span>
+      </button>
+      <button class="button" type="button" data-variant="transparent" data-size="small" data-app-action="export" data-tooltip="Copy the structure out" data-tooltip-position="bottom">
+        <span class="svg-icn" data-icon="copy"><svg fill="none" width="100%" height="100%" aria-hidden="true"><use href="assets/icons/icons.svg#copy"></use></svg></span>
+        <span class="button-text">Export</span>
+      </button>
+      <span class="toolbar-divider" aria-hidden="true"></span>
+      <button class="button dark-mode-toggle" type="button" data-variant="transparent" data-icon-only data-size="small" aria-label="Toggle dark mode" data-tooltip="Toggle dark mode" data-tooltip-position="bottom"></button>
+    </header>
+
+    <div class="app-logo">
+      <button class="button app-logo-button" type="button" data-variant="transparent" data-size="small" data-app-action="about" aria-label="About Folder Structure" data-tooltip="About" data-tooltip-position="right">
+        <span class="svg-logo">
+          <svg viewBox="0 0 246 25" fill="none" width="100%" height="100%" aria-hidden="true"><use href="assets/icons/project-icons.svg#logo-wordmark"></use></svg>
+        </span>
+        <span class="svg-icn app-logo-info" data-icon="info"><svg fill="none" width="100%" height="100%" aria-hidden="true"><use href="assets/icons/icons.svg#info"></use></svg></span>
+      </button>
+    </div>
+
+    <div class="edit-bar">
+      <div class="form-toggle is-label-right">
+        <input type="checkbox" id="edit-mode-switch" />
+        <label for="edit-mode-switch">Edit</label>
+      </div>
+      <span class="toolbar-divider" aria-hidden="true"></span>
+      <button class="button" type="button" data-variant="transparent" data-icon-only data-size="small" data-app-action="undo" aria-label="Undo" data-tooltip="Undo" data-tooltip-position="top">
+        <span class="svg-icn" data-icon="back-arrow"><svg fill="none" width="100%" height="100%" aria-hidden="true"><use href="assets/icons/icons.svg#back-arrow"></use></svg></span>
+      </button>
+      <button class="button" type="button" data-variant="transparent" data-icon-only data-size="small" data-app-action="redo" aria-label="Redo" data-tooltip="Redo" data-tooltip-position="top">
+        <span class="svg-icn icon-flip-x" data-icon="back-arrow"><svg fill="none" width="100%" height="100%" aria-hidden="true"><use href="assets/icons/icons.svg#back-arrow"></use></svg></span>
+      </button>
+      <span class="toolbar-divider" aria-hidden="true"></span>
+      <button class="button" type="button" data-variant="transparent" data-size="small" data-app-action="start-fresh" data-tooltip="Start a new structure" data-tooltip-position="top">
+        <span class="svg-icn" data-icon="refresh"><svg fill="none" width="100%" height="100%" aria-hidden="true"><use href="assets/icons/icons.svg#refresh"></use></svg></span>
+        <span class="button-text">Start fresh</span>
+      </button>
+    </div>
+
+    <div class="zoom-controls" role="group" aria-label="Zoom">
+      <button class="button" type="button" data-variant="transparent" data-icon-only data-size="small" data-app-action="zoom-out" aria-label="Zoom out" data-tooltip="Zoom out" data-tooltip-position="top">
+        <span class="svg-icn" data-icon="minus"><svg fill="none" width="100%" height="100%" aria-hidden="true"><use href="assets/icons/icons.svg#minus"></use></svg></span>
+      </button>
+      <button class="button" type="button" data-variant="transparent" data-icon-only data-size="small" data-app-action="zoom-in" aria-label="Zoom in" data-tooltip="Zoom in" data-tooltip-position="top">
+        <span class="svg-icn" data-icon="add"><svg fill="none" width="100%" height="100%" aria-hidden="true"><use href="assets/icons/icons.svg#add"></use></svg></span>
+      </button>
+      <button class="button" type="button" data-variant="transparent" data-size="small" data-app-action="zoom-100" aria-label="Zoom to 100%" data-tooltip="Zoom to 100%" data-tooltip-position="top">100%</button>
+      <button class="button" type="button" data-variant="transparent" data-icon-only data-size="small" data-app-action="fit" aria-label="Fit diagram to view" data-tooltip="Fit to view" data-tooltip-position="top">
+        <span class="svg-icn" data-icon="full-screen"><svg fill="none" width="100%" height="100%" aria-hidden="true"><use href="assets/icons/icons.svg#full-screen"></use></svg></span>
+      </button>
+    </div>
+
+  </div>
+
+  <dialog class="dialog" data-dialog="import" aria-labelledby="import-title">
+    <div class="dialog-header">
+      <h2 class="dialog-title" id="import-title">Import a structure</h2>
+      <button class="button dialog-close" type="button" data-variant="transparent" data-icon-only aria-label="Close" data-tooltip="Close" data-tooltip-position="left">
+        <span class="svg-icn" data-icon="close"><svg fill="none" width="100%" height="100%" aria-hidden="true"><use href="assets/icons/icons.svg#close"></use></svg></span>
+      </button>
+    </div>
+    <div class="dialog-body">
+      <div class="block gap-s">
+        <p class="form-hint import-detected">Paste a structure to auto-detect the format</p>
+        <textarea class="import-textarea" rows="12" aria-label="Structure text" placeholder="my-project/&#10;├── index.html&#10;└── assets/&#10;    └── style.css&#10;&#10;Also works: indented lists, markdown bullets, or file paths."></textarea>
+        <p class="form-error import-error is-hidden"></p>
+      </div>
+    </div>
+    <div class="dialog-footer">
+      <button class="button import-run" type="button">Import</button>
+    </div>
+  </dialog>
+
+  <dialog class="dialog" data-dialog="export" aria-labelledby="export-title">
+    <div class="dialog-header">
+      <h2 class="dialog-title" id="export-title">Copy your structure</h2>
+      <button class="button dialog-close" type="button" data-variant="transparent" data-icon-only aria-label="Close" data-tooltip="Close" data-tooltip-position="left">
+        <span class="svg-icn" data-icon="close"><svg fill="none" width="100%" height="100%" aria-hidden="true"><use href="assets/icons/icons.svg#close"></use></svg></span>
+      </button>
+    </div>
+    <div class="dialog-body">
+      <div class="block gap-s">
+        <div class="segmented-control export-formats" role="group" aria-label="Export format">
+          <button class="segmented-control-btn is-active" type="button" data-format="unicode-tree" aria-pressed="true">Tree</button>
+          <button class="segmented-control-btn" type="button" data-format="ascii-tree" aria-pressed="false">ASCII</button>
+          <button class="segmented-control-btn" type="button" data-format="markdown-list" aria-pressed="false">Markdown</button>
+          <button class="segmented-control-btn" type="button" data-format="path-list" aria-pressed="false">Paths</button>
+        </div>
+        <textarea class="export-output" rows="14" readonly aria-label="Exported structure"></textarea>
+        <label class="form-check">
+          <input type="checkbox" class="export-fence" />
+          <span>Wrap in a <code>```text</code> code fence</span>
+        </label>
+      </div>
+    </div>
+    <div class="dialog-footer">
+      <button class="button export-copy" type="button">
+        <span class="svg-icn" data-icon="copy"><svg fill="none" width="100%" height="100%" aria-hidden="true"><use href="assets/icons/icons.svg#copy"></use></svg></span>
+        Copy to clipboard
+      </button>
+    </div>
+  </dialog>
+
+  <dialog class="dialog" data-dialog="about" aria-labelledby="about-title">
+    <div class="dialog-header">
+      <h2 class="dialog-title is-hidden" id="about-title">About Folder Structure</h2>
+      <button class="button dialog-close" type="button" data-variant="transparent" data-icon-only aria-label="Close" data-tooltip="Close" data-tooltip-position="left">
+        <span class="svg-icn" data-icon="close"><svg fill="none" width="100%" height="100%" aria-hidden="true"><use href="assets/icons/icons.svg#close"></use></svg></span>
+      </button>
+    </div>
+    <div class="dialog-body">
+      <div class="block gap-l">
+        <div class="about-logo">
+          <div class="svg-logo">
+            <svg viewBox="0 0 246 25" fill="none" width="100%" height="100%" aria-hidden="true"><use href="assets/icons/project-icons.svg#logo-wordmark"></use></svg>
+          </div>
+        </div>
+        <p>Folder Structure is a free tool for visualising folder structures. Paste a structure in any common format, whether that is a tree diagram, an indented list, markdown bullets or file paths, and it becomes an interactive diagram. Click a folder to open or close it, drag the canvas to move around, and switch on Edit to add, rename, reorder and delete items. When you are happy, export your structure as clean tree text, ready to paste into Claude or any other AI tool.</p>
+        <p class="text-faded">Made by <a href="https://bydefault.studio">By Default</a></p>
+      </div>
+    </div>
+  </dialog>
+
+  <div class="toast-container"></div>
+
+  <script src="assets/js/tree-model.js"></script>
+  <script src="assets/js/tree-parsers.js"></script>
+  <script src="assets/js/tree-serializers.js"></script>
+  <script src="assets/js/tree-layout.js"></script>
+  <script src="assets/js/tree-render.js"></script>
+  <script src="assets/js/tree-canvas.js"></script>
+  <script src="assets/js/tree-edit.js"></script>
+  <script src="assets/js/tree-keyboard.js"></script>
+  <script src="assets/js/app.js"></script>
+
+</body>
+</html>

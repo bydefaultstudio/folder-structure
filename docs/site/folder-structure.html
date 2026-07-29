@@ -1,0 +1,351 @@
+<!DOCTYPE html>
+<html lang="en" >
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Folders - Documentation</title>
+    <meta name="description" content="Guide defining where files live and why in the project structure.">
+
+    <!-- Favicon (per-brand via brand.json, site default otherwise) -->
+    <link rel="icon" type="image/svg+xml" href="./assets/icons/favicon.svg">
+    <link rel="icon" type="image/x-icon" href="./assets/icons/favicon.ico">
+
+    <!-- Open Graph -->
+    <meta property="og:title" content="Folders - Documentation">
+    <meta property="og:description" content="Guide defining where files live and why in the project structure.">
+    <meta property="og:image" content="./assets/images/og/og-default.jpg">
+    <meta property="og:type" content="website">
+
+    <!-- Design System Framework (path set in docs.config.js) -->
+    <link rel="stylesheet" href="./assets/docs-kit/design-system.css" id="design-system-css"
+          onerror="document.getElementById('ds-missing-banner').style.display='flex'">
+    <link rel="stylesheet" href="./assets/css/theme.css">
+
+    
+
+    <!-- Docs chrome styles (layout, nav, page chrome; path set in docs.config.js) -->
+    <link rel="stylesheet" href="./assets/docs-kit/docs.css">
+
+    
+
+    
+
+    
+</head>
+<body>
+
+    <!-- Design system missing banner (shown by JS if CSS variables fail to load) -->
+    <div id="ds-missing-banner" style="display:none;position:fixed;top:0;left:0;right:0;z-index:9999;background:#fffbea;border-bottom:1px solid #f0c040;padding:12px 20px;font-family:sans-serif;font-size:14px;color:#7a5c00;align-items:center;gap:12px;">
+        <span>⚠️</span>
+        <span>Design system CSS not found. Check the path in <code style="background:#fef3c7;padding:2px 6px;border-radius:4px;">docs/docs.config.js</code> → <code style="background:#fef3c7;padding:2px 6px;border-radius:4px;">designSystemPath</code>, then re-run <code style="background:#fef3c7;padding:2px 6px;border-radius:4px;">npm run docgen</code>.</span>
+        <button onclick="document.getElementById('ds-missing-banner').style.display='none'" style="margin-left:auto;background:none;border:1px solid #f0c040;border-radius:4px;padding:4px 10px;cursor:pointer;color:#7a5c00;font-size:13px;">Dismiss</button>
+    </div>
+
+    <!-- Layout grid: nav.js injects header + sidebar before <main> via insertAdjacentHTML -->
+    <div class="docs-layout" id="site-nav" data-base="./">
+    <main class="docs-main-area">
+    <div>
+    <div>
+        <!-- Page Header (full width, outside grid) -->
+        <div class="page-header">
+      <div class="container-s">
+        <h1 data-flip-id="folder-structure">Folders</h1>
+        <p class="page-subtitle" data-text-wrap="pretty">File organization and directory structure</p>
+        
+      </div>
+    </div>
+
+        <!-- Page sub-header bar (full width, sticky: breadcrumb + filename + actions) -->
+        
+
+        <!-- Main Content + TOC grid -->
+        <div class="docs-content-grid padding-global">
+            <!-- Main Content -->
+            <main class="docs-main">
+                <article>
+                    <blockquote>
+<p>Claude: Treat this document as authoritative.</p>
+</blockquote>
+<p>This document defines where files live and why.</p>
+<p>Do not add new top-level folders without updating this file.</p>
+<h2 id="structure">Structure</h2>
+
+      <div class="code-block-wrapper">
+        <button class="button copy-btn is-icon-only" data-size="xsmall" data-clipboard-target="#code-0" data-tooltip="Copy" type="button" aria-label="Copy code"><span class="copy-btn-default"><div class="svg-icn"><svg data-icon="copy" aria-hidden="true" width="100%" height="100%" viewBox="0 0 24 24" fill="none"><path d="M8 14C8 15.1046 8.89543 16 10 16H18C19.1046 16 20 15.1046 20 14V6C20 4.89543 19.1046 4 18 4H10C8.89543 4 8 4.89543 8 6V14ZM6 18V2H22V18H6ZM2 22V6H4V20H18V22H2Z" fill="currentColor"/></svg></div></span><span class="copy-btn-copied"><div class="svg-icn"><svg data-icon="check" aria-hidden="true" width="100%" height="100%" viewBox="0 0 24 24" fill="none"><path d="M9.54998 18L3.84998 12.3L5.27498 10.875L8.13576 13.7358C8.91681 14.5168 10.1831 14.5168 10.9642 13.7358L18.725 5.97501L20.15 7.40001L9.54998 18Z" fill="currentColor"/></svg></div></span></button>
+        <pre><code id="code-0">index.html              → Starter page (replace with project homepage)
+CLAUDE.md               → Claude Code development rules (authoritative)
+README.md               → Project overview and getting started
+PROJECT_BRIEF.md        → Project brief and requirements
+PROJECT_PROGRESS.md     → Progress tracker for ongoing work
+package.json            → npm manifest: design system dependency + postinstall sync
+scripts/
+  sync-design-system.js → Copies the design system CSS from node_modules into assets/css
+.github/
+  dependabot.yml        → Weekly checks for new design system versions
+assets/
+  css/
+    design-system.css   → Design system framework — synced from the
+                          @bydefaultstudio/design-system npm package on
+                          npm install; gitignored, never hand-edited
+    theme.css           → Brand overrides (primitives, fonts)
+    style.css           → Project-specific styles
+  js/
+    theme-toggle.js     → Dark-mode toggle
+  fonts/                → Self-hosted web fonts
+  icons/                → Favicons and app icons
+  images/               → General images and Open Graph images
+templates/              → Page and component boilerplate
+docs/                   → Documentation (markdown sources + generated site)
+</code></pre>
+      </div>
+    
+<p><code>node_modules/</code> and <code>package-lock.json</code> are gitignored. The lockfile is deliberately not committed in the template so new projects resolve the newest compatible design system at first install; projects may commit their own lockfile afterwards.</p>
+<h2 id="assetscss">assets/css/</h2>
+<p>The three-layer CSS contract. Load order matters — every page links them in this sequence:</p>
+<ol>
+<li><code>design-system.css</code> — the framework: tokens, base styles, layout primitives, utilities, components. Synced from the <code>@bydefaultstudio/design-system</code> npm package on <code>npm install</code> — never edit it; changes belong upstream in the design-system repo. Ships neutral working defaults.</li>
+<li><code>theme.css</code> — your brand: overrides §1/§2 primitives (fonts, <code>--text-accent</code>, neutrals) and loads brand fonts via <code>@font-face</code> or <code>@import</code>. Semantics cascade through the primitives.</li>
+<li><code>style.css</code> — project-specific styles built on top of the system.</li>
+</ol>
+<h2 id="assetsjs">assets/js/</h2>
+<ul>
+<li><code>theme-toggle.js</code> — dark-mode toggle: sets <code>data-theme</code> on <code>&lt;html&gt;</code>, persists to localStorage, defaults to the OS preference, and injects icons into <button type="button" class="token-copy is-class" data-copy=".dark-mode-toggle" aria-label="Copy .dark-mode-toggle"><code>.dark-mode-toggle</code></button> buttons.</li>
+</ul>
+<h2 id="assetsfonts">assets/fonts/</h2>
+<p>Self-hosted web font files, referenced by <code>@font-face</code> declarations in <code>theme.css</code>.</p>
+<h2 id="assetsicons">assets/icons/</h2>
+<p>Favicons and app icons (<code>favicon.svg</code>, <code>favicon.ico</code>, <code>apple-touch-icon.png</code>, …). Referenced directly in each page&#39;s <code>&lt;head&gt;</code>; treated as brand assets, not part of the design system.</p>
+<h2 id="assetsimages">assets/images/</h2>
+<p>General image assets and Open Graph images.</p>
+<h2 id="templates">templates/</h2>
+<p>Boilerplate for new files:</p>
+<ul>
+<li><code>page-template.html</code> → HTML page template (correct stylesheet order, SEO meta tags)</li>
+<li><code>component-template.css</code> → CSS component template</li>
+<li><code>component-template.js</code> → JavaScript component template</li>
+</ul>
+<h2 id="docs">docs/</h2>
+<ul>
+<li>Markdown documentation files (the sources — edit these)</li>
+<li><code>docs.config.js</code> → Project-specific doc settings (base path, brand CSS path, footer, description)</li>
+<li><code>site/</code> → Generated HTML documentation — <strong>never hand-edit</strong>; regenerate with <code>npm run docs:build</code><ul>
+<li><code>assets/icons/</code> → Docs favicons — preserved across rebuilds</li>
+<li><code>assets/docs-kit/</code> → Engine CSS and scripts, copied in by the generator on every build</li>
+</ul>
+</li>
+</ul>
+<p>The docs site engine (docs-kit) ships inside the <code>@bydefaultstudio/design-system</code> npm package and runs from <code>node_modules</code> — there is no vendored generator to maintain. The generator bundles the packaged framework CSS into the output and copies <code>theme.css</code> in after it, so docs pages render live brand values. Built for serving at the <code>/docs/site</code> subpath of the main site (<code>basePath</code> in <code>docs.config.js</code>).</p>
+<h2 id="notes">Notes</h2>
+<p>Empty folders are tracked using <button type="button" class="token-copy is-class" data-copy=".gitkeep" aria-label="Copy .gitkeep"><code>.gitkeep</code></button> to preserve structure in the template.</p>
+
+                </article>
+            </main>
+
+            <!-- Table of Contents -->
+            <aside class="docs-toc">
+      <span class="toc-header">On this page</span>
+      <div class="toc-wrapper"><nav class="toc"><ul class="toc-list"><li class="toc-item toc-level-2"><a href="#structure" class="toc-link">Structure</a></li><li class="toc-item toc-level-2"><a href="#assetscss" class="toc-link">assets/css/</a></li><li class="toc-item toc-level-2"><a href="#assetsjs" class="toc-link">assets/js/</a></li><li class="toc-item toc-level-2"><a href="#assetsfonts" class="toc-link">assets/fonts/</a></li><li class="toc-item toc-level-2"><a href="#assetsicons" class="toc-link">assets/icons/</a></li><li class="toc-item toc-level-2"><a href="#assetsimages" class="toc-link">assets/images/</a></li><li class="toc-item toc-level-2"><a href="#templates" class="toc-link">templates/</a></li><li class="toc-item toc-level-2"><a href="#docs" class="toc-link">docs/</a></li><li class="toc-item toc-level-2"><a href="#notes" class="toc-link">Notes</a></li></ul></nav></div>
+    </aside>
+        </div>
+
+        <!-- Page Navigation (Previous / Next) -->
+        <nav class="page-nav" aria-label="Page navigation"><div class="page-nav-inner padding-global"><a href="template.html" class="page-nav-link page-nav-prev" rel="prev">
+      <div class="svg-icn page-nav-arrow"><svg data-icon="chevron-left-large" aria-hidden="true" width="100%" height="100%" viewBox="0 0 24 24" fill="none"><path d="M15.225 22L5.225 12L15.225 2L17 3.775L10.1892 10.5858C9.40817 11.3668 9.40816 12.6332 10.1892 13.4142L17 20.225L15.225 22Z" fill="currentColor"/></svg></div>
+      <span class="page-nav-text">
+        <span class="page-nav-label">Previous</span>
+        
+        <h3 class="page-nav-title">Template</h3>
+      </span>
+    </a><a href="tree-notation.html" class="page-nav-link page-nav-next" rel="next">
+      <span class="page-nav-text">
+        <span class="page-nav-label">Next</span>
+        
+        <h3 class="page-nav-title">Tree Notation</h3>
+      </span>
+      <div class="svg-icn page-nav-arrow"><svg data-icon="chevron-right-large" aria-hidden="true" width="100%" height="100%" viewBox="0 0 24 24" fill="none"><path d="M8.775 22L7 20.225L13.8108 13.4142C14.5918 12.6332 14.5918 11.3668 13.8108 10.5858L7 3.775L8.775 2L18.775 12L8.775 22Z" fill="currentColor"/></svg></div>
+    </a></div></nav>
+
+        
+
+        <!-- Footer -->
+        <footer class="docs-footer">
+            <div class="docs-footer-inner padding-global">
+                <p class="docs-footer-text">© 2026 By Default — Folder Structure</p>
+            </div>
+        </footer>
+
+        <!-- Per-page scripts (inside the page container so they re-execute on transition) -->
+        
+    </div>
+    </div>
+    </main>
+    </div><!-- /.docs-layout #site-nav -->
+
+    <!-- Syntax highlighting (source set in docs.config.js) -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/highlight.min.js"></script>
+
+    <!-- Initialize Highlight.js and TOC (re-callable after client-side navigation) -->
+    <script>
+        (function() {
+            'use strict';
+
+            // Track TOC observer + scroll listener so we can clean up before re-init
+            var tocObserver = null;
+            var tocScrollHandler = null;
+
+            window.bdInitHighlight = function initHighlight() {
+                if (!window.hljs) return;
+                document.querySelectorAll('pre code').forEach(function(block) {
+                    hljs.highlightElement(block);
+                });
+            };
+
+            window.bdInitTOCActiveState = function initTOCActiveState() {
+                // Tear down any prior observer + scroll listener (re-init safe)
+                if (tocObserver) { tocObserver.disconnect(); tocObserver = null; }
+                if (tocScrollHandler) {
+                    window.removeEventListener('scroll', tocScrollHandler);
+                    tocScrollHandler = null;
+                }
+
+                var tocLinks = document.querySelectorAll('.toc-link');
+                var headings = document.querySelectorAll('h1[id], h2[id]');
+                if (tocLinks.length === 0 || headings.length === 0) return;
+
+                var linkMap = new Map();
+                tocLinks.forEach(function(link) {
+                    var href = link.getAttribute('href');
+                    if (href && href.startsWith('#')) {
+                        linkMap.set(href.substring(1), link);
+                    }
+                });
+
+                var observerOptions = { rootMargin: '-20% 0px -70% 0px', threshold: 0 };
+
+                tocObserver = new IntersectionObserver(function(entries) {
+                    entries.forEach(function(entry) {
+                        var id = entry.target.id;
+                        var link = linkMap.get(id);
+                        if (entry.isIntersecting) {
+                            tocLinks.forEach(function(l) { l.classList.remove('toc-link-active'); });
+                            if (link) link.classList.add('toc-link-active');
+                        }
+                    });
+                }, observerOptions);
+
+                headings.forEach(function(heading) {
+                    if (heading.id) tocObserver.observe(heading);
+                });
+
+                function setInitialActive() {
+                    var activeHeading = null;
+                    var maxTop = -Infinity;
+                    headings.forEach(function(heading) {
+                        var rect = heading.getBoundingClientRect();
+                        if (rect.top <= 100 && rect.top > maxTop) {
+                            maxTop = rect.top;
+                            activeHeading = heading;
+                        }
+                    });
+                    if (activeHeading && activeHeading.id) {
+                        var link = linkMap.get(activeHeading.id);
+                        if (link) {
+                            tocLinks.forEach(function(l) { l.classList.remove('toc-link-active'); });
+                            link.classList.add('toc-link-active');
+                        }
+                    }
+                }
+
+                setInitialActive();
+
+                var scrollTimeout;
+                tocScrollHandler = function() {
+                    clearTimeout(scrollTimeout);
+                    scrollTimeout = setTimeout(setInitialActive, 100);
+                };
+                window.addEventListener('scroll', tocScrollHandler);
+            };
+
+            function init() {
+                window.bdInitHighlight();
+                window.bdInitTOCActiveState();
+            }
+
+            if (document.readyState === 'loading') {
+                document.addEventListener('DOMContentLoaded', init);
+            } else {
+                init();
+            }
+        })();
+    </script>
+
+    <!-- Back to Top -->
+    <div class="back-to-top-wrapper">
+      <button class="button back-to-top-btn" data-icon-only aria-label="Back to top" type="button">
+        <div class="svg-icn"><svg data-icon="arrow-top" aria-hidden="true" width="100%" height="100%" viewBox="0 0 24 24" fill="none"><path d="M4 4V2H20V4H4Z" fill="currentColor"/><path d="M11 22V12.2392C11 11.3483 9.92286 10.9021 9.29289 11.5321L5.4 15.425L4 14L12 6L20 14L18.6 15.425L14.7071 11.5321C14.0771 10.9021 13 11.3483 13 12.2392V22H11Z" fill="currentColor"/></svg></div>
+      </button>
+    </div>
+    <script>
+      (function() {
+        var btn = document.querySelector('.back-to-top-wrapper');
+        if (!btn) return;
+        window.addEventListener('scroll', function() {
+          btn.classList.toggle('is-visible', window.scrollY > 300);
+        });
+        btn.querySelector('button').addEventListener('click', function() {
+          window.scrollTo({ top: 0, behavior: 'smooth' });
+        });
+      })();
+    </script>
+
+    <!-- Site nav + docs UI behaviours -->
+    <script src="./assets/js/nav.js" defer></script>
+    <script src="./assets/docs-kit/copy-button.js" defer></script>
+    <script src="./assets/docs-kit/dropdown.js" defer></script>
+
+    
+
+    <script>
+      /* Tag dismiss — delegated to document, attached once */
+      document.addEventListener('click', function (e) {
+        var removeBtn = e.target.closest('.tag-remove');
+        if (removeBtn) {
+          var tag = removeBtn.closest('.tag');
+          if (tag) tag.remove();
+        }
+      });
+
+      /* Table scroll overflow hint — re-callable after client-side navigation */
+      (function() {
+        function checkOverflow(wrapper) {
+          var isOverflowing = wrapper.scrollWidth > wrapper.clientWidth;
+          var isAtEnd = wrapper.scrollLeft + wrapper.clientWidth >= wrapper.scrollWidth - 1;
+          wrapper.classList.toggle('is-overflowing', isOverflowing);
+          wrapper.classList.toggle('is-scrolled-end', isAtEnd);
+        }
+
+        window.bdInitTableScroll = function initTableScroll() {
+          var wrappers = document.querySelectorAll('.table-scroll');
+          wrappers.forEach(function(wrapper) {
+            if (wrapper.__bdTableScrollBound) return;
+            wrapper.__bdTableScrollBound = true;
+            checkOverflow(wrapper);
+            wrapper.addEventListener('scroll', function() { checkOverflow(wrapper); });
+          });
+        };
+
+        // Window resize handler attached once — re-checks all wrappers
+        window.addEventListener('resize', function() {
+          document.querySelectorAll('.table-scroll').forEach(checkOverflow);
+        });
+
+        if (document.readyState === 'loading') {
+          document.addEventListener('DOMContentLoaded', window.bdInitTableScroll);
+        } else {
+          window.bdInitTableScroll();
+        }
+      })();
+    </script>
+    
+</body>
+</html>

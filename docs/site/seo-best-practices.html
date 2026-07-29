@@ -1,0 +1,615 @@
+<!DOCTYPE html>
+<html lang="en" >
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SEO - Documentation</title>
+    <meta name="description" content="Complete guide to SEO meta tags, Open Graph, X Cards, and structured data.">
+
+    <!-- Favicon (per-brand via brand.json, site default otherwise) -->
+    <link rel="icon" type="image/svg+xml" href="./assets/icons/favicon.svg">
+    <link rel="icon" type="image/x-icon" href="./assets/icons/favicon.ico">
+
+    <!-- Open Graph -->
+    <meta property="og:title" content="SEO - Documentation">
+    <meta property="og:description" content="Complete guide to SEO meta tags, Open Graph, X Cards, and structured data.">
+    <meta property="og:image" content="./assets/images/og/og-default.jpg">
+    <meta property="og:type" content="website">
+
+    <!-- Design System Framework (path set in docs.config.js) -->
+    <link rel="stylesheet" href="./assets/docs-kit/design-system.css" id="design-system-css"
+          onerror="document.getElementById('ds-missing-banner').style.display='flex'">
+    <link rel="stylesheet" href="./assets/css/theme.css">
+
+    
+
+    <!-- Docs chrome styles (layout, nav, page chrome; path set in docs.config.js) -->
+    <link rel="stylesheet" href="./assets/docs-kit/docs.css">
+
+    
+
+    
+
+    
+</head>
+<body>
+
+    <!-- Design system missing banner (shown by JS if CSS variables fail to load) -->
+    <div id="ds-missing-banner" style="display:none;position:fixed;top:0;left:0;right:0;z-index:9999;background:#fffbea;border-bottom:1px solid #f0c040;padding:12px 20px;font-family:sans-serif;font-size:14px;color:#7a5c00;align-items:center;gap:12px;">
+        <span>⚠️</span>
+        <span>Design system CSS not found. Check the path in <code style="background:#fef3c7;padding:2px 6px;border-radius:4px;">docs/docs.config.js</code> → <code style="background:#fef3c7;padding:2px 6px;border-radius:4px;">designSystemPath</code>, then re-run <code style="background:#fef3c7;padding:2px 6px;border-radius:4px;">npm run docgen</code>.</span>
+        <button onclick="document.getElementById('ds-missing-banner').style.display='none'" style="margin-left:auto;background:none;border:1px solid #f0c040;border-radius:4px;padding:4px 10px;cursor:pointer;color:#7a5c00;font-size:13px;">Dismiss</button>
+    </div>
+
+    <!-- Layout grid: nav.js injects header + sidebar before <main> via insertAdjacentHTML -->
+    <div class="docs-layout" id="site-nav" data-base="./">
+    <main class="docs-main-area">
+    <div>
+    <div>
+        <!-- Page Header (full width, outside grid) -->
+        <div class="page-header">
+      <div class="container-s">
+        <h1 data-flip-id="seo-best-practices">SEO</h1>
+        <p class="page-subtitle" data-text-wrap="pretty">SEO meta tags and social sharing guidelines</p>
+        
+      </div>
+    </div>
+
+        <!-- Page sub-header bar (full width, sticky: breadcrumb + filename + actions) -->
+        
+
+        <!-- Main Content + TOC grid -->
+        <div class="docs-content-grid padding-global">
+            <!-- Main Content -->
+            <main class="docs-main">
+                <article>
+                    <p>This document outlines SEO best practices for HTML pages, including meta tags, Open Graph, X (Twitter) Cards, and structured data.</p>
+<h2 id="essential-meta-tags">Essential Meta Tags</h2>
+<h3 id="required-tags">Required Tags</h3>
+<p>Every page must include these essential meta tags:</p>
+
+      <div class="code-block-wrapper">
+        <button class="button copy-btn is-icon-only" data-size="xsmall" data-clipboard-target="#code-0" data-tooltip="Copy" type="button" aria-label="Copy code"><span class="copy-btn-default"><div class="svg-icn"><svg data-icon="copy" aria-hidden="true" width="100%" height="100%" viewBox="0 0 24 24" fill="none"><path d="M8 14C8 15.1046 8.89543 16 10 16H18C19.1046 16 20 15.1046 20 14V6C20 4.89543 19.1046 4 18 4H10C8.89543 4 8 4.89543 8 6V14ZM6 18V2H22V18H6ZM2 22V6H4V20H18V22H2Z" fill="currentColor"/></svg></div></span><span class="copy-btn-copied"><div class="svg-icn"><svg data-icon="check" aria-hidden="true" width="100%" height="100%" viewBox="0 0 24 24" fill="none"><path d="M9.54998 18L3.84998 12.3L5.27498 10.875L8.13576 13.7358C8.91681 14.5168 10.1831 14.5168 10.9642 13.7358L18.725 5.97501L20.15 7.40001L9.54998 18Z" fill="currentColor"/></svg></div></span></button>
+        <pre><code id="code-0" class="language-html">&lt;meta charset=&quot;UTF-8&quot; /&gt;
+&lt;meta name=&quot;viewport&quot; content=&quot;width=device-width, initial-scale=1.0&quot; /&gt;
+&lt;title&gt;Page Title - Site Name&lt;/title&gt;
+&lt;meta name=&quot;description&quot; content=&quot;A concise, compelling description of the page (150-160 characters).&quot; /&gt;
+</code></pre>
+      </div>
+    
+<p><strong>Best Practices:</strong></p>
+<ul>
+<li><strong>Title:</strong> 50-60 characters, include primary keyword, unique per page</li>
+<li><strong>Description:</strong> 150-160 characters, compelling, include call-to-action</li>
+<li><strong>Viewport:</strong> Required for responsive design and mobile SEO</li>
+</ul>
+<hr>
+<h2 id="page-title">Page Title</h2>
+<p>The <code>&lt;title&gt;</code> tag is one of the most important SEO elements.</p>
+<p><strong>Guidelines:</strong></p>
+<ul>
+<li>Keep between 50-60 characters</li>
+<li>Include primary keyword near the beginning</li>
+<li>Make it unique for each page</li>
+<li>Include brand/site name (usually at the end)</li>
+<li>Write for humans, not just search engines</li>
+</ul>
+<p><strong>Examples:</strong></p>
+
+      <div class="code-block-wrapper">
+        <button class="button copy-btn is-icon-only" data-size="xsmall" data-clipboard-target="#code-1" data-tooltip="Copy" type="button" aria-label="Copy code"><span class="copy-btn-default"><div class="svg-icn"><svg data-icon="copy" aria-hidden="true" width="100%" height="100%" viewBox="0 0 24 24" fill="none"><path d="M8 14C8 15.1046 8.89543 16 10 16H18C19.1046 16 20 15.1046 20 14V6C20 4.89543 19.1046 4 18 4H10C8.89543 4 8 4.89543 8 6V14ZM6 18V2H22V18H6ZM2 22V6H4V20H18V22H2Z" fill="currentColor"/></svg></div></span><span class="copy-btn-copied"><div class="svg-icn"><svg data-icon="check" aria-hidden="true" width="100%" height="100%" viewBox="0 0 24 24" fill="none"><path d="M9.54998 18L3.84998 12.3L5.27498 10.875L8.13576 13.7358C8.91681 14.5168 10.1831 14.5168 10.9642 13.7358L18.725 5.97501L20.15 7.40001L9.54998 18Z" fill="currentColor"/></svg></div></span></button>
+        <pre><code id="code-1" class="language-html">&lt;!-- Good --&gt;
+&lt;title&gt;By Default - Brand Innovation Studio&lt;/title&gt;
+&lt;title&gt;About Us - By Default&lt;/title&gt;
+
+&lt;!-- Too long (will be truncated) --&gt;
+&lt;title&gt;Comprehensive Guide to Modern Web Design and Development Services - Creative Studio&lt;/title&gt;
+</code></pre>
+      </div>
+    
+<hr>
+<h2 id="meta-description">Meta Description</h2>
+<p>The meta description appears in search results and can influence click-through rates.</p>
+<p><strong>Guidelines:</strong></p>
+<ul>
+<li>Keep between 150-160 characters</li>
+<li>Write compelling, action-oriented copy</li>
+<li>Include primary keyword naturally</li>
+<li>Make it unique for each page</li>
+<li>Include a call-to-action when appropriate</li>
+</ul>
+<p><strong>Examples:</strong></p>
+
+      <div class="code-block-wrapper">
+        <button class="button copy-btn is-icon-only" data-size="xsmall" data-clipboard-target="#code-2" data-tooltip="Copy" type="button" aria-label="Copy code"><span class="copy-btn-default"><div class="svg-icn"><svg data-icon="copy" aria-hidden="true" width="100%" height="100%" viewBox="0 0 24 24" fill="none"><path d="M8 14C8 15.1046 8.89543 16 10 16H18C19.1046 16 20 15.1046 20 14V6C20 4.89543 19.1046 4 18 4H10C8.89543 4 8 4.89543 8 6V14ZM6 18V2H22V18H6ZM2 22V6H4V20H18V22H2Z" fill="currentColor"/></svg></div></span><span class="copy-btn-copied"><div class="svg-icn"><svg data-icon="check" aria-hidden="true" width="100%" height="100%" viewBox="0 0 24 24" fill="none"><path d="M9.54998 18L3.84998 12.3L5.27498 10.875L8.13576 13.7358C8.91681 14.5168 10.1831 14.5168 10.9642 13.7358L18.725 5.97501L20.15 7.40001L9.54998 18Z" fill="currentColor"/></svg></div></span></button>
+        <pre><code id="code-2" class="language-html">&lt;!-- Good --&gt;
+&lt;meta name=&quot;description&quot; content=&quot;Professional web design services for modern businesses. Custom solutions that drive results. Get started today.&quot; /&gt;
+
+&lt;!-- Too long (will be truncated) --&gt;
+&lt;meta name=&quot;description&quot; content=&quot;We offer comprehensive web design services including custom development, responsive design, e-commerce solutions, content management systems, and ongoing support for businesses of all sizes.&quot; /&gt;
+</code></pre>
+      </div>
+    
+<hr>
+<h2 id="canonical-url">Canonical URL</h2>
+<p>Prevents duplicate content issues by specifying the preferred version of a page.</p>
+
+      <div class="code-block-wrapper">
+        <button class="button copy-btn is-icon-only" data-size="xsmall" data-clipboard-target="#code-3" data-tooltip="Copy" type="button" aria-label="Copy code"><span class="copy-btn-default"><div class="svg-icn"><svg data-icon="copy" aria-hidden="true" width="100%" height="100%" viewBox="0 0 24 24" fill="none"><path d="M8 14C8 15.1046 8.89543 16 10 16H18C19.1046 16 20 15.1046 20 14V6C20 4.89543 19.1046 4 18 4H10C8.89543 4 8 4.89543 8 6V14ZM6 18V2H22V18H6ZM2 22V6H4V20H18V22H2Z" fill="currentColor"/></svg></div></span><span class="copy-btn-copied"><div class="svg-icn"><svg data-icon="check" aria-hidden="true" width="100%" height="100%" viewBox="0 0 24 24" fill="none"><path d="M9.54998 18L3.84998 12.3L5.27498 10.875L8.13576 13.7358C8.91681 14.5168 10.1831 14.5168 10.9642 13.7358L18.725 5.97501L20.15 7.40001L9.54998 18Z" fill="currentColor"/></svg></div></span></button>
+        <pre><code id="code-3" class="language-html">&lt;link rel=&quot;canonical&quot; href=&quot;https://yoursite.com/page/&quot; /&gt;
+</code></pre>
+      </div>
+    
+<p><strong>When to use:</strong></p>
+<ul>
+<li>Always include on every page</li>
+<li>Use absolute URLs (full URL with https://)</li>
+<li>Point to the primary version of the page</li>
+<li>Essential for pages with query parameters or multiple URLs</li>
+</ul>
+<hr>
+<h2 id="robots-meta-tag">Robots Meta Tag</h2>
+<p>Controls how search engines index and follow links on a page.</p>
+
+      <div class="code-block-wrapper">
+        <button class="button copy-btn is-icon-only" data-size="xsmall" data-clipboard-target="#code-4" data-tooltip="Copy" type="button" aria-label="Copy code"><span class="copy-btn-default"><div class="svg-icn"><svg data-icon="copy" aria-hidden="true" width="100%" height="100%" viewBox="0 0 24 24" fill="none"><path d="M8 14C8 15.1046 8.89543 16 10 16H18C19.1046 16 20 15.1046 20 14V6C20 4.89543 19.1046 4 18 4H10C8.89543 4 8 4.89543 8 6V14ZM6 18V2H22V18H6ZM2 22V6H4V20H18V22H2Z" fill="currentColor"/></svg></div></span><span class="copy-btn-copied"><div class="svg-icn"><svg data-icon="check" aria-hidden="true" width="100%" height="100%" viewBox="0 0 24 24" fill="none"><path d="M9.54998 18L3.84998 12.3L5.27498 10.875L8.13576 13.7358C8.91681 14.5168 10.1831 14.5168 10.9642 13.7358L18.725 5.97501L20.15 7.40001L9.54998 18Z" fill="currentColor"/></svg></div></span></button>
+        <pre><code id="code-4" class="language-html">&lt;!-- Default: allow indexing --&gt;
+&lt;meta name=&quot;robots&quot; content=&quot;index, follow&quot; /&gt;
+
+&lt;!-- Prevent indexing --&gt;
+&lt;meta name=&quot;robots&quot; content=&quot;noindex, nofollow&quot; /&gt;
+
+&lt;!-- Allow indexing but don&#39;t follow links --&gt;
+&lt;meta name=&quot;robots&quot; content=&quot;index, nofollow&quot; /&gt;
+</code></pre>
+      </div>
+    
+<p><strong>Common values:</strong></p>
+<ul>
+<li><code>index, follow</code> - Default, allow indexing and following links</li>
+<li><code>noindex, nofollow</code> - Don&#39;t index or follow links (for private/admin pages)</li>
+<li><code>index, nofollow</code> - Index page but don&#39;t follow links</li>
+<li><code>noindex, follow</code> - Don&#39;t index but follow links</li>
+</ul>
+<hr>
+<h2 id="open-graph-tags">Open Graph Tags</h2>
+<p>Open Graph tags control how content appears when shared on Facebook, LinkedIn, and other social platforms.</p>
+<p><strong>Where to save images:</strong></p>
+<ul>
+<li>Save Open Graph images in <code>assets/images/</code></li>
+<li>Use descriptive filenames (e.g., <code>og-default.jpg</code>, <code>og-homepage.jpg</code>)</li>
+</ul>
+<h3 id="required-open-graph-tags">Required Open Graph Tags</h3>
+
+      <div class="code-block-wrapper">
+        <button class="button copy-btn is-icon-only" data-size="xsmall" data-clipboard-target="#code-5" data-tooltip="Copy" type="button" aria-label="Copy code"><span class="copy-btn-default"><div class="svg-icn"><svg data-icon="copy" aria-hidden="true" width="100%" height="100%" viewBox="0 0 24 24" fill="none"><path d="M8 14C8 15.1046 8.89543 16 10 16H18C19.1046 16 20 15.1046 20 14V6C20 4.89543 19.1046 4 18 4H10C8.89543 4 8 4.89543 8 6V14ZM6 18V2H22V18H6ZM2 22V6H4V20H18V22H2Z" fill="currentColor"/></svg></div></span><span class="copy-btn-copied"><div class="svg-icn"><svg data-icon="check" aria-hidden="true" width="100%" height="100%" viewBox="0 0 24 24" fill="none"><path d="M9.54998 18L3.84998 12.3L5.27498 10.875L8.13576 13.7358C8.91681 14.5168 10.1831 14.5168 10.9642 13.7358L18.725 5.97501L20.15 7.40001L9.54998 18Z" fill="currentColor"/></svg></div></span></button>
+        <pre><code id="code-5" class="language-html">&lt;meta property=&quot;og:type&quot; content=&quot;website&quot; /&gt;
+&lt;meta property=&quot;og:url&quot; content=&quot;https://yoursite.com/page/&quot; /&gt;
+&lt;meta property=&quot;og:title&quot; content=&quot;Page Title - Site Name&quot; /&gt;
+&lt;meta property=&quot;og:description&quot; content=&quot;A concise, compelling description of the page.&quot; /&gt;
+&lt;meta property=&quot;og:image&quot; content=&quot;https://yoursite.com/assets/images/og-default.jpg&quot; /&gt;
+</code></pre>
+      </div>
+    
+<h3 id="recommended-additional-tags">Recommended Additional Tags</h3>
+
+      <div class="code-block-wrapper">
+        <button class="button copy-btn is-icon-only" data-size="xsmall" data-clipboard-target="#code-6" data-tooltip="Copy" type="button" aria-label="Copy code"><span class="copy-btn-default"><div class="svg-icn"><svg data-icon="copy" aria-hidden="true" width="100%" height="100%" viewBox="0 0 24 24" fill="none"><path d="M8 14C8 15.1046 8.89543 16 10 16H18C19.1046 16 20 15.1046 20 14V6C20 4.89543 19.1046 4 18 4H10C8.89543 4 8 4.89543 8 6V14ZM6 18V2H22V18H6ZM2 22V6H4V20H18V22H2Z" fill="currentColor"/></svg></div></span><span class="copy-btn-copied"><div class="svg-icn"><svg data-icon="check" aria-hidden="true" width="100%" height="100%" viewBox="0 0 24 24" fill="none"><path d="M9.54998 18L3.84998 12.3L5.27498 10.875L8.13576 13.7358C8.91681 14.5168 10.1831 14.5168 10.9642 13.7358L18.725 5.97501L20.15 7.40001L9.54998 18Z" fill="currentColor"/></svg></div></span></button>
+        <pre><code id="code-6" class="language-html">&lt;meta property=&quot;og:image:width&quot; content=&quot;1200&quot; /&gt;
+&lt;meta property=&quot;og:image:height&quot; content=&quot;630&quot; /&gt;
+&lt;meta property=&quot;og:image:alt&quot; content=&quot;Descriptive alt text for the image&quot; /&gt;
+&lt;meta property=&quot;og:site_name&quot; content=&quot;Site Name&quot; /&gt;
+&lt;meta property=&quot;og:locale&quot; content=&quot;en_US&quot; /&gt;
+</code></pre>
+      </div>
+    
+<p><strong>Best Practices:</strong></p>
+<ul>
+<li><strong>Image:</strong> 1200x630px (1.91:1 ratio), JPG or PNG, under 1MB</li>
+<li><strong>URL:</strong> Absolute URL to the page</li>
+<li><strong>Type:</strong> <code>website</code> for pages, <code>article</code> for blog posts</li>
+<li><strong>Title/Description:</strong> Can differ from meta title/description (optimize for social sharing)</li>
+</ul>
+<p><strong>Image Requirements:</strong></p>
+<ul>
+<li>Dimensions: 1200x630px (recommended)</li>
+<li>Format: JPG or PNG</li>
+<li>File size: Under 1MB</li>
+<li>Content: Should represent the page visually</li>
+<li>Alt text: Descriptive and accessible</li>
+</ul>
+<hr>
+<h2 id="x-twitter-card-tags">X (Twitter) Card Tags</h2>
+<p>X Cards (formerly Twitter Cards) control how content appears when shared on X (formerly Twitter).</p>
+<h3 id="summary-large-image-card">Summary Large Image Card</h3>
+
+      <div class="code-block-wrapper">
+        <button class="button copy-btn is-icon-only" data-size="xsmall" data-clipboard-target="#code-7" data-tooltip="Copy" type="button" aria-label="Copy code"><span class="copy-btn-default"><div class="svg-icn"><svg data-icon="copy" aria-hidden="true" width="100%" height="100%" viewBox="0 0 24 24" fill="none"><path d="M8 14C8 15.1046 8.89543 16 10 16H18C19.1046 16 20 15.1046 20 14V6C20 4.89543 19.1046 4 18 4H10C8.89543 4 8 4.89543 8 6V14ZM6 18V2H22V18H6ZM2 22V6H4V20H18V22H2Z" fill="currentColor"/></svg></div></span><span class="copy-btn-copied"><div class="svg-icn"><svg data-icon="check" aria-hidden="true" width="100%" height="100%" viewBox="0 0 24 24" fill="none"><path d="M9.54998 18L3.84998 12.3L5.27498 10.875L8.13576 13.7358C8.91681 14.5168 10.1831 14.5168 10.9642 13.7358L18.725 5.97501L20.15 7.40001L9.54998 18Z" fill="currentColor"/></svg></div></span></button>
+        <pre><code id="code-7" class="language-html">&lt;meta name=&quot;twitter:card&quot; content=&quot;summary_large_image&quot; /&gt;
+&lt;meta name=&quot;twitter:url&quot; content=&quot;https://yoursite.com/page/&quot; /&gt;
+&lt;meta name=&quot;twitter:title&quot; content=&quot;Page Title - Site Name&quot; /&gt;
+&lt;meta name=&quot;twitter:description&quot; content=&quot;A concise, compelling description of the page.&quot; /&gt;
+&lt;meta name=&quot;twitter:image&quot; content=&quot;https://yoursite.com/assets/images/og-default.jpg&quot; /&gt;
+&lt;meta name=&quot;twitter:image:alt&quot; content=&quot;Descriptive alt text for the image&quot; /&gt;
+</code></pre>
+      </div>
+    
+<h3 id="optional-x-tags">Optional X Tags</h3>
+
+      <div class="code-block-wrapper">
+        <button class="button copy-btn is-icon-only" data-size="xsmall" data-clipboard-target="#code-8" data-tooltip="Copy" type="button" aria-label="Copy code"><span class="copy-btn-default"><div class="svg-icn"><svg data-icon="copy" aria-hidden="true" width="100%" height="100%" viewBox="0 0 24 24" fill="none"><path d="M8 14C8 15.1046 8.89543 16 10 16H18C19.1046 16 20 15.1046 20 14V6C20 4.89543 19.1046 4 18 4H10C8.89543 4 8 4.89543 8 6V14ZM6 18V2H22V18H6ZM2 22V6H4V20H18V22H2Z" fill="currentColor"/></svg></div></span><span class="copy-btn-copied"><div class="svg-icn"><svg data-icon="check" aria-hidden="true" width="100%" height="100%" viewBox="0 0 24 24" fill="none"><path d="M9.54998 18L3.84998 12.3L5.27498 10.875L8.13576 13.7358C8.91681 14.5168 10.1831 14.5168 10.9642 13.7358L18.725 5.97501L20.15 7.40001L9.54998 18Z" fill="currentColor"/></svg></div></span></button>
+        <pre><code id="code-8" class="language-html">&lt;meta name=&quot;twitter:site&quot; content=&quot;@yourhandle&quot; /&gt;
+&lt;meta name=&quot;twitter:creator&quot; content=&quot;@yourhandle&quot; /&gt;
+</code></pre>
+      </div>
+    
+<p><strong>Card Types:</strong></p>
+<ul>
+<li><code>summary_large_image</code> - Large image card (1200x628px recommended)</li>
+<li><code>summary</code> - Small image card (120x120px minimum)</li>
+</ul>
+<p><strong>Best Practices:</strong></p>
+<ul>
+<li>Use <code>summary_large_image</code> for better engagement</li>
+<li>Image: 1200x628px for large image cards</li>
+<li>Include alt text for accessibility</li>
+</ul>
+<hr>
+<h2 id="theme-color">Theme Color</h2>
+<p>Sets the theme color for mobile browsers (address bar, etc.).</p>
+
+      <div class="code-block-wrapper">
+        <button class="button copy-btn is-icon-only" data-size="xsmall" data-clipboard-target="#code-9" data-tooltip="Copy" type="button" aria-label="Copy code"><span class="copy-btn-default"><div class="svg-icn"><svg data-icon="copy" aria-hidden="true" width="100%" height="100%" viewBox="0 0 24 24" fill="none"><path d="M8 14C8 15.1046 8.89543 16 10 16H18C19.1046 16 20 15.1046 20 14V6C20 4.89543 19.1046 4 18 4H10C8.89543 4 8 4.89543 8 6V14ZM6 18V2H22V18H6ZM2 22V6H4V20H18V22H2Z" fill="currentColor"/></svg></div></span><span class="copy-btn-copied"><div class="svg-icn"><svg data-icon="check" aria-hidden="true" width="100%" height="100%" viewBox="0 0 24 24" fill="none"><path d="M9.54998 18L3.84998 12.3L5.27498 10.875L8.13576 13.7358C8.91681 14.5168 10.1831 14.5168 10.9642 13.7358L18.725 5.97501L20.15 7.40001L9.54998 18Z" fill="currentColor"/></svg></div></span></button>
+        <pre><code id="code-9" class="language-html">&lt;meta name=&quot;theme-color&quot; content=&quot;#3485cd&quot; /&gt;
+</code></pre>
+      </div>
+    
+<p>Use your brand&#39;s primary color. This should match your design system&#39;s brand accent color.</p>
+<hr>
+<h2 id="structured-data-json-ld">Structured Data (JSON-LD)</h2>
+<p>Structured data helps search engines understand your content and can enable rich results.</p>
+<h3 id="basic-webpage-schema">Basic WebPage Schema</h3>
+
+      <div class="code-block-wrapper">
+        <button class="button copy-btn is-icon-only" data-size="xsmall" data-clipboard-target="#code-10" data-tooltip="Copy" type="button" aria-label="Copy code"><span class="copy-btn-default"><div class="svg-icn"><svg data-icon="copy" aria-hidden="true" width="100%" height="100%" viewBox="0 0 24 24" fill="none"><path d="M8 14C8 15.1046 8.89543 16 10 16H18C19.1046 16 20 15.1046 20 14V6C20 4.89543 19.1046 4 18 4H10C8.89543 4 8 4.89543 8 6V14ZM6 18V2H22V18H6ZM2 22V6H4V20H18V22H2Z" fill="currentColor"/></svg></div></span><span class="copy-btn-copied"><div class="svg-icn"><svg data-icon="check" aria-hidden="true" width="100%" height="100%" viewBox="0 0 24 24" fill="none"><path d="M9.54998 18L3.84998 12.3L5.27498 10.875L8.13576 13.7358C8.91681 14.5168 10.1831 14.5168 10.9642 13.7358L18.725 5.97501L20.15 7.40001L9.54998 18Z" fill="currentColor"/></svg></div></span></button>
+        <pre><code id="code-10" class="language-html">&lt;script type=&quot;application/ld+json&quot;&gt;
+{
+  &quot;@context&quot;: &quot;https://schema.org&quot;,
+  &quot;@type&quot;: &quot;WebPage&quot;,
+  &quot;name&quot;: &quot;Page Title&quot;,
+  &quot;description&quot;: &quot;Page description&quot;,
+  &quot;url&quot;: &quot;https://yoursite.com/page/&quot;,
+  &quot;inLanguage&quot;: &quot;en-US&quot;
+}
+&lt;/script&gt;
+</code></pre>
+      </div>
+    
+<h3 id="organization-schema">Organization Schema</h3>
+
+      <div class="code-block-wrapper">
+        <button class="button copy-btn is-icon-only" data-size="xsmall" data-clipboard-target="#code-11" data-tooltip="Copy" type="button" aria-label="Copy code"><span class="copy-btn-default"><div class="svg-icn"><svg data-icon="copy" aria-hidden="true" width="100%" height="100%" viewBox="0 0 24 24" fill="none"><path d="M8 14C8 15.1046 8.89543 16 10 16H18C19.1046 16 20 15.1046 20 14V6C20 4.89543 19.1046 4 18 4H10C8.89543 4 8 4.89543 8 6V14ZM6 18V2H22V18H6ZM2 22V6H4V20H18V22H2Z" fill="currentColor"/></svg></div></span><span class="copy-btn-copied"><div class="svg-icn"><svg data-icon="check" aria-hidden="true" width="100%" height="100%" viewBox="0 0 24 24" fill="none"><path d="M9.54998 18L3.84998 12.3L5.27498 10.875L8.13576 13.7358C8.91681 14.5168 10.1831 14.5168 10.9642 13.7358L18.725 5.97501L20.15 7.40001L9.54998 18Z" fill="currentColor"/></svg></div></span></button>
+        <pre><code id="code-11" class="language-html">&lt;script type=&quot;application/ld+json&quot;&gt;
+{
+  &quot;@context&quot;: &quot;https://schema.org&quot;,
+  &quot;@type&quot;: &quot;Organization&quot;,
+  &quot;name&quot;: &quot;Site Name&quot;,
+  &quot;url&quot;: &quot;https://yoursite.com&quot;,
+  &quot;logo&quot;: &quot;https://yoursite.com/assets/images/logo.png&quot;
+}
+&lt;/script&gt;
+</code></pre>
+      </div>
+    
+<p><strong>Best Practices:</strong></p>
+<ul>
+<li>Use JSON-LD format (recommended by Google)</li>
+<li>Place in <code>&lt;head&gt;</code> or before closing <code>&lt;/body&gt;</code></li>
+<li>Validate using <a href="https://search.google.com/test/rich-results" target="_blank" rel="noopener noreferrer">Google&#39;s Rich Results Test</a></li>
+<li>Only include relevant schema types</li>
+</ul>
+<hr>
+<h2 id="quick-checklist">Quick Checklist</h2>
+<p>Before publishing a page, ensure:</p>
+<ul>
+<li><input disabled="" type="checkbox"> Unique <code>&lt;title&gt;</code> per page (50-60 characters)</li>
+<li><input disabled="" type="checkbox"> Unique <code>&lt;meta name=&quot;description&quot;&gt;</code> per page (150-160 characters)</li>
+<li><input disabled="" type="checkbox"> <code>&lt;meta name=&quot;viewport&quot;&gt;</code> for responsive design</li>
+<li><input disabled="" type="checkbox"> Open Graph tags for social sharing</li>
+<li><input disabled="" type="checkbox"> X (Twitter) Card tags</li>
+<li><input disabled="" type="checkbox"> Canonical URL to prevent duplicate content</li>
+<li><input disabled="" type="checkbox"> Favicons (already in template)</li>
+<li><input disabled="" type="checkbox"> Theme color for mobile browsers</li>
+<li><input disabled="" type="checkbox"> Structured data (JSON-LD) for rich results (optional but recommended)</li>
+</ul>
+<hr>
+<h2 id="image-requirements-summary">Image Requirements Summary</h2>
+<div class="table-scroll"><table class="table">
+<thead>
+<tr>
+<th>Platform</th>
+<th>Dimensions</th>
+<th>Format</th>
+<th>Max Size</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>Open Graph</td>
+<td>1200x630px</td>
+<td>JPG/PNG</td>
+<td>1MB</td>
+</tr>
+<tr>
+<td>X Card (Large)</td>
+<td>1200x628px</td>
+<td>JPG/PNG</td>
+<td>1MB</td>
+</tr>
+<tr>
+<td>X Card (Summary)</td>
+<td>120x120px min</td>
+<td>JPG/PNG</td>
+<td>1MB</td>
+</tr>
+</tbody></table></div>
+<p><strong>Always include descriptive alt text for all images.</strong></p>
+<hr>
+<h2 id="testing-your-seo-tags">Testing Your SEO Tags</h2>
+<h3 id="tools-for-testing">Tools for Testing</h3>
+<ol>
+<li><p><strong>Google Rich Results Test</strong></p>
+<ul>
+<li>URL: <a href="https://search.google.com/test/rich-results" target="_blank" rel="noopener noreferrer">https://search.google.com/test/rich-results</a></li>
+<li>Tests structured data and rich results</li>
+</ul>
+</li>
+<li><p><strong>Facebook Sharing Debugger</strong></p>
+<ul>
+<li>URL: <a href="https://developers.facebook.com/tools/debug/" target="_blank" rel="noopener noreferrer">https://developers.facebook.com/tools/debug/</a></li>
+<li>Tests Open Graph tags and clears Facebook cache</li>
+</ul>
+</li>
+<li><p><strong>X Card Validator</strong></p>
+<ul>
+<li>URL: <a href="https://cards-dev.twitter.com/validator" target="_blank" rel="noopener noreferrer">https://cards-dev.twitter.com/validator</a></li>
+<li>Tests X (Twitter) Card tags</li>
+</ul>
+</li>
+<li><p><strong>Google Search Console</strong></p>
+<ul>
+<li>Monitor how your pages appear in search results</li>
+<li>Check for indexing issues</li>
+</ul>
+</li>
+</ol>
+<hr>
+<h2 id="common-mistakes-to-avoid">Common Mistakes to Avoid</h2>
+<ol>
+<li><strong>Duplicate titles/descriptions</strong> - Every page should be unique</li>
+<li><strong>Missing viewport tag</strong> - Required for mobile SEO</li>
+<li><strong>Relative URLs in Open Graph</strong> - Always use absolute URLs</li>
+<li><strong>Missing image alt text</strong> - Required for accessibility and SEO</li>
+<li><strong>Oversized images</strong> - Keep under 1MB for fast loading</li>
+<li><strong>Missing canonical URL</strong> - Can cause duplicate content issues</li>
+<li><strong>Generic descriptions</strong> - Write compelling, specific copy</li>
+</ol>
+<hr>
+<h2 id="additional-resources">Additional Resources</h2>
+<ul>
+<li><a href="https://developers.google.com/search" target="_blank" rel="noopener noreferrer">Google Search Central</a></li>
+<li><a href="https://ogp.me/" target="_blank" rel="noopener noreferrer">Open Graph Protocol</a></li>
+<li><a href="https://developer.twitter.com/en/docs/twitter-for-websites/cards/overview/abouts-cards" target="_blank" rel="noopener noreferrer">X Cards Documentation</a> (formerly Twitter Cards)</li>
+<li><a href="https://schema.org/" target="_blank" rel="noopener noreferrer">Schema.org</a></li>
+</ul>
+
+                </article>
+            </main>
+
+            <!-- Table of Contents -->
+            <aside class="docs-toc">
+      <span class="toc-header">On this page</span>
+      <div class="toc-wrapper"><nav class="toc"><ul class="toc-list"><li class="toc-item toc-level-2"><a href="#essential-meta-tags" class="toc-link">Essential Meta Tags</a></li><li class="toc-item toc-level-2"><a href="#page-title" class="toc-link">Page Title</a></li><li class="toc-item toc-level-2"><a href="#meta-description" class="toc-link">Meta Description</a></li><li class="toc-item toc-level-2"><a href="#canonical-url" class="toc-link">Canonical URL</a></li><li class="toc-item toc-level-2"><a href="#robots-meta-tag" class="toc-link">Robots Meta Tag</a></li><li class="toc-item toc-level-2"><a href="#open-graph-tags" class="toc-link">Open Graph Tags</a></li><li class="toc-item toc-level-2"><a href="#x-twitter-card-tags" class="toc-link">X (Twitter) Card Tags</a></li><li class="toc-item toc-level-2"><a href="#theme-color" class="toc-link">Theme Color</a></li><li class="toc-item toc-level-2"><a href="#structured-data-json-ld" class="toc-link">Structured Data (JSON-LD)</a></li><li class="toc-item toc-level-2"><a href="#quick-checklist" class="toc-link">Quick Checklist</a></li><li class="toc-item toc-level-2"><a href="#image-requirements-summary" class="toc-link">Image Requirements Summary</a></li><li class="toc-item toc-level-2"><a href="#testing-your-seo-tags" class="toc-link">Testing Your SEO Tags</a></li><li class="toc-item toc-level-2"><a href="#common-mistakes-to-avoid" class="toc-link">Common Mistakes to Avoid</a></li><li class="toc-item toc-level-2"><a href="#additional-resources" class="toc-link">Additional Resources</a></li></ul></nav></div>
+    </aside>
+        </div>
+
+        <!-- Page Navigation (Previous / Next) -->
+        <nav class="page-nav" aria-label="Page navigation"><div class="page-nav-inner padding-global"><a href="brand-book.html" class="page-nav-link page-nav-prev" rel="prev">
+      <div class="svg-icn page-nav-arrow"><svg data-icon="chevron-left-large" aria-hidden="true" width="100%" height="100%" viewBox="0 0 24 24" fill="none"><path d="M15.225 22L5.225 12L15.225 2L17 3.775L10.1892 10.5858C9.40817 11.3668 9.40816 12.6332 10.1892 13.4142L17 20.225L15.225 22Z" fill="currentColor"/></svg></div>
+      <span class="page-nav-text">
+        <span class="page-nav-label">Previous</span>
+        <span class="page-nav-section">Brand</span>
+        <h3 class="page-nav-title">Brand Book</h3>
+      </span>
+    </a><a href="markdown-style.html" class="page-nav-link page-nav-next" rel="next">
+      <span class="page-nav-text">
+        <span class="page-nav-label">Next</span>
+        
+        <h3 class="page-nav-title">Markdown</h3>
+      </span>
+      <div class="svg-icn page-nav-arrow"><svg data-icon="chevron-right-large" aria-hidden="true" width="100%" height="100%" viewBox="0 0 24 24" fill="none"><path d="M8.775 22L7 20.225L13.8108 13.4142C14.5918 12.6332 14.5918 11.3668 13.8108 10.5858L7 3.775L8.775 2L18.775 12L8.775 22Z" fill="currentColor"/></svg></div>
+    </a></div></nav>
+
+        
+
+        <!-- Footer -->
+        <footer class="docs-footer">
+            <div class="docs-footer-inner padding-global">
+                <p class="docs-footer-text">© 2026 By Default — Folder Structure</p>
+            </div>
+        </footer>
+
+        <!-- Per-page scripts (inside the page container so they re-execute on transition) -->
+        
+    </div>
+    </div>
+    </main>
+    </div><!-- /.docs-layout #site-nav -->
+
+    <!-- Syntax highlighting (source set in docs.config.js) -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/highlight.min.js"></script>
+
+    <!-- Initialize Highlight.js and TOC (re-callable after client-side navigation) -->
+    <script>
+        (function() {
+            'use strict';
+
+            // Track TOC observer + scroll listener so we can clean up before re-init
+            var tocObserver = null;
+            var tocScrollHandler = null;
+
+            window.bdInitHighlight = function initHighlight() {
+                if (!window.hljs) return;
+                document.querySelectorAll('pre code').forEach(function(block) {
+                    hljs.highlightElement(block);
+                });
+            };
+
+            window.bdInitTOCActiveState = function initTOCActiveState() {
+                // Tear down any prior observer + scroll listener (re-init safe)
+                if (tocObserver) { tocObserver.disconnect(); tocObserver = null; }
+                if (tocScrollHandler) {
+                    window.removeEventListener('scroll', tocScrollHandler);
+                    tocScrollHandler = null;
+                }
+
+                var tocLinks = document.querySelectorAll('.toc-link');
+                var headings = document.querySelectorAll('h1[id], h2[id]');
+                if (tocLinks.length === 0 || headings.length === 0) return;
+
+                var linkMap = new Map();
+                tocLinks.forEach(function(link) {
+                    var href = link.getAttribute('href');
+                    if (href && href.startsWith('#')) {
+                        linkMap.set(href.substring(1), link);
+                    }
+                });
+
+                var observerOptions = { rootMargin: '-20% 0px -70% 0px', threshold: 0 };
+
+                tocObserver = new IntersectionObserver(function(entries) {
+                    entries.forEach(function(entry) {
+                        var id = entry.target.id;
+                        var link = linkMap.get(id);
+                        if (entry.isIntersecting) {
+                            tocLinks.forEach(function(l) { l.classList.remove('toc-link-active'); });
+                            if (link) link.classList.add('toc-link-active');
+                        }
+                    });
+                }, observerOptions);
+
+                headings.forEach(function(heading) {
+                    if (heading.id) tocObserver.observe(heading);
+                });
+
+                function setInitialActive() {
+                    var activeHeading = null;
+                    var maxTop = -Infinity;
+                    headings.forEach(function(heading) {
+                        var rect = heading.getBoundingClientRect();
+                        if (rect.top <= 100 && rect.top > maxTop) {
+                            maxTop = rect.top;
+                            activeHeading = heading;
+                        }
+                    });
+                    if (activeHeading && activeHeading.id) {
+                        var link = linkMap.get(activeHeading.id);
+                        if (link) {
+                            tocLinks.forEach(function(l) { l.classList.remove('toc-link-active'); });
+                            link.classList.add('toc-link-active');
+                        }
+                    }
+                }
+
+                setInitialActive();
+
+                var scrollTimeout;
+                tocScrollHandler = function() {
+                    clearTimeout(scrollTimeout);
+                    scrollTimeout = setTimeout(setInitialActive, 100);
+                };
+                window.addEventListener('scroll', tocScrollHandler);
+            };
+
+            function init() {
+                window.bdInitHighlight();
+                window.bdInitTOCActiveState();
+            }
+
+            if (document.readyState === 'loading') {
+                document.addEventListener('DOMContentLoaded', init);
+            } else {
+                init();
+            }
+        })();
+    </script>
+
+    <!-- Back to Top -->
+    <div class="back-to-top-wrapper">
+      <button class="button back-to-top-btn" data-icon-only aria-label="Back to top" type="button">
+        <div class="svg-icn"><svg data-icon="arrow-top" aria-hidden="true" width="100%" height="100%" viewBox="0 0 24 24" fill="none"><path d="M4 4V2H20V4H4Z" fill="currentColor"/><path d="M11 22V12.2392C11 11.3483 9.92286 10.9021 9.29289 11.5321L5.4 15.425L4 14L12 6L20 14L18.6 15.425L14.7071 11.5321C14.0771 10.9021 13 11.3483 13 12.2392V22H11Z" fill="currentColor"/></svg></div>
+      </button>
+    </div>
+    <script>
+      (function() {
+        var btn = document.querySelector('.back-to-top-wrapper');
+        if (!btn) return;
+        window.addEventListener('scroll', function() {
+          btn.classList.toggle('is-visible', window.scrollY > 300);
+        });
+        btn.querySelector('button').addEventListener('click', function() {
+          window.scrollTo({ top: 0, behavior: 'smooth' });
+        });
+      })();
+    </script>
+
+    <!-- Site nav + docs UI behaviours -->
+    <script src="./assets/js/nav.js" defer></script>
+    <script src="./assets/docs-kit/copy-button.js" defer></script>
+    <script src="./assets/docs-kit/dropdown.js" defer></script>
+
+    
+
+    <script>
+      /* Tag dismiss — delegated to document, attached once */
+      document.addEventListener('click', function (e) {
+        var removeBtn = e.target.closest('.tag-remove');
+        if (removeBtn) {
+          var tag = removeBtn.closest('.tag');
+          if (tag) tag.remove();
+        }
+      });
+
+      /* Table scroll overflow hint — re-callable after client-side navigation */
+      (function() {
+        function checkOverflow(wrapper) {
+          var isOverflowing = wrapper.scrollWidth > wrapper.clientWidth;
+          var isAtEnd = wrapper.scrollLeft + wrapper.clientWidth >= wrapper.scrollWidth - 1;
+          wrapper.classList.toggle('is-overflowing', isOverflowing);
+          wrapper.classList.toggle('is-scrolled-end', isAtEnd);
+        }
+
+        window.bdInitTableScroll = function initTableScroll() {
+          var wrappers = document.querySelectorAll('.table-scroll');
+          wrappers.forEach(function(wrapper) {
+            if (wrapper.__bdTableScrollBound) return;
+            wrapper.__bdTableScrollBound = true;
+            checkOverflow(wrapper);
+            wrapper.addEventListener('scroll', function() { checkOverflow(wrapper); });
+          });
+        };
+
+        // Window resize handler attached once — re-checks all wrappers
+        window.addEventListener('resize', function() {
+          document.querySelectorAll('.table-scroll').forEach(checkOverflow);
+        });
+
+        if (document.readyState === 'loading') {
+          document.addEventListener('DOMContentLoaded', window.bdInitTableScroll);
+        } else {
+          window.bdInitTableScroll();
+        }
+      })();
+    </script>
+    
+</body>
+</html>

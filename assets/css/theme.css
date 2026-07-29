@@ -1,0 +1,119 @@
+/* ─────────────────────────────
+   BRAND THEME: By Default
+   ─────────────────────────────
+
+   The design system (design-system.css) ships neutral defaults on
+   real token names. This file is the By Default studio brand:
+   §1 primitive overrides (fonts, warm palette, accent ramps) —
+   the engine's §2 semantic layer cascades through them, so no
+   semantic token needs restating here.
+
+   Load AFTER design-system.css:
+     <link rel="stylesheet" href="assets/css/design-system.css">
+     <link rel="stylesheet" href="assets/css/theme.css">
+
+   Shipped fonts (assets/fonts/): Zalando Sans (primary),
+   IBM Plex Mono (code). Kaneda Gothic (display) loads via
+   Adobe Typekit below. The brand's other faces (ES Face,
+   Bugrino, Caput) are not shipped — their slots fall back
+   gracefully; add the files and @font-face rules if needed.
+   ───────────────────────────── */
+
+/* Kaneda Gothic — Adobe Typekit (display face) */
+@import url("https://use.typekit.net/wgr3lwl.css");
+
+
+/* -- Brand fonts (self-hosted) -- */
+
+/* Zalando Sans — variable font (weight 300-900, width 75%-125%) */
+@font-face {
+  font-family: "Zalando Sans";
+  src: url("../fonts/zalando-sans/ZalandoSans-VariableFont_wdth,wght.ttf") format("truetype");
+  font-weight: 300 900;
+  font-stretch: 75% 125%;
+  font-style: normal;
+  font-display: swap;
+}
+@font-face {
+  font-family: "Zalando Sans";
+  src: url("../fonts/zalando-sans/ZalandoSans-Italic-VariableFont_wdth,wght.ttf") format("truetype");
+  font-weight: 300 900;
+  font-stretch: 75% 125%;
+  font-style: italic;
+  font-display: swap;
+}
+
+/* IBM Plex Mono — Regular, Medium, SemiBold */
+@font-face {
+  font-family: "IBM Plex Mono";
+  src: url("../fonts/ibm-plex-mono/IBMPlexMono-Regular.ttf") format("truetype");
+  font-weight: 400; font-style: normal; font-display: swap;
+}
+@font-face {
+  font-family: "IBM Plex Mono";
+  src: url("../fonts/ibm-plex-mono/IBMPlexMono-Medium.ttf") format("truetype");
+  font-weight: 500; font-style: normal; font-display: swap;
+}
+@font-face {
+  font-family: "IBM Plex Mono";
+  src: url("../fonts/ibm-plex-mono/IBMPlexMono-SemiBold.ttf") format("truetype");
+  font-weight: 600; font-style: normal; font-display: swap;
+}
+
+
+:root {
+
+  /* -- Fonts -- */
+  --font-primary: "Zalando Sans", system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+  --font-secondary: "Zalando Sans", system-ui, serif;
+  --font-tertiary: "Zalando Sans", sans-serif;
+  --font-quaternary: "IBM Plex Mono", ui-monospace, "SF Mono", Menlo, monospace;
+
+  --font-display: "kaneda-gothic", "Zalando Sans", sans-serif;
+  --font-editorial: var(--font-secondary);
+  --font-code: var(--font-quaternary);
+
+  /* -- Palette -- */
+  --warm-white: #f5ebe3;
+  --warm-black: #221f1c;
+
+  /* -- Accent ramps -- */
+  /* --text-accent resolves through --blue (light) / --yellow (dark) */
+  --red-lighter: #FFE8E3;
+  --red-light: #FFD6CD;
+  --red: #D92A27;
+  --red-dark: #750D0B;
+  --blue-lighter: #D5F3FF;
+  --blue-light: #B1E6FC;
+  --blue: #1A54D6;
+  --blue-dark: #152F57;
+  --yellow-lighter: #FFF3B8;
+  --yellow-light: #FFEA83;
+  --yellow: #FFB533;
+  --yellow-dark: #7E5700;
+  --green-lighter: #DBF7CC;
+  --green-light: #B6D6A5;
+  --green: #167255;
+  --green-dark: #094C45;
+  --purple-lighter: #F9E2FF;
+  --purple-light: #F5CDFF;
+  --purple: #AA4FE3;
+  --purple-dark: #600E83;
+
+}
+
+
+/* -- Dark mode overrides (optional) --
+   The engine's dark semantic layer resolves through the ramps
+   above (accent becomes --yellow); no brand overrides needed. */
+[data-theme="dark"] {
+}
+
+
+/* -- System preference fallback (no-JS) --
+   Must mirror the [data-theme="dark"] block above exactly.
+   Drift between the two blocks is a known failure mode. */
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme]) {
+  }
+}

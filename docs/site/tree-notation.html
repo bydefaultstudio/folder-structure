@@ -1,0 +1,468 @@
+<!DOCTYPE html>
+<html lang="en" >
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Tree Notation - Documentation</title>
+    <meta name="description" content="Reference for the characters and text formats used to represent folder structures — what users can paste in and copy out.">
+
+    <!-- Favicon (per-brand via brand.json, site default otherwise) -->
+    <link rel="icon" type="image/svg+xml" href="./assets/icons/favicon.svg">
+    <link rel="icon" type="image/x-icon" href="./assets/icons/favicon.ico">
+
+    <!-- Open Graph -->
+    <meta property="og:title" content="Tree Notation - Documentation">
+    <meta property="og:description" content="Reference for the characters and text formats used to represent folder structures — what users can paste in and copy out.">
+    <meta property="og:image" content="./assets/images/og/og-default.jpg">
+    <meta property="og:type" content="website">
+
+    <!-- Design System Framework (path set in docs.config.js) -->
+    <link rel="stylesheet" href="./assets/docs-kit/design-system.css" id="design-system-css"
+          onerror="document.getElementById('ds-missing-banner').style.display='flex'">
+    <link rel="stylesheet" href="./assets/css/theme.css">
+
+    
+
+    <!-- Docs chrome styles (layout, nav, page chrome; path set in docs.config.js) -->
+    <link rel="stylesheet" href="./assets/docs-kit/docs.css">
+
+    
+
+    
+
+    
+</head>
+<body>
+
+    <!-- Design system missing banner (shown by JS if CSS variables fail to load) -->
+    <div id="ds-missing-banner" style="display:none;position:fixed;top:0;left:0;right:0;z-index:9999;background:#fffbea;border-bottom:1px solid #f0c040;padding:12px 20px;font-family:sans-serif;font-size:14px;color:#7a5c00;align-items:center;gap:12px;">
+        <span>⚠️</span>
+        <span>Design system CSS not found. Check the path in <code style="background:#fef3c7;padding:2px 6px;border-radius:4px;">docs/docs.config.js</code> → <code style="background:#fef3c7;padding:2px 6px;border-radius:4px;">designSystemPath</code>, then re-run <code style="background:#fef3c7;padding:2px 6px;border-radius:4px;">npm run docgen</code>.</span>
+        <button onclick="document.getElementById('ds-missing-banner').style.display='none'" style="margin-left:auto;background:none;border:1px solid #f0c040;border-radius:4px;padding:4px 10px;cursor:pointer;color:#7a5c00;font-size:13px;">Dismiss</button>
+    </div>
+
+    <!-- Layout grid: nav.js injects header + sidebar before <main> via insertAdjacentHTML -->
+    <div class="docs-layout" id="site-nav" data-base="./">
+    <main class="docs-main-area">
+    <div>
+    <div>
+        <!-- Page Header (full width, outside grid) -->
+        <div class="page-header">
+      <div class="container-s">
+        <h1 data-flip-id="tree-notation">Tree Notation</h1>
+        <p class="page-subtitle" data-text-wrap="pretty">Box-drawing characters, formats, and naming</p>
+        
+      </div>
+    </div>
+
+        <!-- Page sub-header bar (full width, sticky: breadcrumb + filename + actions) -->
+        
+
+        <!-- Main Content + TOC grid -->
+        <div class="docs-content-grid padding-global">
+            <!-- Main Content -->
+            <main class="docs-main">
+                <article>
+                    <blockquote>
+<p>Claude: Treat this document as authoritative for parser/serializer work.</p>
+</blockquote>
+<p>This is the reference bank for how folder structures are written as text — the characters, their names, the de facto standard grammar, and the input/output formats the tool supports.</p>
+<hr>
+<h2 id="the-characters-box-drawing-characters">The Characters: Box-Drawing Characters</h2>
+<p>The glyphs used in tree diagrams are Unicode <strong>box-drawing characters</strong> (block U+2500–U+257F). In tree-drawing tools they&#39;re informally called <strong>tree branch characters</strong> or <strong>connectors</strong>.</p>
+<div class="table-scroll"><table class="table">
+<thead>
+<tr>
+<th>Glyph</th>
+<th>Unicode</th>
+<th>Official Unicode name</th>
+<th>Tree role</th>
+<th>Project SVG</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><code>─</code></td>
+<td>U+2500</td>
+<td>Box Drawings Light Horizontal</td>
+<td>Horizontal arm (always doubled: <code>──</code>)</td>
+<td>—</td>
+</tr>
+<tr>
+<td><code>│</code></td>
+<td>U+2502</td>
+<td>Box Drawings Light Vertical</td>
+<td>Sibling continuation — a branch passing through</td>
+<td><code>tree_sibling.svg</code></td>
+</tr>
+<tr>
+<td><code>├</code></td>
+<td>U+251C</td>
+<td>Box Drawings Light Vertical and Right</td>
+<td><strong>Non-last child</strong> — entry with siblings below (a &quot;tee&quot;)</td>
+<td><code>tree_non-last-child.svg</code></td>
+</tr>
+<tr>
+<td><code>└</code></td>
+<td>U+2514</td>
+<td>Box Drawings Light Up and Right</td>
+<td><strong>Last child</strong> — final entry in a folder (a &quot;corner&quot; / &quot;elbow&quot;)</td>
+<td><code>tree_last-child.svg</code></td>
+</tr>
+<tr>
+<td><code>┐</code></td>
+<td>U+2510</td>
+<td>Box Drawings Light Down and Left</td>
+<td><strong>First child</strong> — the drop from a parent into its children. Used in our cascading diagram only; standard vertical tree text doesn&#39;t need it</td>
+<td><code>tree_first-child.svg</code></td>
+</tr>
+</tbody></table></div>
+<p>ASCII fallback equivalents (for maximum-compatibility output):</p>
+<div class="table-scroll"><table class="table">
+<thead>
+<tr>
+<th>Unicode</th>
+<th>ASCII</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><code>│</code></td>
+<td><code>|</code></td>
+</tr>
+<tr>
+<td><code>├──</code></td>
+<td><code>|--</code></td>
+</tr>
+<tr>
+<td><code>└──</code></td>
+<td><code>`--</code> (or <code>\--</code>)</td>
+</tr>
+</tbody></table></div>
+<hr>
+<h2>The De Facto Standard: <code>tree</code> Output Grammar</h2>
+<p>There is no formal spec — the universal convention is the output format of the Unix <code>tree</code> command:</p>
+
+      <div class="code-block-wrapper">
+        <button class="button copy-btn is-icon-only" data-size="xsmall" data-clipboard-target="#code-0" data-tooltip="Copy" type="button" aria-label="Copy code"><span class="copy-btn-default"><div class="svg-icn"><svg data-icon="copy" aria-hidden="true" width="100%" height="100%" viewBox="0 0 24 24" fill="none"><path d="M8 14C8 15.1046 8.89543 16 10 16H18C19.1046 16 20 15.1046 20 14V6C20 4.89543 19.1046 4 18 4H10C8.89543 4 8 4.89543 8 6V14ZM6 18V2H22V18H6ZM2 22V6H4V20H18V22H2Z" fill="currentColor"/></svg></div></span><span class="copy-btn-copied"><div class="svg-icn"><svg data-icon="check" aria-hidden="true" width="100%" height="100%" viewBox="0 0 24 24" fill="none"><path d="M9.54998 18L3.84998 12.3L5.27498 10.875L8.13576 13.7358C8.91681 14.5168 10.1831 14.5168 10.9642 13.7358L18.725 5.97501L20.15 7.40001L9.54998 18Z" fill="currentColor"/></svg></div></span></button>
+        <pre><code id="code-0" class="language-text">project/
+├── index.html
+├── assets/
+│   ├── css/
+│   │   └── style.css
+│   └── js/
+└── docs/
+    └── setup.md
+</code></pre>
+      </div>
+    
+<p>Grammar rules:</p>
+<ul>
+<li><strong>Each depth level is one 4-character unit:</strong> <code>│   </code> (an ancestor has more children below) or four spaces (the ancestor was a last child)</li>
+<li><strong><code>├── </code></strong> prefixes a non-last child; <strong><code>└── </code></strong> prefixes the last child</li>
+<li><strong>Directories end with a trailing <code>/</code></strong> — this is load-bearing: it&#39;s how an empty folder is still recognisably a folder</li>
+<li>The <strong>root</strong> sits alone on the first line</li>
+<li><strong>Spaces, not tabs</strong></li>
+<li>Folders sort before files (<code>tree --dirsfirst</code>) — matches what people expect visually</li>
+<li>Inline comments after <code>#</code> are common: <code>├── theme.css  # brand tokens</code></li>
+<li>In markdown, wrap the block in a fenced code block (<code>```text</code>)</li>
+</ul>
+<p>This format is also the best one to hand to an LLM — models have seen millions of <code>tree</code> blocks in training data and parse it natively.</p>
+<hr>
+<h2 id="input-formats-paste-in">Input Formats (paste-in)</h2>
+<p>The parser should auto-detect and accept all of these:</p>
+<ol>
+<li><strong>Unicode tree</strong> — as above (<code>├──</code>, <code>└──</code>, <code>│</code>)</li>
+<li><strong>ASCII tree</strong> — same structure with <code>|--</code>, <code>`--</code>, <code>+--</code></li>
+<li><strong>Plain indentation</strong> — names indented with spaces or tabs, trailing <code>/</code> on folders; what people type by hand</li>
+<li><strong>Markdown nested list</strong> — <code>- assets/</code> with indented sub-items; common in docs and Notion</li>
+<li><strong>Path list</strong> — one path per line (<code>assets/css/style.css</code>), i.e. <code>find</code> / <code>git ls-files</code> output</li>
+</ol>
+<p>Detection heuristics: box-drawing chars → tree; <code>|--</code>/<code>`--</code> → ASCII tree; leading <code>-</code>/<code>*</code> → markdown list; <code>/</code> mid-line without indentation → path list; otherwise → indentation.</p>
+<hr>
+<h2 id="output-formats-copy-out">Output Formats (copy-out)</h2>
+<p>All serializers are pure functions of the same node tree, so paste → edit → copy round-trips losslessly.</p>
+<p><strong>1. Unicode tree</strong> (default, AI-ready):</p>
+
+      <div class="code-block-wrapper">
+        <button class="button copy-btn is-icon-only" data-size="xsmall" data-clipboard-target="#code-1" data-tooltip="Copy" type="button" aria-label="Copy code"><span class="copy-btn-default"><div class="svg-icn"><svg data-icon="copy" aria-hidden="true" width="100%" height="100%" viewBox="0 0 24 24" fill="none"><path d="M8 14C8 15.1046 8.89543 16 10 16H18C19.1046 16 20 15.1046 20 14V6C20 4.89543 19.1046 4 18 4H10C8.89543 4 8 4.89543 8 6V14ZM6 18V2H22V18H6ZM2 22V6H4V20H18V22H2Z" fill="currentColor"/></svg></div></span><span class="copy-btn-copied"><div class="svg-icn"><svg data-icon="check" aria-hidden="true" width="100%" height="100%" viewBox="0 0 24 24" fill="none"><path d="M9.54998 18L3.84998 12.3L5.27498 10.875L8.13576 13.7358C8.91681 14.5168 10.1831 14.5168 10.9642 13.7358L18.725 5.97501L20.15 7.40001L9.54998 18Z" fill="currentColor"/></svg></div></span></button>
+        <pre><code id="code-1" class="language-text">root/
+├── folder-a/
+│   └── file.txt
+└── folder-b/
+</code></pre>
+      </div>
+    
+<p><strong>2. ASCII tree</strong> (older tooling, plain-ASCII environments):</p>
+
+      <div class="code-block-wrapper">
+        <button class="button copy-btn is-icon-only" data-size="xsmall" data-clipboard-target="#code-2" data-tooltip="Copy" type="button" aria-label="Copy code"><span class="copy-btn-default"><div class="svg-icn"><svg data-icon="copy" aria-hidden="true" width="100%" height="100%" viewBox="0 0 24 24" fill="none"><path d="M8 14C8 15.1046 8.89543 16 10 16H18C19.1046 16 20 15.1046 20 14V6C20 4.89543 19.1046 4 18 4H10C8.89543 4 8 4.89543 8 6V14ZM6 18V2H22V18H6ZM2 22V6H4V20H18V22H2Z" fill="currentColor"/></svg></div></span><span class="copy-btn-copied"><div class="svg-icn"><svg data-icon="check" aria-hidden="true" width="100%" height="100%" viewBox="0 0 24 24" fill="none"><path d="M9.54998 18L3.84998 12.3L5.27498 10.875L8.13576 13.7358C8.91681 14.5168 10.1831 14.5168 10.9642 13.7358L18.725 5.97501L20.15 7.40001L9.54998 18Z" fill="currentColor"/></svg></div></span></button>
+        <pre><code id="code-2" class="language-text">root/
+|-- folder-a/
+|   `-- file.txt
+`-- folder-b/
+</code></pre>
+      </div>
+    
+<p><strong>3. Markdown nested list:</strong></p>
+
+      <div class="code-block-wrapper">
+        <button class="button copy-btn is-icon-only" data-size="xsmall" data-clipboard-target="#code-3" data-tooltip="Copy" type="button" aria-label="Copy code"><span class="copy-btn-default"><div class="svg-icn"><svg data-icon="copy" aria-hidden="true" width="100%" height="100%" viewBox="0 0 24 24" fill="none"><path d="M8 14C8 15.1046 8.89543 16 10 16H18C19.1046 16 20 15.1046 20 14V6C20 4.89543 19.1046 4 18 4H10C8.89543 4 8 4.89543 8 6V14ZM6 18V2H22V18H6ZM2 22V6H4V20H18V22H2Z" fill="currentColor"/></svg></div></span><span class="copy-btn-copied"><div class="svg-icn"><svg data-icon="check" aria-hidden="true" width="100%" height="100%" viewBox="0 0 24 24" fill="none"><path d="M9.54998 18L3.84998 12.3L5.27498 10.875L8.13576 13.7358C8.91681 14.5168 10.1831 14.5168 10.9642 13.7358L18.725 5.97501L20.15 7.40001L9.54998 18Z" fill="currentColor"/></svg></div></span></button>
+        <pre><code id="code-3" class="language-text">- root/
+  - folder-a/
+    - file.txt
+  - folder-b/
+</code></pre>
+      </div>
+    
+<p><strong>4. Path list:</strong></p>
+
+      <div class="code-block-wrapper">
+        <button class="button copy-btn is-icon-only" data-size="xsmall" data-clipboard-target="#code-4" data-tooltip="Copy" type="button" aria-label="Copy code"><span class="copy-btn-default"><div class="svg-icn"><svg data-icon="copy" aria-hidden="true" width="100%" height="100%" viewBox="0 0 24 24" fill="none"><path d="M8 14C8 15.1046 8.89543 16 10 16H18C19.1046 16 20 15.1046 20 14V6C20 4.89543 19.1046 4 18 4H10C8.89543 4 8 4.89543 8 6V14ZM6 18V2H22V18H6ZM2 22V6H4V20H18V22H2Z" fill="currentColor"/></svg></div></span><span class="copy-btn-copied"><div class="svg-icn"><svg data-icon="check" aria-hidden="true" width="100%" height="100%" viewBox="0 0 24 24" fill="none"><path d="M9.54998 18L3.84998 12.3L5.27498 10.875L8.13576 13.7358C8.91681 14.5168 10.1831 14.5168 10.9642 13.7358L18.725 5.97501L20.15 7.40001L9.54998 18Z" fill="currentColor"/></svg></div></span></button>
+        <pre><code id="code-4" class="language-text">root/folder-a/file.txt
+root/folder-b/
+</code></pre>
+      </div>
+    
+<p><strong>5. Shell commands</strong> (creates the structure for real):</p>
+
+      <div class="code-block-wrapper">
+        <button class="button copy-btn is-icon-only" data-size="xsmall" data-clipboard-target="#code-5" data-tooltip="Copy" type="button" aria-label="Copy code"><span class="copy-btn-default"><div class="svg-icn"><svg data-icon="copy" aria-hidden="true" width="100%" height="100%" viewBox="0 0 24 24" fill="none"><path d="M8 14C8 15.1046 8.89543 16 10 16H18C19.1046 16 20 15.1046 20 14V6C20 4.89543 19.1046 4 18 4H10C8.89543 4 8 4.89543 8 6V14ZM6 18V2H22V18H6ZM2 22V6H4V20H18V22H2Z" fill="currentColor"/></svg></div></span><span class="copy-btn-copied"><div class="svg-icn"><svg data-icon="check" aria-hidden="true" width="100%" height="100%" viewBox="0 0 24 24" fill="none"><path d="M9.54998 18L3.84998 12.3L5.27498 10.875L8.13576 13.7358C8.91681 14.5168 10.1831 14.5168 10.9642 13.7358L18.725 5.97501L20.15 7.40001L9.54998 18Z" fill="currentColor"/></svg></div></span></button>
+        <pre><code id="code-5" class="language-text">mkdir -p root/folder-a root/folder-b
+touch root/folder-a/file.txt
+</code></pre>
+      </div>
+    
+<p><strong>6. JSON</strong> (<code>{name, type, children}</code>) — for tool interchange.</p>
+<hr>
+<h2 id="diagram-notation-mapping">Diagram ↔ Notation Mapping</h2>
+<p>The visual diagram (per the Figma design) is a <strong>cascading column layout</strong>: each open folder spawns a child column to its right. The connectors map to the notation roles like this:</p>
+<ul>
+<li>Open folder label → arm out and down (<code>┐</code> / <code>tree_first-child.svg</code>) into the top of its child column</li>
+<li>Child with siblings below → <code>├</code> (<code>tree_non-last-child.svg</code>)</li>
+<li>Final child → <code>└</code> (<code>tree_last-child.svg</code>)</li>
+<li>Rows passing a continuing branch → <code>│</code> (<code>tree_sibling.svg</code>)</li>
+</ul>
+<p>The copy-out text is always the standard <strong>vertical</strong> tree grammar above, regardless of the cascading visual layout — the diagram is a view, the notation is the interchange format.</p>
+<hr>
+<h2 id="sources-amp-further-reading">Sources &amp; Further Reading</h2>
+<ul>
+<li><a href="https://www.jackbishop.co/posts/representing-folder-trees-docs-code" target="_blank" rel="noopener noreferrer">How to Represent Folder Trees in Docs and Code — Jack Bishop</a></li>
+<li><a href="https://gist.github.com/genadyp/ffc112df6c8b368127e3cbb37465d452" target="_blank" rel="noopener noreferrer">Represent a directory tree structure in markdown (gist)</a></li>
+<li><a href="https://gist.github.com/whoisryosuke/813186b07e6c9e4d23593041827a6530" target="_blank" rel="noopener noreferrer">Generate markdown-friendly directory trees (gist)</a></li>
+<li><a href="https://blog.willsmidlein.com/posts/2025/feb/10/tree-llm-trick/" target="_blank" rel="noopener noreferrer">The <code>tree</code> → LLM trick</a></li>
+<li><a href="https://github.com/travisvn/gptree" target="_blank" rel="noopener noreferrer">gptree — CLI that combines a file tree with file contents for LLM context</a></li>
+<li><a href="https://kit.cased.com/core-concepts/llm-context-best-practices/" target="_blank" rel="noopener noreferrer">kit — LLM context best practices</a></li>
+<li><a href="https://en.wikipedia.org/wiki/Box-drawing_characters" target="_blank" rel="noopener noreferrer">Unicode box-drawing block (U+2500–U+257F)</a></li>
+<li><a href="https://www.w3.org/WAI/ARIA/apg/patterns/treeview/" target="_blank" rel="noopener noreferrer">WAI-ARIA tree view pattern</a> — accessibility model for the interactive diagram</li>
+</ul>
+
+                </article>
+            </main>
+
+            <!-- Table of Contents -->
+            <aside class="docs-toc">
+      <span class="toc-header">On this page</span>
+      <div class="toc-wrapper"><nav class="toc"><ul class="toc-list"><li class="toc-item toc-level-2"><a href="#the-characters-box-drawing-characters" class="toc-link">The Characters: Box-Drawing Characters</a></li><li class="toc-item toc-level-2"><a href="#input-formats-paste-in" class="toc-link">Input Formats (paste-in)</a></li><li class="toc-item toc-level-2"><a href="#output-formats-copy-out" class="toc-link">Output Formats (copy-out)</a></li><li class="toc-item toc-level-2"><a href="#diagram-notation-mapping" class="toc-link">Diagram ↔ Notation Mapping</a></li><li class="toc-item toc-level-2"><a href="#sources-amp-further-reading" class="toc-link">Sources &amp; Further Reading</a></li></ul></nav></div>
+    </aside>
+        </div>
+
+        <!-- Page Navigation (Previous / Next) -->
+        <nav class="page-nav" aria-label="Page navigation"><div class="page-nav-inner padding-global"><a href="folder-structure.html" class="page-nav-link page-nav-prev" rel="prev">
+      <div class="svg-icn page-nav-arrow"><svg data-icon="chevron-left-large" aria-hidden="true" width="100%" height="100%" viewBox="0 0 24 24" fill="none"><path d="M15.225 22L5.225 12L15.225 2L17 3.775L10.1892 10.5858C9.40817 11.3668 9.40816 12.6332 10.1892 13.4142L17 20.225L15.225 22Z" fill="currentColor"/></svg></div>
+      <span class="page-nav-text">
+        <span class="page-nav-label">Previous</span>
+        
+        <h3 class="page-nav-title">Folders</h3>
+      </span>
+    </a><a href="upgrading-docs.html" class="page-nav-link page-nav-next" rel="next">
+      <span class="page-nav-text">
+        <span class="page-nav-label">Next</span>
+        
+        <h3 class="page-nav-title">Upgrading the Docs Engine</h3>
+      </span>
+      <div class="svg-icn page-nav-arrow"><svg data-icon="chevron-right-large" aria-hidden="true" width="100%" height="100%" viewBox="0 0 24 24" fill="none"><path d="M8.775 22L7 20.225L13.8108 13.4142C14.5918 12.6332 14.5918 11.3668 13.8108 10.5858L7 3.775L8.775 2L18.775 12L8.775 22Z" fill="currentColor"/></svg></div>
+    </a></div></nav>
+
+        
+
+        <!-- Footer -->
+        <footer class="docs-footer">
+            <div class="docs-footer-inner padding-global">
+                <p class="docs-footer-text">© 2026 By Default — Folder Structure</p>
+            </div>
+        </footer>
+
+        <!-- Per-page scripts (inside the page container so they re-execute on transition) -->
+        
+    </div>
+    </div>
+    </main>
+    </div><!-- /.docs-layout #site-nav -->
+
+    <!-- Syntax highlighting (source set in docs.config.js) -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/highlight.min.js"></script>
+
+    <!-- Initialize Highlight.js and TOC (re-callable after client-side navigation) -->
+    <script>
+        (function() {
+            'use strict';
+
+            // Track TOC observer + scroll listener so we can clean up before re-init
+            var tocObserver = null;
+            var tocScrollHandler = null;
+
+            window.bdInitHighlight = function initHighlight() {
+                if (!window.hljs) return;
+                document.querySelectorAll('pre code').forEach(function(block) {
+                    hljs.highlightElement(block);
+                });
+            };
+
+            window.bdInitTOCActiveState = function initTOCActiveState() {
+                // Tear down any prior observer + scroll listener (re-init safe)
+                if (tocObserver) { tocObserver.disconnect(); tocObserver = null; }
+                if (tocScrollHandler) {
+                    window.removeEventListener('scroll', tocScrollHandler);
+                    tocScrollHandler = null;
+                }
+
+                var tocLinks = document.querySelectorAll('.toc-link');
+                var headings = document.querySelectorAll('h1[id], h2[id]');
+                if (tocLinks.length === 0 || headings.length === 0) return;
+
+                var linkMap = new Map();
+                tocLinks.forEach(function(link) {
+                    var href = link.getAttribute('href');
+                    if (href && href.startsWith('#')) {
+                        linkMap.set(href.substring(1), link);
+                    }
+                });
+
+                var observerOptions = { rootMargin: '-20% 0px -70% 0px', threshold: 0 };
+
+                tocObserver = new IntersectionObserver(function(entries) {
+                    entries.forEach(function(entry) {
+                        var id = entry.target.id;
+                        var link = linkMap.get(id);
+                        if (entry.isIntersecting) {
+                            tocLinks.forEach(function(l) { l.classList.remove('toc-link-active'); });
+                            if (link) link.classList.add('toc-link-active');
+                        }
+                    });
+                }, observerOptions);
+
+                headings.forEach(function(heading) {
+                    if (heading.id) tocObserver.observe(heading);
+                });
+
+                function setInitialActive() {
+                    var activeHeading = null;
+                    var maxTop = -Infinity;
+                    headings.forEach(function(heading) {
+                        var rect = heading.getBoundingClientRect();
+                        if (rect.top <= 100 && rect.top > maxTop) {
+                            maxTop = rect.top;
+                            activeHeading = heading;
+                        }
+                    });
+                    if (activeHeading && activeHeading.id) {
+                        var link = linkMap.get(activeHeading.id);
+                        if (link) {
+                            tocLinks.forEach(function(l) { l.classList.remove('toc-link-active'); });
+                            link.classList.add('toc-link-active');
+                        }
+                    }
+                }
+
+                setInitialActive();
+
+                var scrollTimeout;
+                tocScrollHandler = function() {
+                    clearTimeout(scrollTimeout);
+                    scrollTimeout = setTimeout(setInitialActive, 100);
+                };
+                window.addEventListener('scroll', tocScrollHandler);
+            };
+
+            function init() {
+                window.bdInitHighlight();
+                window.bdInitTOCActiveState();
+            }
+
+            if (document.readyState === 'loading') {
+                document.addEventListener('DOMContentLoaded', init);
+            } else {
+                init();
+            }
+        })();
+    </script>
+
+    <!-- Back to Top -->
+    <div class="back-to-top-wrapper">
+      <button class="button back-to-top-btn" data-icon-only aria-label="Back to top" type="button">
+        <div class="svg-icn"><svg data-icon="arrow-top" aria-hidden="true" width="100%" height="100%" viewBox="0 0 24 24" fill="none"><path d="M4 4V2H20V4H4Z" fill="currentColor"/><path d="M11 22V12.2392C11 11.3483 9.92286 10.9021 9.29289 11.5321L5.4 15.425L4 14L12 6L20 14L18.6 15.425L14.7071 11.5321C14.0771 10.9021 13 11.3483 13 12.2392V22H11Z" fill="currentColor"/></svg></div>
+      </button>
+    </div>
+    <script>
+      (function() {
+        var btn = document.querySelector('.back-to-top-wrapper');
+        if (!btn) return;
+        window.addEventListener('scroll', function() {
+          btn.classList.toggle('is-visible', window.scrollY > 300);
+        });
+        btn.querySelector('button').addEventListener('click', function() {
+          window.scrollTo({ top: 0, behavior: 'smooth' });
+        });
+      })();
+    </script>
+
+    <!-- Site nav + docs UI behaviours -->
+    <script src="./assets/js/nav.js" defer></script>
+    <script src="./assets/docs-kit/copy-button.js" defer></script>
+    <script src="./assets/docs-kit/dropdown.js" defer></script>
+
+    
+
+    <script>
+      /* Tag dismiss — delegated to document, attached once */
+      document.addEventListener('click', function (e) {
+        var removeBtn = e.target.closest('.tag-remove');
+        if (removeBtn) {
+          var tag = removeBtn.closest('.tag');
+          if (tag) tag.remove();
+        }
+      });
+
+      /* Table scroll overflow hint — re-callable after client-side navigation */
+      (function() {
+        function checkOverflow(wrapper) {
+          var isOverflowing = wrapper.scrollWidth > wrapper.clientWidth;
+          var isAtEnd = wrapper.scrollLeft + wrapper.clientWidth >= wrapper.scrollWidth - 1;
+          wrapper.classList.toggle('is-overflowing', isOverflowing);
+          wrapper.classList.toggle('is-scrolled-end', isAtEnd);
+        }
+
+        window.bdInitTableScroll = function initTableScroll() {
+          var wrappers = document.querySelectorAll('.table-scroll');
+          wrappers.forEach(function(wrapper) {
+            if (wrapper.__bdTableScrollBound) return;
+            wrapper.__bdTableScrollBound = true;
+            checkOverflow(wrapper);
+            wrapper.addEventListener('scroll', function() { checkOverflow(wrapper); });
+          });
+        };
+
+        // Window resize handler attached once — re-checks all wrappers
+        window.addEventListener('resize', function() {
+          document.querySelectorAll('.table-scroll').forEach(checkOverflow);
+        });
+
+        if (document.readyState === 'loading') {
+          document.addEventListener('DOMContentLoaded', window.bdInitTableScroll);
+        } else {
+          window.bdInitTableScroll();
+        }
+      })();
+    </script>
+    
+</body>
+</html>

@@ -1,0 +1,6 @@
+{
+  // Cloudflare Pages config — `npm run deploy` builds dist/ and uploads it.
+  "name": "folder-structure",
+  "compatibility_date": "2026-07-29",
+  "pages_build_output_dir": "dist"
+}
