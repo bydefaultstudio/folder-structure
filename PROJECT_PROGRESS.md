@@ -4,6 +4,19 @@ Track what's been done and what still needs doing across sessions. Add a dated s
 
 ---
 
+## 2026-07-29 — Edit UX: selection-driven actions chip, save-rename toggle
+
+Per Erlen's feedback (uncommitted; source `assets/` only, `dist/` rebuilds via CI):
+
+- **Selected row state**: `updateRowEl` now toggles `.is-selected` on the row whose id matches `model.state.focusedId` — selection *is* the focused node, no parallel state. Visual: subtle pill (`--background-faded`, `inset: 4px -6px`, `--radius-xs`) on a `.tree-item::before` pseudo at `z-index: -1` — the row's inline transform makes it a stacking context, so the pill sits under icon/label but above connectors without touching row geometry
+- **Actions chip reveal is click-only**: dropped `:hover`/`:focus-within` from the reveal rule; only `.is-edit-mode .tree-item.is-selected` shows it, so it no longer fights the add-pills between rows. Note: something is always selected (focusedId defaults to the first row), so in edit mode one chip is always visible
+- **Divider in the chip**: DS `.divider--vertical` span between the organising buttons (add/move/indent) and rename/delete, with a `margin: 0` context override in style.css (chip gap provides spacing)
+- **Rename button toggles pencil ↔ check** (`setRenameButton` in tree-edit.js swaps the sprite href + aria-label/tooltip); clicking the check commits. Same `data-action="rename"`: click handler commits when `renamingId === id`, else starts
+- **Fixed rename-loss bug**: clicking another row while renaming used to re-render (via tree-canvas `activateNode`) and destroy the input before the bubble-phase commit ran, silently dropping the typed name. Outside-click commit now runs in a **capture-phase** document listener (chip clicks excluded — the bubble handler owns those); other chip actions while renaming commit first. `commitRename` also cleans up `is-renaming`/check icon if the input is already gone
+- **Moves keep selection + focus**: reordering re-inserts the row element, which drops DOM focus; both the button path (tree-edit) and Alt+arrows (tree-keyboard) refocus the row after move/indent/outdent. `.is-selected` persists regardless since focusedId doesn't change
+- Print: chip + selection pill suppressed in `@media print`
+- Versions bumped to 1.1.0 (tree-render, tree-edit, tree-keyboard)
+
 ## 2026-07-29 — LIVE at folder-structure.bydefault.studio ✅
 
 Custom domain attached (by Erlen, in the dashboard). Verified end to end against the live origin:

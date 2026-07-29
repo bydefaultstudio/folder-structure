@@ -75,6 +75,24 @@ body.is-app {
   opacity: 0;
 }
 
+/* Selected row (the focused node) — a subtle pill behind icon + label.
+   Painted on a pseudo so row geometry stays untouched; the row's inline
+   transform makes it a stacking context, so z-index -1 keeps it under
+   the icon and label but above the connector layer. */
+.tree-item::before {
+  content: "";
+  position: absolute;
+  inset: 4px -6px;
+  z-index: -1;
+  border-radius: var(--radius-xs);
+  background-color: transparent;
+  transition: background-color var(--duration-s) var(--ease-out);
+}
+
+.tree-item.is-selected::before {
+  background-color: var(--background-faded);
+}
+
 /* Rows fade only when a sibling folder is open (set by tree-layout);
    hovering a faded row brings it back to full strength. */
 .tree-item.is-faded {
@@ -149,9 +167,11 @@ body.is-app {
 }
 
 
-/* -- Row actions (edit mode, hover/focus reveal) -- */
+/* -- Row actions (edit mode, shown on the selected row) -- */
 /* A solid chip floated past the label so it doesn't stretch the row;
-   its opaque background covers the connector arm cleanly on hover. */
+   its opaque background covers the connector arm cleanly. Revealed by
+   clicking a row (selection), not hover, so it never fights the
+   add-pills between rows. */
 
 .tree-item-actions {
   display: none;
@@ -169,10 +189,14 @@ body.is-app {
   box-shadow: 0 2px 8px var(--black-alpha-10);
 }
 
-.is-edit-mode .tree-item:hover .tree-item-actions,
-.is-edit-mode .tree-item:focus-within .tree-item-actions,
 .is-edit-mode .tree-item.is-selected .tree-item-actions {
   display: flex;
+}
+
+/* Separates the organising buttons (add, move, indent) from
+   rename/delete; the chip's gap provides the spacing. */
+.tree-item-actions .divider--vertical {
+  margin: 0;
 }
 
 
@@ -410,8 +434,14 @@ body.is-app {
 @media print {
   .app-toolbar,
   .zoom-controls,
-  .tree-gaps {
+  .tree-gaps,
+  .tree-item-actions {
     display: none;
+  }
+
+  /* Selection is a screen affordance — keep it off the page. */
+  .tree-item.is-selected::before {
+    background-color: transparent;
   }
 }
 

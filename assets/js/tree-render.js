@@ -13,7 +13,7 @@
    ───────────────────────────── */
 
 (function () {
-  var VERSION = '1.0.0';
+  var VERSION = '1.1.0';
   var SPRITE = 'assets/icons/project-icons.svg';
   var DS_SPRITE = 'assets/icons/icons.svg';
   var SVG_NS = 'http://www.w3.org/2000/svg';
@@ -93,6 +93,10 @@
     actions.appendChild(makeActionButton('move-down', 'arrow-down', SPRITE, 'Move ' + row.name + ' down', 'Move down'));
     actions.appendChild(makeActionButton('outdent', 'chevron-left', DS_SPRITE, 'Move ' + row.name + ' out of its folder', 'Move out of folder'));
     actions.appendChild(makeActionButton('indent', 'chevron-right', DS_SPRITE, 'Move ' + row.name + ' into the folder above', 'Move into folder above'));
+    var divider = document.createElement('span');
+    divider.className = 'divider--vertical';
+    divider.setAttribute('aria-hidden', 'true');
+    actions.appendChild(divider);
     actions.appendChild(makeActionButton('rename', 'pencil-draw', DS_SPRITE, 'Rename ' + row.name, 'Rename'));
     actions.appendChild(makeActionButton('delete', 'close-circled', SPRITE, 'Delete ' + row.name, 'Delete'));
     el.appendChild(actions);
@@ -166,6 +170,7 @@
     el.classList.toggle('is-faded', !!row.faded);
     el.classList.toggle('is-folder', row.type === 'folder');
     el.classList.toggle('is-file', row.type === 'file');
+    el.classList.toggle('is-selected', row.id === focusedId);
     el.tabIndex = row.id === focusedId ? 0 : -1;
     el.setAttribute('aria-level', row.level);
     el.setAttribute('aria-setsize', row.setSize);

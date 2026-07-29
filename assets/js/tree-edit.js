@@ -10,8 +10,10 @@
    ───────────────────────────── */
 
 (function () {
-  var VERSION = '1.0.0';
+  var VERSION = '1.1.0';
   var NAME_FORBIDDEN = /[\/\\─-╿]/g;
+  var DS_SPRITE = 'assets/icons/icons.svg';
+  var XLINK = 'http://www.w3.org/1999/xlink';
 
   var addType = 'folder';          // what the add-pill inserts
   var renamingId = null;
@@ -48,6 +50,20 @@
   //------- Rename -------//
   //
 
+  // While a row is renaming, its pencil button becomes the check/save
+  // button; the same data-action toggles between start and commit.
+  function setRenameButton(rowEl, saving, name) {
+    if (!rowEl) { return; }
+    var button = rowEl.querySelector('[data-action="rename"]');
+    if (!button) { return; }
+    var use = button.querySelector('use');
+    var symbol = saving ? 'check' : 'pencil-draw';
+    use.setAttribute('href', DS_SPRITE + '#' + symbol);
+    use.setAttributeNS(XLINK, 'xlink:href', DS_SPRITE + '#' + symbol);
+    button.setAttribute('aria-label', saving ? 'Save name' : 'Rename ' + name);
+    button.setAttribute('data-tooltip', saving ? 'Save name' : 'Rename');
+  }
+
   function startRename(id) {
     if (renamingId) { commitRename(); }
     var rowEl = window.FolderStructure.render.getRowEl(id);
@@ -55,6 +71,7 @@
     if (!rowEl || !node) { return; }
     renamingId = id;
     rowEl.classList.add('is-renaming');
+    setRenameButton(rowEl, true, node.name);
     var label = rowEl.querySelector('.tree-label');
     var input = document.createElement('input');
     input.type = 'text';
@@ -89,7 +106,13 @@
     var rowEl = window.FolderStructure.render.getRowEl(id);
     var input = rowEl ? rowEl.querySelector('.tree-rename-input') : null;
     renamingId = null;
-    if (!rowEl || !input) { return; }
+    if (!rowEl) { return; }
+    if (!input) {                                  // input gone (row re-rendered)
+      rowEl.classList.remove('is-renaming');
+      var stale = model().findNode(id);
+      setRenameButton(rowEl, false, stale ? stale.name : '');
+      return;
+    }
     var node = model().findNode(id);
     var name = cleanName(input.value);
     rowEl.classList.remove('is-renaming');
@@ -97,8 +120,10 @@
       toast('Names can’t contain slashes or tree characters');
     }
     if (!name || !node || name === node.name) {
+      setRenameButton(rowEl, false, node ? node.name : '');
       window.FolderStructure.render.render();      // restore the label
     } else {
+      setRenameButton(rowEl, false, name);
       model().rename(id, name);                    // re-renders via fs:modelchange
     }
     if (rowEl) { rowEl.focus({ preventScroll: true }); }
@@ -107,8 +132,12 @@
   function cancelRename() {
     if (!renamingId) { return; }
     var rowEl = window.FolderStructure.render.getRowEl(renamingId);
+    var node = model().findNode(renamingId);
     renamingId = null;
-    if (rowEl) { rowEl.classList.remove('is-renaming'); }
+    if (rowEl) {
+      rowEl.classList.remove('is-renaming');
+      setRenameButton(rowEl, false, node ? node.name : '');
+    }
     window.FolderStructure.render.render();
     if (rowEl) { rowEl.focus({ preventScroll: true }); }
   }
@@ -157,18 +186,28 @@
   //------- Event delegation -------//
   //
 
+  // Reordering re-inserts the row element, which drops DOM focus —
+  // put it back on the row so keyboard flow and the chip survive.
+  function refocusRow(id) {
+    var rowEl = window.FolderStructure.render.getRowEl(id);
+    if (rowEl) { rowEl.focus({ preventScroll: true }); }
+  }
+
   function handleDocumentClick(event) {
     var actionBtn = event.target.closest('.tree-item-actions [data-action]');
     if (actionBtn) {
       var rowEl = actionBtn.closest('.tree-item');
       var id = rowEl.getAttribute('data-id');
       var action = actionBtn.getAttribute('data-action');
-      if (action === 'rename') { startRename(id); }
+      if (renamingId && action !== 'rename') { commitRename(); }
+      if (action === 'rename') {
+        if (renamingId === id) { commitRename(); } else { startRename(id); }
+      }
       if (action === 'delete') { deleteNode(id); }
-      if (action === 'move-up') { model().move(id, -1); }
-      if (action === 'move-down') { model().move(id, 1); }
-      if (action === 'indent') { model().indent(id); }
-      if (action === 'outdent') { model().outdent(id); }
+      if (action === 'move-up') { model().move(id, -1); refocusRow(id); }
+      if (action === 'move-down') { model().move(id, 1); refocusRow(id); }
+      if (action === 'indent') { model().indent(id); refocusRow(id); }
+      if (action === 'outdent') { model().outdent(id); refocusRow(id); }
       if (action === 'add-child') {
         var node = model().findNode(id);
         addNode(id, (node.children || []).length);
@@ -189,6 +228,17 @@
     if (renamingId && !event.target.closest('.tree-rename-input')) {
       commitRename();
     }
+  }
+
+  // Capture-phase: commit before tree-canvas's click handler re-renders
+  // (activating another row would otherwise destroy the input and lose
+  // the typed name). Chip clicks are excluded — handleDocumentClick
+  // owns those so the check button can toggle instead of re-entering.
+  function handleOutsideRenameCommit(event) {
+    if (!renamingId) { return; }
+    if (event.target.closest('.tree-rename-input')) { return; }
+    if (event.target.closest('.tree-item-actions')) { return; }
+    commitRename();
   }
 
   function handleDoubleClick(event) {
@@ -215,6 +265,7 @@
   //
 
   function initTreeEdit() {
+    document.addEventListener('click', handleOutsideRenameCommit, true);
     document.addEventListener('click', handleDocumentClick);
     document.addEventListener('dblclick', handleDoubleClick);
     document.addEventListener('keydown', handleRenameKeydown, true);

@@ -16,7 +16,7 @@
    ───────────────────────────── */
 
 (function () {
-  var VERSION = '1.0.0';
+  var VERSION = '1.1.0';
 
   function model() { return window.FolderStructure.model; }
 
@@ -53,6 +53,10 @@
       if (key === 'ArrowLeft') { model().outdent(id); }
       if (key === 'ArrowUp') { model().move(id, -1); }
       if (key === 'ArrowDown') { model().move(id, 1); }
+      // Re-inserting the row element drops DOM focus — restore it so
+      // the row stays selected and repeat presses keep working.
+      var movedEl = window.FolderStructure.render.getRowEl(id);
+      if (movedEl) { movedEl.focus({ preventScroll: true }); }
     } else if (key === 'ArrowDown') {
       focusRow(ids[index + 1]);
     } else if (key === 'ArrowUp') {
