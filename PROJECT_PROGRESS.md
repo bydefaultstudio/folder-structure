@@ -12,7 +12,10 @@ Track what's been done and what still needs doing across sessions. Add a dated s
 - Pages project created: `folder-structure` — but the bare `folder-structure.pages.dev` name was taken globally, so the assigned URL is **https://folder-structure-4zp.pages.dev/**; canonical/OG/Twitter URLs in `index.html` updated to match (revisit both at launch alongside the `noindex` flip, when a custom domain lands)
 - The claude.ai Cloudflare MCP token is **read-only for Pages** (list works, create returned auth error) — writes go through wrangler
 - `docs/setup.md` Deployment section rewritten for this project's route; docs regenerated
-- **Not yet done:** first actual deployment (`npm run deploy`), initial git commit (repo still has zero commits)
+- **Deployed:** live at https://folder-structure-4zp.pages.dev/ (39 files; verified 200s, internal docs confirmed not served)
+- **GitHub:** initial commit pushed to https://github.com/bydefaultstudio/folder-structure (private, `main`); design-system-dist is public so CF git-integration builds can `npm install` it
+- **Still manual (needs CF dashboard):** custom domain `folder-structure.bydefault.studio` — both the claude.ai Cloudflare MCP token and wrangler's OAuth token lack the needed write scopes (MCP is read-only; wrangler has no DNS write / no domain CLI). After the domain is live: flip canonical/OG URLs in `index.html` and redeploy
+- **Note:** the existing Pages project is direct-upload type — Cloudflare cannot convert it to git-connected; switching to git integration means deleting it and recreating from the repo (build: `npm install && npm run build`, output: `dist`)
 
 ## 2026-07-29 — Feedback round 2: edit bar + undo/redo
 
