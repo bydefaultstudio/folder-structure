@@ -76,6 +76,7 @@
       fs().canvas.fit();
     } else if (action === 'toggle-all') {
       fs().model.setAllOpen(!fs().model.allNestedOpen());
+      fs().canvas.fit();
     } else if (action === 'zoom-in') {
       fs().canvas.zoomIn();
     } else if (action === 'zoom-out') {
