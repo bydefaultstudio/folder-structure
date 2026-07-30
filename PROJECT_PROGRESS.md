@@ -4,12 +4,18 @@ Track what's been done and what still needs doing across sessions. Add a dated s
 
 ---
 
+## 2026-07-30 — Fix: live site missing chevron-left/right, pencil-draw, check icons
+
+`icons.manifest.json` (adopted in 1e5afb2) is the sole input to the bd-sprite subset build — nothing scans usage. It had been written from HTML markup only, so the four DS icons referenced from **JS** (edit-chip outdent/indent chevrons + rename pencil in tree-render.js, save-rename check in tree-edit.js) were dropped from the sprite that CI's `npm install` → `bd-sync` regenerates before deploy. Added the four names to the manifest and reran `npx bd-sprite` (13 symbols, DS v2.1.0). Reaches live on next push. Rule of thumb saved to memory: any new `icons.svg#<name>` usage — especially JS-injected — needs a manifest entry.
+
+---
+
 ## 2026-07-30 — Expand/collapse-all toolbar toggle
 
 New icon-only button in the zoom cluster (after Fit to view) on both `index.html` and `embed.html`, using the tree's own `folder`/`folder-open` sprites from `project-icons.svg`. The icon previews the result of clicking: open folder = "Expand all" whenever any nested folder is closed (mixed or fully collapsed), closed folder = "Collapse all" only once every nested folder is open. Top-level folders (direct children of the virtual root) are excluded from the state check and forced open on collapse, so the first level always stays visible (per Erlen's spec).
 
 - **tree-model.js 1.2.0** — `setAllOpen(open)` + `allNestedOpen()` on the model API; emits `set-all-open` (full re-render via the reason-agnostic `fs:modelchange` listener). Like `toggle()`, deliberately not in undo history. `allNestedOpen()` returns false when nothing is nested so the button defaults to "expand all"
-- **app.js 1.2.0 / embed.js 1.1.0** — `toggle-all` action branch + `updateToggleAllButton()` (swaps sprite href, `data-icon`, aria-label, tooltip) wired to `fs:modelchange` and run at init; duplicated in embed.js mirroring the existing zoom-handler duplication (embed deliberately omits app.js)
+- **app.js 1.2.0 / embed.js 1.1.0** — `toggle-all` action branch (setAllOpen then `canvas.fit()` — render is synchronous on `fs:modelchange`, so fit measures the fresh layout, same as start-fresh/import) + `updateToggleAllButton()` (swaps sprite href, `data-icon`, aria-label, tooltip) wired to `fs:modelchange` and run at init; duplicated in embed.js mirroring the existing zoom-handler duplication (embed deliberately omits app.js)
 - Verified via node harness (stubbed globals): mixed→expand, full-expand→collapse, root stays open, manually-closed root reopened on collapse, no-nested-folders default, change events emitted
 
 The structure travels in the URL fragment — no backend, no storage (reverses the brief's "shareable URLs" non-goal, now marked shipped there). Grammar documented in `docs/tree-notation.md` → Share-Link Fragment Encoding: `#t=<version char><base64url payload>[&theme=light|dark]`, version `1` = deflate-raw of the unicode-tree text, `0` = uncompressed fallback.

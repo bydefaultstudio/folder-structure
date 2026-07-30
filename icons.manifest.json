@@ -3,12 +3,16 @@
   "icons": [
     "add",
     "back-arrow",
+    "check",
+    "chevron-left",
+    "chevron-right",
     "close",
     "copy",
     "download",
     "full-screen",
     "info",
     "minus",
+    "pencil-draw",
     "refresh"
   ]
 }
