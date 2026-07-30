@@ -1,0 +1,14 @@
+{
+  "output": "assets/icons/icons.svg",
+  "icons": [
+    "add",
+    "back-arrow",
+    "close",
+    "copy",
+    "download",
+    "full-screen",
+    "info",
+    "minus",
+    "refresh"
+  ]
+}
