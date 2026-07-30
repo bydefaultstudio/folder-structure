@@ -65,11 +65,11 @@
     </div>
 
     <header class="app-toolbar">
-      <button class="button" type="button" data-variant="transparent" data-size="small" data-app-action="import" data-tooltip="Paste a structure in" data-tooltip-position="bottom">
+      <button class="button" type="button" data-variant="transparent" data-size="small" data-app-action="import" data-dialog-open="import-dialog" data-tooltip="Paste a structure in" data-tooltip-position="bottom">
         <span class="svg-icn" data-icon="download"><svg fill="none" width="100%" height="100%" aria-hidden="true"><use href="assets/icons/icons.svg#download"></use></svg></span>
         <span class="button-text">Import</span>
       </button>
-      <button class="button" type="button" data-variant="transparent" data-size="small" data-app-action="export" data-tooltip="Copy the structure out" data-tooltip-position="bottom">
+      <button class="button" type="button" data-variant="transparent" data-size="small" data-app-action="export" data-dialog-open="export-dialog" data-tooltip="Copy the structure out" data-tooltip-position="bottom">
         <span class="svg-icn" data-icon="copy"><svg fill="none" width="100%" height="100%" aria-hidden="true"><use href="assets/icons/icons.svg#copy"></use></svg></span>
         <span class="button-text">Export</span>
       </button>
@@ -78,7 +78,7 @@
     </header>
 
     <div class="app-logo">
-      <button class="button app-logo-button" type="button" data-variant="transparent" data-size="small" data-app-action="about" aria-label="About Folder Structure" data-tooltip="About" data-tooltip-position="right">
+      <button class="button app-logo-button" type="button" data-variant="transparent" data-size="small" data-dialog-open="about-dialog" aria-label="About Folder Structure" data-tooltip="About" data-tooltip-position="right">
         <span class="svg-logo">
           <svg viewBox="0 0 245 23" fill="none" width="100%" height="100%" aria-hidden="true"><use href="assets/icons/project-icons.svg#logo-wordmark"></use></svg>
         </span>
@@ -123,17 +123,17 @@
 
   </div>
 
-  <dialog class="dialog" data-dialog="import" aria-labelledby="import-title">
+  <dialog id="import-dialog" class="dialog" aria-labelledby="import-title">
     <div class="dialog-header">
       <h2 class="dialog-title" id="import-title">Import a structure</h2>
-      <button class="button dialog-close" type="button" data-variant="transparent" data-icon-only aria-label="Close" data-tooltip="Close" data-tooltip-position="left">
+      <button class="button close-btn" type="button" data-icon-only data-size="small" data-dialog-close aria-label="Close" data-tooltip="Close" data-tooltip-position="left">
         <span class="svg-icn" data-icon="close"><svg fill="none" width="100%" height="100%" aria-hidden="true"><use href="assets/icons/icons.svg#close"></use></svg></span>
       </button>
     </div>
     <div class="dialog-body">
       <div class="block gap-s">
         <p class="form-hint import-detected">Paste a structure to auto-detect the format</p>
-        <textarea class="import-textarea" rows="12" aria-label="Structure text" placeholder="my-project/&#10;├── index.html&#10;└── assets/&#10;    └── style.css&#10;&#10;Also works: indented lists, markdown bullets, or file paths."></textarea>
+        <textarea class="import-textarea" rows="12" autofocus aria-label="Structure text" placeholder="my-project/&#10;├── index.html&#10;└── assets/&#10;    └── style.css&#10;&#10;Also works: indented lists, markdown bullets, or file paths."></textarea>
         <label class="form-check import-comments-row is-hidden">
           <input type="checkbox" class="import-comments" />
           <span>Keep <code># comments</code> as annotations</span>
@@ -146,10 +146,10 @@
     </div>
   </dialog>
 
-  <dialog class="dialog" data-dialog="export" aria-labelledby="export-title">
+  <dialog id="export-dialog" class="dialog" aria-labelledby="export-title">
     <div class="dialog-header">
       <h2 class="dialog-title" id="export-title">Copy your structure</h2>
-      <button class="button dialog-close" type="button" data-variant="transparent" data-icon-only aria-label="Close" data-tooltip="Close" data-tooltip-position="left">
+      <button class="button close-btn" type="button" data-icon-only data-size="small" data-dialog-close aria-label="Close" data-tooltip="Close" data-tooltip-position="left">
         <span class="svg-icn" data-icon="close"><svg fill="none" width="100%" height="100%" aria-hidden="true"><use href="assets/icons/icons.svg#close"></use></svg></span>
       </button>
     </div>
@@ -179,21 +179,21 @@
       </div>
     </div>
     <div class="dialog-footer">
-      <button class="button export-copy" type="button">
+      <button class="button export-copy" type="button" autofocus>
         <span class="svg-icn" data-icon="copy"><svg fill="none" width="100%" height="100%" aria-hidden="true"><use href="assets/icons/icons.svg#copy"></use></svg></span>
         Copy to clipboard
       </button>
     </div>
   </dialog>
 
-  <dialog class="dialog" data-dialog="about" aria-labelledby="about-title">
+  <dialog id="about-dialog" class="dialog" aria-labelledby="about-title">
     <div class="dialog-header">
       <h2 class="dialog-title is-hidden" id="about-title">About Folder Structure</h2>
-      <button class="button dialog-close" type="button" data-variant="transparent" data-icon-only aria-label="Close" data-tooltip="Close" data-tooltip-position="left">
+      <button class="button close-btn" type="button" data-icon-only data-size="small" data-dialog-close aria-label="Close" data-tooltip="Close" data-tooltip-position="left">
         <span class="svg-icn" data-icon="close"><svg fill="none" width="100%" height="100%" aria-hidden="true"><use href="assets/icons/icons.svg#close"></use></svg></span>
       </button>
     </div>
-    <div class="dialog-body">
+    <div class="dialog-body" tabindex="0">
       <div class="block gap-l">
         <div class="about-logo">
           <div class="svg-logo">
@@ -208,6 +208,7 @@
 
   <div class="toast-container"></div>
 
+  <script src="assets/js/design-system/dialog.js"></script>
   <script src="assets/js/tree-model.js"></script>
   <script src="assets/js/tree-parsers.js"></script>
   <script src="assets/js/tree-serializers.js"></script>

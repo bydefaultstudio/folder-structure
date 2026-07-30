@@ -4,6 +4,18 @@ Track what's been done and what still needs doing across sessions. Add a dated s
 
 ---
 
+## 2026-07-30 — Adopted the design system's dialog component (tooltips were already native)
+
+Replaced the custom dialog wiring with the delivered `assets/js/design-system/dialog.js` module (v2.1.0 ships it; loaded first in index.html's script block). Tooltips needed no migration — every tooltip already used the system's `data-tooltip`/`data-tooltip-position` on focusable buttons, with no `title=""` doubles and no custom hover CSS.
+
+- **index.html** — dialogs now carry `id`s (`import-dialog`/`export-dialog`/`about-dialog`) instead of the bespoke `data-dialog="…"` attribute; triggers open declaratively via `data-dialog-open`; close buttons swapped from the deprecated `.dialog-close` to the `.button.close-btn` role class with `data-dialog-close`. Per the dialog contract: `autofocus` on the import textarea and export copy button, `tabindex="0"` on the About dialog's text-only body
+- **app.js 1.5.0** — `showModal()` calls, the `.dialog-close` click branch, and `aboutDialog` removed; the import/export `data-app-action` branches remain but only refresh dialog content (both listeners are document-delegated, so they compose with dialog.js on the same click)
+- **style.css** — `.dialog::backdrop { backdrop-filter: none; }` deleted (dead — the v2.1 backdrop has no filter to cancel); the About close-button nudge retargeted to `.dialog-title.is-hidden + .close-btn`
+- **Verified**: headless-Chrome harness 15/15 — all three dialogs open as `:modal` via the module, autofocus lands, close returns focus to the trigger, export preview refreshes on open, backdrop/Escape are native, no deprecated markup left in the DOM; precise grep for `.dialog-close`, `data-dialog="`, `aboutDialog`, `showModal` = zero hits
+- **Known caveat** (pre-existing, deliberate): tree-row action buttons are `tabIndex = -1` (the tree's roving-focus keyboard model), so their tooltips show on hover only — keyboard users get the same commands via tree-keyboard.js
+
+---
+
 ## 2026-07-30 — Selection-driven path fading + calm starting state
 
 Major visual model change per Erlen's spec (articulated + confirmed first). Fading is no longer structural ("sibling of an open folder fades" — that rule is gone from tree-layout); it now visualises the *path to the selection*:

@@ -505,9 +505,10 @@ body.is-app {
 
 /* -- Dialogs -- */
 
-/* About dialog: wordmark centred above the description; the visually
-   hidden title means the close button needs pushing to the right. */
-[data-dialog="about"] .dialog-close {
+/* A visually hidden dialog title (the About dialog's wordmark stands in
+   for it) leaves the close button alone in the space-between header row,
+   so it needs pushing back to the right. */
+.dialog-title.is-hidden + .close-btn {
   margin-left: auto;
 }
 
@@ -521,11 +522,6 @@ body.is-app {
   width: 245px;
   max-width: 100%;
   aspect-ratio: 245 / 23;
-}
-
-/* No backdrop blur — keep the diagram readable behind the modal. */
-.dialog::backdrop {
-  backdrop-filter: none;
 }
 
 /* Toasts above everything, including chrome and tooltips. */

@@ -1,14 +1,15 @@
 /* ─────────────────────────────
    APP
    ─────────────────────────────
-   Boot orchestration and chrome wiring: toolbar actions, the import
-   and export dialogs (native <dialog>), clipboard copy, toasts, and
-   share-link import from the URL fragment (see tree-share.js).
+   Boot orchestration and chrome wiring: toolbar actions, dialog
+   content refresh (open/close is the design system's dialog.js via
+   data-dialog-open/close), clipboard copy, toasts, and share-link
+   import from the URL fragment (see tree-share.js).
    Loads last — every other FolderStructure module is available.
    ───────────────────────────── */
 
 (function () {
-  var VERSION = '1.4.0';
+  var VERSION = '1.5.0';
   var TOAST_DURATION_MS = 5000;
   // Hard-coded https: the subdomain serves plain http without a
   // redirect, and an http embed URL is mixed content inside Notion.
@@ -17,7 +18,6 @@
 
   var importDialog = null;
   var exportDialog = null;
-  var aboutDialog = null;
   var exportFormat = 'unicode-tree';
   // Bumped on every preview refresh so a slow async embed encode can
   // never overwrite the output of a later format selection.
@@ -291,24 +291,17 @@
   //------- Toolbar -------//
   //
 
+  // Opening and closing is the design system's dialog.js (declarative
+  // data-dialog-open/close on the same buttons); these branches only
+  // refresh the dialog's content for the state it opens onto.
   function handleToolbarClick(event) {
-    var closeBtn = event.target.closest('.dialog-close');
-    if (closeBtn) {
-      var dialog = closeBtn.closest('dialog');
-      if (dialog) { dialog.close(); }
-      return;
-    }
     var btn = event.target.closest('[data-app-action]');
     if (!btn) { return; }
     var action = btn.getAttribute('data-app-action');
     if (action === 'import') {
-      importDialog.showModal();
       updateImportDetection();
     } else if (action === 'export') {
       updateExportPreview();
-      exportDialog.showModal();
-    } else if (action === 'about') {
-      aboutDialog.showModal();
     } else if (action === 'start-fresh') {
       fs().model.startFresh();
       fs().edit.setMode('edit');
@@ -380,9 +373,8 @@
   //
 
   function initApp() {
-    importDialog = document.querySelector('[data-dialog="import"]');
-    exportDialog = document.querySelector('[data-dialog="export"]');
-    aboutDialog = document.querySelector('[data-dialog="about"]');
+    importDialog = document.getElementById('import-dialog');
+    exportDialog = document.getElementById('export-dialog');
 
     document.addEventListener('click', handleToolbarClick);
     document.addEventListener('keydown', handleHistoryKeydown);
