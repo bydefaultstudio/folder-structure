@@ -93,8 +93,11 @@ body.is-app {
   background-color: var(--background-faded);
 }
 
-/* Rows fade only when a sibling folder is open (set by tree-layout);
-   hovering a faded row brings it back to full strength. */
+/* Selection-driven path fading (set by tree-render): with a row
+   selected, everything off the path to it fades — only the selection,
+   its ancestors, and a selected folder's immediate children stay
+   primary. Nothing selected = nothing faded. Hovering a faded row
+   brings it back to full strength. Connectors never fade. */
 .tree-item.is-faded {
   color: var(--text-faded);
 }
@@ -133,7 +136,8 @@ body.is-app {
   pointer-events: none;
 }
 
-.tree-rename-input {
+.tree-rename-input,
+.tree-comment-input {
   font: inherit;
   letter-spacing: inherit;
   color: var(--text-primary);
@@ -167,19 +171,29 @@ body.is-app {
 }
 
 
-/* -- Row actions (edit mode, shown on the selected row) -- */
-/* A solid chip floated past the label so it doesn't stretch the row;
-   its opaque background covers the connector arm cleanly. Revealed by
-   clicking a row (selection), not hover, so it never fights the
-   add-pills between rows. */
+/* -- Row overlays (selected-row furniture) -- */
+/* One rail floats right of the row for the edit chip and the comment
+   pill. Overlays never participate in tree-layout geometry, and every
+   row owns its horizontal line, so the rail only ever covers empty
+   canvas (plus the connector arm — see the open-folder offset below).
+   Revealed by clicking a row (selection), not hover, so it never
+   fights the add-pills between rows. */
 
-.tree-item-actions {
-  display: none;
+.tree-item-overlays {
   position: absolute;
   left: 100%;
   top: 50%;
   transform: translateY(-50%);
   margin-left: 5px;
+  display: flex;
+  align-items: center;
+  gap: var(--space-2xs);
+}
+
+/* Edit chip — a solid card; its opaque background covers the
+   connector arm cleanly. */
+.tree-item-actions {
+  display: none;
   align-items: center;
   gap: var(--space-2xs);
   background-color: var(--background-primary);
@@ -197,6 +211,74 @@ body.is-app {
    rename/delete; the chip's gap provides the spacing. */
 .tree-item-actions .divider--vertical {
   margin: 0;
+}
+
+/* Comment pill — the single comment control. In view mode it appears
+   read-only on selected commented rows (the toolbar is edit-mode
+   gated, so embeds get it read-only too); in edit mode it appears on
+   every selected row, collapsing to just the chat button until a
+   comment exists. */
+.tree-comment-pill {
+  display: none;
+  align-items: center;
+  gap: var(--space-2xs);
+  padding: var(--space-2xs);
+  background-color: var(--background-primary);
+  border: var(--border-s) solid var(--border-faded);
+  border-radius: var(--radius-s);
+  box-shadow: 0 2px 8px var(--black-alpha-10);
+}
+
+.tree-item.is-selected.is-commented .tree-comment-pill,
+.tree-item.is-commenting .tree-comment-pill,
+.is-edit-mode .tree-item.is-selected .tree-comment-pill {
+  display: flex;
+}
+
+/* Until a comment exists there is no text to show and nothing to
+   delete — the pill is just the add (chat) button. */
+.tree-comment:empty {
+  display: none;
+}
+
+.tree-item:not(.is-commented) .tree-comment-pill [data-action="comment-delete"] {
+  display: none;
+}
+
+/* Clear the connector arm on open folders so the elbow stays visible;
+   in edit mode the chip already covers the arm, so no extra offset.
+   35px = CELL_W (30) + GAP (5) — geometry contract with tree-layout. */
+.tree-item.is-open .tree-comment-pill {
+  margin-left: 35px;
+}
+
+.is-edit-mode .tree-item.is-selected .tree-comment-pill {
+  margin-left: 0;
+}
+
+/* Pill text keeps the '# ' notation prefix in CSS so the accessible
+   name and the diffed span text stay hash-free. */
+.tree-comment {
+  font-family: var(--font-primary);
+  font-size: var(--font-s);
+  color: var(--text-secondary);
+}
+
+.tree-comment::before {
+  content: "# ";
+}
+
+/* While the input is open it speaks for itself — no '# ' prefix. */
+.tree-item.is-commenting .tree-comment::before {
+  content: none;
+}
+
+.tree-comment-pill .button {
+  display: none;
+}
+
+.is-edit-mode .tree-comment-pill .button {
+  display: inline-flex;
 }
 
 
@@ -325,8 +407,8 @@ body.is-app {
 
 .app-logo .svg-logo {
   display: block;
-  width: 246px;
-  aspect-ratio: 246 / 25;
+  width: 245px;
+  aspect-ratio: 245 / 23;
 }
 
 @media (max-width: 720px) {
@@ -388,7 +470,7 @@ body.is-app {
 .embed-branding .svg-logo {
   display: block;
   width: 120px;
-  aspect-ratio: 246 / 25;
+  aspect-ratio: 245 / 23;
 }
 
 .is-embed .zoom-controls {
@@ -436,9 +518,9 @@ body.is-app {
 }
 
 .about-logo .svg-logo {
-  width: 246px;
+  width: 245px;
   max-width: 100%;
-  aspect-ratio: 246 / 25;
+  aspect-ratio: 245 / 23;
 }
 
 /* No backdrop blur — keep the diagram readable behind the modal. */
@@ -495,7 +577,7 @@ body.is-app {
   .app-toolbar,
   .zoom-controls,
   .tree-gaps,
-  .tree-item-actions {
+  .tree-item-overlays {
     display: none;
   }
 

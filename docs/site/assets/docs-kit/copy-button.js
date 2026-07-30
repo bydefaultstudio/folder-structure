@@ -1,41 +1,70 @@
 // Copy button — unified handler for all .copy-btn variants
-// Supports data-copy (static value) and data-clipboard-target (element text content)
+// Supports data-copy (static value), data-clipboard-target (element text
+// content) and data-download (fetch-free file download via a temporary link).
+// Docs-site copy chrome (token chips, icon tables, palette buttons) lives
+// in assets/js/docs-copy-chrome.js — this module is the portable component.
+//
+// Optional config, defined before this script loads:
+//   window.bdCopyButtonConfig = {
+//     // When set, feedback icons render as <use> refs into this sprite
+//     // (which must contain a #check symbol, same-origin). Default: inline
+//     // path data, keeping the module dependency-free.
+//     spritePath: "/assets/images/svg-icons/_sprite.svg"
+//   };
 (function () {
   'use strict';
 
   var FEEDBACK_DURATION = 2000;
 
-  var ICON_CHECK = '<svg width="100%" height="100%" viewBox="0 0 24 24" fill="none" aria-hidden="true">'
+  var ICON_CHECK_INLINE = '<svg width="100%" height="100%" viewBox="0 0 24 24" fill="none" aria-hidden="true">'
     + '<path d="M9.54998 18L3.84998 12.3L5.27498 10.875L8.13576 13.7358C8.91681 14.5168 10.1831 14.5168 10.9642 13.7358L18.725 5.97501L20.15 7.40001L9.54998 18Z" fill="currentColor"/>'
     + '</svg>';
 
-  var ICON_COPY = '<svg width="100%" height="100%" viewBox="0 0 24 24" fill="none" aria-hidden="true">'
-    + '<path d="M8 14C8 15.1046 8.89543 16 10 16H18C19.1046 16 20 15.1046 20 14V6C20 4.89543 19.1046 4 18 4H10C8.89543 4 8 4.89543 8 6V14ZM6 18V2H22V18H6ZM2 22V6H4V20H18V22H2Z" fill="currentColor"/>'
-    + '</svg>';
-
-  var ICON_DOWNLOAD = '<svg width="100%" height="100%" viewBox="0 0 24 24" fill="none" aria-hidden="true">'
-    + '<path d="M12 17L5 10L6.4 8.6L9.29482 11.4791C9.92557 12.1064 11 11.6597 11 10.7701V3H13V10.7608C13 11.6517 14.0771 12.0979 14.7071 11.4679L17.6 8.575L19 10L12 17Z" fill="currentColor"/>'
-    + '<path d="M4 21V15H6V17C6 18.1046 6.89543 19 8 19H16C17.1046 19 18 18.1046 18 17V15H20V21H4Z" fill="currentColor"/>'
-    + '</svg>';
+  // Config is read at render time, not at script load, so it works however
+  // the config block and this script are ordered.
+  function iconCheck() {
+    var config = window.bdCopyButtonConfig;
+    if (config && config.spritePath) {
+      return '<svg width="100%" height="100%" viewBox="0 0 24 24" fill="none" aria-hidden="true">'
+        + '<use href="' + config.spritePath + '#check"/></svg>';
+    }
+    return ICON_CHECK_INLINE;
+  }
 
   function copyToClipboard(text) {
     if (navigator.clipboard && navigator.clipboard.writeText) {
       return navigator.clipboard.writeText(text);
     }
-    var textarea = document.createElement('textarea');
-    textarea.value = text;
-    textarea.style.position = 'fixed';
-    textarea.style.opacity = '0';
-    document.body.appendChild(textarea);
-    textarea.select();
-    document.execCommand('copy');
-    document.body.removeChild(textarea);
-    return Promise.resolve();
+    // Fallback for non-secure contexts. execCommand reports failure via its
+    // return value or by throwing — both must reject, or the caller shows
+    // "Copied!" for a copy that never happened.
+    return new Promise(function (resolve, reject) {
+      var textarea = document.createElement('textarea');
+      textarea.value = text;
+      textarea.style.position = 'fixed';
+      textarea.style.opacity = '0';
+      document.body.appendChild(textarea);
+      textarea.select();
+      var copied = false;
+      try {
+        copied = document.execCommand('copy');
+      } catch (err) {
+        document.body.removeChild(textarea);
+        reject(err);
+        return;
+      }
+      document.body.removeChild(textarea);
+      if (copied) resolve();
+      else reject(new Error('execCommand copy returned false'));
+    });
   }
 
   document.addEventListener('click', function (e) {
-    var btn = e.target.closest('.copy-btn, .token-copy');
+    var btn = e.target.closest('.copy-btn');
     if (!btn) return;
+    // Download buttons are handled by their own listener below — never let
+    // one button copy and download on the same click.
+    if (btn.hasAttribute('data-download')) return;
 
     var text;
 
@@ -55,164 +84,48 @@
     copyToClipboard(text).then(function () {
       btn.classList.add('is-copied');
 
-      // Swap tooltip text if present
-      var originalTooltip = btn.getAttribute('data-tooltip');
-      if (originalTooltip) {
+      // Swap tooltip text if present. The original is captured once, in its
+      // own attribute — a second click inside the feedback window would
+      // otherwise capture "Copied!" as the original and leave it stuck.
+      if (btn.hasAttribute('data-tooltip') && !btn.hasAttribute('data-tooltip-original')) {
+        btn.setAttribute('data-tooltip-original', btn.getAttribute('data-tooltip'));
+      }
+      if (btn.hasAttribute('data-tooltip-original')) {
         btn.setAttribute('data-tooltip', 'Copied!');
       }
 
-      setTimeout(function () {
+      clearTimeout(btn.bdCopyRevertTimer);
+      btn.bdCopyRevertTimer = setTimeout(function () {
         btn.classList.remove('is-copied');
-        if (originalTooltip) {
-          btn.setAttribute('data-tooltip', originalTooltip);
+        if (btn.hasAttribute('data-tooltip-original')) {
+          btn.setAttribute('data-tooltip', btn.getAttribute('data-tooltip-original'));
+          btn.removeAttribute('data-tooltip-original');
         }
       }, FEEDBACK_DURATION);
+    }).catch(function (err) {
+      // No false success state; the button stays as it was.
+      console.warn('[copy-button] copy failed:', err);
     });
   });
 
-  // Copy page URL — sticky-bar dropdown action
+  // Download variant — .copy-btn[data-download] downloads a same-origin file
+  // through a temporary anchor. Composes with the same styling; a download
+  // button carries no data-copy / data-clipboard-target, so the copy handler
+  // above ignores it.
   document.addEventListener('click', function (e) {
-    var btn = e.target.closest('.js-copy-url');
+    var btn = e.target.closest('.copy-btn[data-download]');
     if (!btn) return;
 
-    var iconEl = btn.querySelector('.svg-icn');
-    var label = btn.querySelector('span');
-    var originalIconHTML = iconEl ? iconEl.innerHTML : '';
-    var originalText = label ? label.textContent : '';
+    var url = btn.getAttribute('data-download');
+    if (!url) return;
 
-    copyToClipboard(window.location.href).then(function () {
-      btn.classList.add('is-copied');
-      if (iconEl) iconEl.innerHTML = ICON_CHECK;
-      if (label) label.textContent = 'Copied';
-
-      setTimeout(function () {
-        btn.classList.remove('is-copied');
-        if (iconEl) iconEl.innerHTML = originalIconHTML;
-        if (label) label.textContent = originalText;
-      }, FEEDBACK_DURATION);
-    });
+    var a = document.createElement('a');
+    a.href = url;
+    a.download = btn.getAttribute('data-download-name') || '';
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
   });
-
-  // Color swatch copy — .color-copy-btn with data-format="hex" or "css"
-  function rgbToHex(r, g, b) {
-    return '#' + [r, g, b].map(function (v) {
-      var hex = v.toString(16);
-      return hex.length === 1 ? '0' + hex : hex;
-    }).join('');
-  }
-
-  function getComputedHex(element) {
-    var rgb = getComputedStyle(element).backgroundColor;
-    var match = rgb.match(/rgba?\((\d+),\s*(\d+),\s*(\d+)/);
-    if (!match) return null;
-    return rgbToHex(parseInt(match[1]), parseInt(match[2]), parseInt(match[3]));
-  }
-
-  // Initialize color copy buttons with icon structure
-  function initColorCopyButtons() {
-    var buttons = document.querySelectorAll('.color-copy-btn');
-    buttons.forEach(function (btn) {
-      if (btn.querySelector('.copy-btn-default')) return;
-      var label = btn.textContent;
-      btn.innerHTML = '<span class="copy-btn-default"><div class="svg-icn">' + ICON_COPY + '</div> ' + label + '</span>'
-        + '<span class="copy-btn-copied"><div class="svg-icn">' + ICON_CHECK + '</div> Copied</span>';
-    });
-  }
-
-  document.addEventListener('click', function (e) {
-    var btn = e.target.closest('.color-copy-btn');
-    if (!btn) return;
-
-    var row = btn.closest('.color-row');
-    if (!row) return;
-
-    var format = btn.getAttribute('data-format');
-    var token = row.getAttribute('data-token');
-    var text;
-
-    if (format === 'css') {
-      text = 'var(' + token + ')';
-    } else {
-      text = getComputedHex(row);
-    }
-
-    if (!text) return;
-
-    copyToClipboard(text).then(function () {
-      btn.classList.add('is-copied');
-      setTimeout(function () {
-        btn.classList.remove('is-copied');
-      }, FEEDBACK_DURATION);
-    });
-  });
-
-  // ── Icon table — auto-generate Copy + Download buttons ──
-  // Auto-detects tables whose first <td> contains .svg-icn[data-icon].
-  // Appends ghost Copy and Download buttons to each matching row.
-
-  function initIconTables() {
-    var tables = document.querySelectorAll('table');
-
-    tables.forEach(function (table) {
-      // Detect: first <td> in first body row must contain .svg-icn with a
-      // data-icon attribute (on the svg element inside the wrapper)
-      var firstRow = table.querySelector('tbody tr');
-      if (!firstRow) return;
-      var firstCell = firstRow.querySelector('td:first-child');
-      if (!firstCell || !firstCell.querySelector('.svg-icn svg[data-icon]')) return;
-
-      // Skip tables already processed
-      if (table.classList.contains('icon-table')) return;
-
-      // Mark the table for CSS
-      table.classList.add('icon-table');
-
-      // Add header cells for the two new columns
-      var thead = table.querySelector('thead tr');
-      if (thead) {
-        thead.insertAdjacentHTML('beforeend', '<th></th><th></th>');
-      }
-
-      var rows = table.querySelectorAll('tbody tr');
-      rows.forEach(function (row) {
-        var iconSvg = row.querySelector('.svg-icn svg[data-icon]');
-        if (!iconSvg) return;
-
-        var iconName = iconSvg.getAttribute('data-icon');
-        var fileName = iconName + '.svg';
-        var iconEl = iconSvg.closest('.svg-icn');
-        var iconHTML = iconEl.outerHTML;
-
-        // Copy button
-        var copyTd = document.createElement('td');
-        var copyBtn = document.createElement('button');
-        copyBtn.className = 'copy-btn is-ghost';
-        copyBtn.setAttribute('data-copy', iconHTML);
-        copyBtn.setAttribute('aria-label', 'Copy ' + iconName + ' icon code');
-        copyBtn.innerHTML = '<span class="copy-btn-default"><div class="svg-icn">' + ICON_COPY + '</div> Copy</span>'
-          + '<span class="copy-btn-copied"><div class="svg-icn">' + ICON_CHECK + '</div> Copied</span>';
-        copyTd.appendChild(copyBtn);
-        row.appendChild(copyTd);
-
-        // Download button
-        var dlTd = document.createElement('td');
-        var dlBtn = document.createElement('button');
-        dlBtn.className = 'copy-btn is-ghost';
-        dlBtn.setAttribute('aria-label', 'Download ' + iconName + ' SVG');
-        dlBtn.innerHTML = '<div class="svg-icn">' + ICON_DOWNLOAD + '</div> Download';
-        dlBtn.addEventListener('click', function () {
-          var a = document.createElement('a');
-          a.href = '../assets/images/svg-icons/' + encodeURIComponent(fileName);
-          a.download = fileName;
-          document.body.appendChild(a);
-          a.click();
-          document.body.removeChild(a);
-        });
-        dlTd.appendChild(dlBtn);
-        row.appendChild(dlTd);
-      });
-    });
-  }
 
   // Auto-enhance any .copy-btn that lacks the two-span structure.
   // Wraps existing content into .copy-btn-default / .copy-btn-copied
@@ -224,22 +137,16 @@
       if (btn.classList.contains('color-row')) return;
       var content = btn.innerHTML;
       btn.innerHTML = '<span class="copy-btn-default">' + content + '</span>'
-        + '<span class="copy-btn-copied"><div class="svg-icn">' + ICON_CHECK + '</div> Copied</span>';
+        + '<span class="copy-btn-copied"><div class="svg-icn">' + iconCheck() + '</div> Copied</span>';
     });
   }
 
-  function initAll() {
-    initCopyButtons();
-    initIconTables();
-    initColorCopyButtons();
-  }
-
   // Expose for re-init after client-side page swaps
-  window.bdInitCopyButtons = initAll;
+  window.bdInitCopyButtons = initCopyButtons;
 
   if (document.readyState === 'loading') {
-    document.addEventListener('DOMContentLoaded', initAll);
+    document.addEventListener('DOMContentLoaded', initCopyButtons);
   } else {
-    initAll();
+    initCopyButtons();
   }
 })();

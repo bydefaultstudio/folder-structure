@@ -162,7 +162,7 @@
 <li>The <strong>root</strong> sits alone on the first line</li>
 <li><strong>Spaces, not tabs</strong></li>
 <li>Folders sort before files (<code>tree --dirsfirst</code>) — matches what people expect visually</li>
-<li>Inline comments after <code>#</code> are common: <code>├── theme.css  # brand tokens</code></li>
+<li>Inline comments after <code>#</code> are common: <code>├── theme.css  # brand tokens</code> — see <strong>Comments</strong> below for the exact grammar</li>
 <li>In markdown, wrap the block in a fenced code block (<code>```text</code>)</li>
 </ul>
 <p>This format is also the best one to hand to an LLM — models have seen millions of <code>tree</code> blocks in training data and parse it natively.</p>
@@ -176,15 +176,44 @@
 <li><strong>Markdown nested list</strong> — <code>- assets/</code> with indented sub-items; common in docs and Notion</li>
 <li><strong>Path list</strong> — one path per line (<code>assets/css/style.css</code>), i.e. <code>find</code> / <code>git ls-files</code> output</li>
 </ol>
-<p>Detection heuristics: box-drawing chars → tree; <code>|--</code>/<code>`--</code> → ASCII tree; leading <code>-</code>/<code>*</code> → markdown list; <code>/</code> mid-line without indentation → path list; otherwise → indentation.</p>
+<p>Detection heuristics: box-drawing chars → tree; <code>|--</code>/<code>`--</code> → ASCII tree; leading <code>-</code>/<code>*</code> → markdown list; <code>/</code> mid-line without indentation → path list; otherwise → indentation. Detection always runs on comment-stripped text, so a <code>/</code> or bullet inside a comment never skews the result.</p>
 <hr>
-<h2 id="output-formats-copy-out">Output Formats (copy-out)</h2>
-<p>All serializers are pure functions of the same node tree, so paste → edit → copy round-trips losslessly.</p>
-<p><strong>1. Unicode tree</strong> (default, AI-ready):</p>
+<h2 id="comments">Comments</h2>
+<p>Any line in any input format may carry an inline comment, and any node in the diagram may hold one, shown in a floating pill beside the row whenever it is selected. The pill is the single comment control: its chat button adds or edits (double-clicking the comment or pressing <code>C</code> in edit mode also works), and its delete button removes.</p>
+<p><strong>Grammar</strong> (same for parse and emit):</p>
+<ul>
+<li>A comment starts at the <strong>first <code>#</code> preceded by whitespace</strong> and runs to the end of the line: <code>name  # comment</code>. Everything after that first marker is the comment — a later <code>#</code> inside it stays part of the comment.</li>
+<li><code>#</code> <strong>not</strong> preceded by whitespace is part of the name: <code>#hashtag-notes/</code> is a folder, not a comment.</li>
+<li>A line at column 0 starting with <code>#</code> is therefore a <em>name</em>, not a comment; an indented line that is <em>only</em> a comment is dropped entirely.</li>
+<li>Serializers emit <strong>two spaces</strong> before the <code>#</code> (<code>theme.css  # brand tokens</code>); the parser accepts one or more.</li>
+<li>Comments may contain <code>/</code> and <code>#</code>; newlines and box-drawing characters are stripped when editing in the app. The in-app editor caps comments at 80 characters, but longer imported comments are preserved untouched.</li>
+</ul>
+<p><strong>Capture and emission are both opt-in:</strong></p>
+<ul>
+<li><strong>Paste-in:</strong> comments are stripped by default (historical behavior). When a paste contains comments, the import dialog reveals a &quot;Keep <code># comments</code> as annotations&quot; checkbox — tick it to capture them onto the nodes.</li>
+<li><strong>Copy-out:</strong> comments are omitted by default. When the diagram contains comments, the export dialog reveals an &quot;Include comments&quot; checkbox.</li>
+<li><strong>Share/embed links:</strong> always full-fidelity — comments ride in the payload and are always restored, regardless of either toggle.</li>
+</ul>
+<p><strong>Per-format emission</strong> (all four formats use the same <code> #</code> suffix, so every format round-trips):</p>
 
       <div class="code-block-wrapper">
         <button class="button copy-btn is-icon-only" data-size="xsmall" data-clipboard-target="#code-1" data-tooltip="Copy" type="button" aria-label="Copy code"><span class="copy-btn-default"><div class="svg-icn"><svg data-icon="copy" aria-hidden="true" width="100%" height="100%" viewBox="0 0 24 24" fill="none"><path d="M8 14C8 15.1046 8.89543 16 10 16H18C19.1046 16 20 15.1046 20 14V6C20 4.89543 19.1046 4 18 4H10C8.89543 4 8 4.89543 8 6V14ZM6 18V2H22V18H6ZM2 22V6H4V20H18V22H2Z" fill="currentColor"/></svg></div></span><span class="copy-btn-copied"><div class="svg-icn"><svg data-icon="check" aria-hidden="true" width="100%" height="100%" viewBox="0 0 24 24" fill="none"><path d="M9.54998 18L3.84998 12.3L5.27498 10.875L8.13576 13.7358C8.91681 14.5168 10.1831 14.5168 10.9642 13.7358L18.725 5.97501L20.15 7.40001L9.54998 18Z" fill="currentColor"/></svg></div></span></button>
-        <pre><code id="code-1" class="language-text">root/
+        <pre><code id="code-1" class="language-text">├── theme.css  # brand tokens        (unicode tree)
+|-- theme.css  # brand tokens        (ASCII tree)
+- theme.css  # brand tokens          (markdown list)
+assets/css/theme.css  # brand tokens (path list)
+</code></pre>
+      </div>
+    
+<p>Path lists normally leave non-empty folders implicit; a <em>commented</em> non-empty folder gets its own explicit <code>path/  # comment</code> line before its children so the comment survives — the parser&#39;s per-segment dedupe merges it back into one folder.</p>
+<hr>
+<h2 id="output-formats-copy-out">Output Formats (copy-out)</h2>
+<p>All serializers are pure functions of the same node tree, so paste → edit → copy round-trips losslessly — including comments when both the capture and emit toggles are on. One known caveat: a <em>name</em> containing space-then-<code>#</code> (e.g. <code>my #file.txt</code>) is indistinguishable from a comment in the text notation, so its tail is read back as a comment rather than as part of the name.</p>
+<p><strong>1. Unicode tree</strong> (default, AI-ready):</p>
+
+      <div class="code-block-wrapper">
+        <button class="button copy-btn is-icon-only" data-size="xsmall" data-clipboard-target="#code-2" data-tooltip="Copy" type="button" aria-label="Copy code"><span class="copy-btn-default"><div class="svg-icn"><svg data-icon="copy" aria-hidden="true" width="100%" height="100%" viewBox="0 0 24 24" fill="none"><path d="M8 14C8 15.1046 8.89543 16 10 16H18C19.1046 16 20 15.1046 20 14V6C20 4.89543 19.1046 4 18 4H10C8.89543 4 8 4.89543 8 6V14ZM6 18V2H22V18H6ZM2 22V6H4V20H18V22H2Z" fill="currentColor"/></svg></div></span><span class="copy-btn-copied"><div class="svg-icn"><svg data-icon="check" aria-hidden="true" width="100%" height="100%" viewBox="0 0 24 24" fill="none"><path d="M9.54998 18L3.84998 12.3L5.27498 10.875L8.13576 13.7358C8.91681 14.5168 10.1831 14.5168 10.9642 13.7358L18.725 5.97501L20.15 7.40001L9.54998 18Z" fill="currentColor"/></svg></div></span></button>
+        <pre><code id="code-2" class="language-text">root/
 ├── folder-a/
 │   └── file.txt
 └── folder-b/
@@ -194,8 +223,8 @@
 <p><strong>2. ASCII tree</strong> (older tooling, plain-ASCII environments):</p>
 
       <div class="code-block-wrapper">
-        <button class="button copy-btn is-icon-only" data-size="xsmall" data-clipboard-target="#code-2" data-tooltip="Copy" type="button" aria-label="Copy code"><span class="copy-btn-default"><div class="svg-icn"><svg data-icon="copy" aria-hidden="true" width="100%" height="100%" viewBox="0 0 24 24" fill="none"><path d="M8 14C8 15.1046 8.89543 16 10 16H18C19.1046 16 20 15.1046 20 14V6C20 4.89543 19.1046 4 18 4H10C8.89543 4 8 4.89543 8 6V14ZM6 18V2H22V18H6ZM2 22V6H4V20H18V22H2Z" fill="currentColor"/></svg></div></span><span class="copy-btn-copied"><div class="svg-icn"><svg data-icon="check" aria-hidden="true" width="100%" height="100%" viewBox="0 0 24 24" fill="none"><path d="M9.54998 18L3.84998 12.3L5.27498 10.875L8.13576 13.7358C8.91681 14.5168 10.1831 14.5168 10.9642 13.7358L18.725 5.97501L20.15 7.40001L9.54998 18Z" fill="currentColor"/></svg></div></span></button>
-        <pre><code id="code-2" class="language-text">root/
+        <button class="button copy-btn is-icon-only" data-size="xsmall" data-clipboard-target="#code-3" data-tooltip="Copy" type="button" aria-label="Copy code"><span class="copy-btn-default"><div class="svg-icn"><svg data-icon="copy" aria-hidden="true" width="100%" height="100%" viewBox="0 0 24 24" fill="none"><path d="M8 14C8 15.1046 8.89543 16 10 16H18C19.1046 16 20 15.1046 20 14V6C20 4.89543 19.1046 4 18 4H10C8.89543 4 8 4.89543 8 6V14ZM6 18V2H22V18H6ZM2 22V6H4V20H18V22H2Z" fill="currentColor"/></svg></div></span><span class="copy-btn-copied"><div class="svg-icn"><svg data-icon="check" aria-hidden="true" width="100%" height="100%" viewBox="0 0 24 24" fill="none"><path d="M9.54998 18L3.84998 12.3L5.27498 10.875L8.13576 13.7358C8.91681 14.5168 10.1831 14.5168 10.9642 13.7358L18.725 5.97501L20.15 7.40001L9.54998 18Z" fill="currentColor"/></svg></div></span></button>
+        <pre><code id="code-3" class="language-text">root/
 |-- folder-a/
 |   `-- file.txt
 `-- folder-b/
@@ -205,8 +234,8 @@
 <p><strong>3. Markdown nested list:</strong></p>
 
       <div class="code-block-wrapper">
-        <button class="button copy-btn is-icon-only" data-size="xsmall" data-clipboard-target="#code-3" data-tooltip="Copy" type="button" aria-label="Copy code"><span class="copy-btn-default"><div class="svg-icn"><svg data-icon="copy" aria-hidden="true" width="100%" height="100%" viewBox="0 0 24 24" fill="none"><path d="M8 14C8 15.1046 8.89543 16 10 16H18C19.1046 16 20 15.1046 20 14V6C20 4.89543 19.1046 4 18 4H10C8.89543 4 8 4.89543 8 6V14ZM6 18V2H22V18H6ZM2 22V6H4V20H18V22H2Z" fill="currentColor"/></svg></div></span><span class="copy-btn-copied"><div class="svg-icn"><svg data-icon="check" aria-hidden="true" width="100%" height="100%" viewBox="0 0 24 24" fill="none"><path d="M9.54998 18L3.84998 12.3L5.27498 10.875L8.13576 13.7358C8.91681 14.5168 10.1831 14.5168 10.9642 13.7358L18.725 5.97501L20.15 7.40001L9.54998 18Z" fill="currentColor"/></svg></div></span></button>
-        <pre><code id="code-3" class="language-text">- root/
+        <button class="button copy-btn is-icon-only" data-size="xsmall" data-clipboard-target="#code-4" data-tooltip="Copy" type="button" aria-label="Copy code"><span class="copy-btn-default"><div class="svg-icn"><svg data-icon="copy" aria-hidden="true" width="100%" height="100%" viewBox="0 0 24 24" fill="none"><path d="M8 14C8 15.1046 8.89543 16 10 16H18C19.1046 16 20 15.1046 20 14V6C20 4.89543 19.1046 4 18 4H10C8.89543 4 8 4.89543 8 6V14ZM6 18V2H22V18H6ZM2 22V6H4V20H18V22H2Z" fill="currentColor"/></svg></div></span><span class="copy-btn-copied"><div class="svg-icn"><svg data-icon="check" aria-hidden="true" width="100%" height="100%" viewBox="0 0 24 24" fill="none"><path d="M9.54998 18L3.84998 12.3L5.27498 10.875L8.13576 13.7358C8.91681 14.5168 10.1831 14.5168 10.9642 13.7358L18.725 5.97501L20.15 7.40001L9.54998 18Z" fill="currentColor"/></svg></div></span></button>
+        <pre><code id="code-4" class="language-text">- root/
   - folder-a/
     - file.txt
   - folder-b/
@@ -216,8 +245,8 @@
 <p><strong>4. Path list:</strong></p>
 
       <div class="code-block-wrapper">
-        <button class="button copy-btn is-icon-only" data-size="xsmall" data-clipboard-target="#code-4" data-tooltip="Copy" type="button" aria-label="Copy code"><span class="copy-btn-default"><div class="svg-icn"><svg data-icon="copy" aria-hidden="true" width="100%" height="100%" viewBox="0 0 24 24" fill="none"><path d="M8 14C8 15.1046 8.89543 16 10 16H18C19.1046 16 20 15.1046 20 14V6C20 4.89543 19.1046 4 18 4H10C8.89543 4 8 4.89543 8 6V14ZM6 18V2H22V18H6ZM2 22V6H4V20H18V22H2Z" fill="currentColor"/></svg></div></span><span class="copy-btn-copied"><div class="svg-icn"><svg data-icon="check" aria-hidden="true" width="100%" height="100%" viewBox="0 0 24 24" fill="none"><path d="M9.54998 18L3.84998 12.3L5.27498 10.875L8.13576 13.7358C8.91681 14.5168 10.1831 14.5168 10.9642 13.7358L18.725 5.97501L20.15 7.40001L9.54998 18Z" fill="currentColor"/></svg></div></span></button>
-        <pre><code id="code-4" class="language-text">root/folder-a/file.txt
+        <button class="button copy-btn is-icon-only" data-size="xsmall" data-clipboard-target="#code-5" data-tooltip="Copy" type="button" aria-label="Copy code"><span class="copy-btn-default"><div class="svg-icn"><svg data-icon="copy" aria-hidden="true" width="100%" height="100%" viewBox="0 0 24 24" fill="none"><path d="M8 14C8 15.1046 8.89543 16 10 16H18C19.1046 16 20 15.1046 20 14V6C20 4.89543 19.1046 4 18 4H10C8.89543 4 8 4.89543 8 6V14ZM6 18V2H22V18H6ZM2 22V6H4V20H18V22H2Z" fill="currentColor"/></svg></div></span><span class="copy-btn-copied"><div class="svg-icn"><svg data-icon="check" aria-hidden="true" width="100%" height="100%" viewBox="0 0 24 24" fill="none"><path d="M9.54998 18L3.84998 12.3L5.27498 10.875L8.13576 13.7358C8.91681 14.5168 10.1831 14.5168 10.9642 13.7358L18.725 5.97501L20.15 7.40001L9.54998 18Z" fill="currentColor"/></svg></div></span></button>
+        <pre><code id="code-5" class="language-text">root/folder-a/file.txt
 root/folder-b/
 </code></pre>
       </div>
@@ -225,8 +254,8 @@ root/folder-b/
 <p><strong>5. Shell commands</strong> (creates the structure for real):</p>
 
       <div class="code-block-wrapper">
-        <button class="button copy-btn is-icon-only" data-size="xsmall" data-clipboard-target="#code-5" data-tooltip="Copy" type="button" aria-label="Copy code"><span class="copy-btn-default"><div class="svg-icn"><svg data-icon="copy" aria-hidden="true" width="100%" height="100%" viewBox="0 0 24 24" fill="none"><path d="M8 14C8 15.1046 8.89543 16 10 16H18C19.1046 16 20 15.1046 20 14V6C20 4.89543 19.1046 4 18 4H10C8.89543 4 8 4.89543 8 6V14ZM6 18V2H22V18H6ZM2 22V6H4V20H18V22H2Z" fill="currentColor"/></svg></div></span><span class="copy-btn-copied"><div class="svg-icn"><svg data-icon="check" aria-hidden="true" width="100%" height="100%" viewBox="0 0 24 24" fill="none"><path d="M9.54998 18L3.84998 12.3L5.27498 10.875L8.13576 13.7358C8.91681 14.5168 10.1831 14.5168 10.9642 13.7358L18.725 5.97501L20.15 7.40001L9.54998 18Z" fill="currentColor"/></svg></div></span></button>
-        <pre><code id="code-5" class="language-text">mkdir -p root/folder-a root/folder-b
+        <button class="button copy-btn is-icon-only" data-size="xsmall" data-clipboard-target="#code-6" data-tooltip="Copy" type="button" aria-label="Copy code"><span class="copy-btn-default"><div class="svg-icn"><svg data-icon="copy" aria-hidden="true" width="100%" height="100%" viewBox="0 0 24 24" fill="none"><path d="M8 14C8 15.1046 8.89543 16 10 16H18C19.1046 16 20 15.1046 20 14V6C20 4.89543 19.1046 4 18 4H10C8.89543 4 8 4.89543 8 6V14ZM6 18V2H22V18H6ZM2 22V6H4V20H18V22H2Z" fill="currentColor"/></svg></div></span><span class="copy-btn-copied"><div class="svg-icn"><svg data-icon="check" aria-hidden="true" width="100%" height="100%" viewBox="0 0 24 24" fill="none"><path d="M9.54998 18L3.84998 12.3L5.27498 10.875L8.13576 13.7358C8.91681 14.5168 10.1831 14.5168 10.9642 13.7358L18.725 5.97501L20.15 7.40001L9.54998 18Z" fill="currentColor"/></svg></div></span></button>
+        <pre><code id="code-6" class="language-text">mkdir -p root/folder-a root/folder-b
 touch root/folder-a/file.txt
 </code></pre>
       </div>
@@ -247,8 +276,8 @@ touch root/folder-a/file.txt
 <p>Share and embed URLs carry the structure itself in the URL fragment — no backend, no storage. The codec lives in <code>assets/js/tree-share.js</code>; <code>/embed</code> renders the fragment read-only, and the main app imports it on load.</p>
 
       <div class="code-block-wrapper">
-        <button class="button copy-btn is-icon-only" data-size="xsmall" data-clipboard-target="#code-6" data-tooltip="Copy" type="button" aria-label="Copy code"><span class="copy-btn-default"><div class="svg-icn"><svg data-icon="copy" aria-hidden="true" width="100%" height="100%" viewBox="0 0 24 24" fill="none"><path d="M8 14C8 15.1046 8.89543 16 10 16H18C19.1046 16 20 15.1046 20 14V6C20 4.89543 19.1046 4 18 4H10C8.89543 4 8 4.89543 8 6V14ZM6 18V2H22V18H6ZM2 22V6H4V20H18V22H2Z" fill="currentColor"/></svg></div></span><span class="copy-btn-copied"><div class="svg-icn"><svg data-icon="check" aria-hidden="true" width="100%" height="100%" viewBox="0 0 24 24" fill="none"><path d="M9.54998 18L3.84998 12.3L5.27498 10.875L8.13576 13.7358C8.91681 14.5168 10.1831 14.5168 10.9642 13.7358L18.725 5.97501L20.15 7.40001L9.54998 18Z" fill="currentColor"/></svg></div></span></button>
-        <pre><code id="code-6">https://folder-structure.bydefault.studio/embed#t=&lt;payload&gt;[&amp;theme=light|dark]
+        <button class="button copy-btn is-icon-only" data-size="xsmall" data-clipboard-target="#code-7" data-tooltip="Copy" type="button" aria-label="Copy code"><span class="copy-btn-default"><div class="svg-icn"><svg data-icon="copy" aria-hidden="true" width="100%" height="100%" viewBox="0 0 24 24" fill="none"><path d="M8 14C8 15.1046 8.89543 16 10 16H18C19.1046 16 20 15.1046 20 14V6C20 4.89543 19.1046 4 18 4H10C8.89543 4 8 4.89543 8 6V14ZM6 18V2H22V18H6ZM2 22V6H4V20H18V22H2Z" fill="currentColor"/></svg></div></span><span class="copy-btn-copied"><div class="svg-icn"><svg data-icon="check" aria-hidden="true" width="100%" height="100%" viewBox="0 0 24 24" fill="none"><path d="M9.54998 18L3.84998 12.3L5.27498 10.875L8.13576 13.7358C8.91681 14.5168 10.1831 14.5168 10.9642 13.7358L18.725 5.97501L20.15 7.40001L9.54998 18Z" fill="currentColor"/></svg></div></span></button>
+        <pre><code id="code-7">https://folder-structure.bydefault.studio/embed#t=&lt;payload&gt;[&amp;theme=light|dark]
 </code></pre>
       </div>
     
@@ -274,7 +303,7 @@ touch root/folder-a/file.txt
 </tbody></table></div>
 <ul>
 <li>Any other version char is a clean decode error — a future payload format fails loudly on old pages instead of rendering garbage.</li>
-<li>The canonical body is the <strong>unicode-tree serialization</strong>, so links inherit the serializer round-trip guarantee. Open/closed folder state is <strong>not</strong> encoded — imported structures open fully.</li>
+<li>The canonical body is the <strong>unicode-tree serialization with comments included</strong>, so links inherit the serializer round-trip guarantee and comments always survive sharing. Open/closed folder state is <strong>not</strong> encoded — imported structures open fully.</li>
 <li><code>theme=light|dark</code> forces a theme on <code>/embed</code> only (embeds in tools like Notion can&#39;t see the host&#39;s dark mode); without it the embed follows the viewer&#39;s OS preference. The main app ignores the param.</li>
 </ul>
 <hr>
@@ -296,7 +325,7 @@ touch root/folder-a/file.txt
             <!-- Table of Contents -->
             <aside class="docs-toc">
       <span class="toc-header">On this page</span>
-      <div class="toc-wrapper"><nav class="toc"><ul class="toc-list"><li class="toc-item toc-level-2"><a href="#the-characters-box-drawing-characters" class="toc-link">The Characters: Box-Drawing Characters</a></li><li class="toc-item toc-level-2"><a href="#input-formats-paste-in" class="toc-link">Input Formats (paste-in)</a></li><li class="toc-item toc-level-2"><a href="#output-formats-copy-out" class="toc-link">Output Formats (copy-out)</a></li><li class="toc-item toc-level-2"><a href="#diagram-notation-mapping" class="toc-link">Diagram ↔ Notation Mapping</a></li><li class="toc-item toc-level-2"><a href="#share-link-fragment-encoding" class="toc-link">Share-Link Fragment Encoding</a></li><li class="toc-item toc-level-2"><a href="#sources-amp-further-reading" class="toc-link">Sources &amp; Further Reading</a></li></ul></nav></div>
+      <div class="toc-wrapper"><nav class="toc"><ul class="toc-list"><li class="toc-item toc-level-2"><a href="#the-characters-box-drawing-characters" class="toc-link">The Characters: Box-Drawing Characters</a></li><li class="toc-item toc-level-2"><a href="#input-formats-paste-in" class="toc-link">Input Formats (paste-in)</a></li><li class="toc-item toc-level-2"><a href="#comments" class="toc-link">Comments</a></li><li class="toc-item toc-level-2"><a href="#output-formats-copy-out" class="toc-link">Output Formats (copy-out)</a></li><li class="toc-item toc-level-2"><a href="#diagram-notation-mapping" class="toc-link">Diagram ↔ Notation Mapping</a></li><li class="toc-item toc-level-2"><a href="#share-link-fragment-encoding" class="toc-link">Share-Link Fragment Encoding</a></li><li class="toc-item toc-level-2"><a href="#sources-amp-further-reading" class="toc-link">Sources &amp; Further Reading</a></li></ul></nav></div>
     </aside>
         </div>
 
@@ -453,6 +482,7 @@ touch root/folder-a/file.txt
     <!-- Site nav + docs UI behaviours -->
     <script src="./assets/js/nav.js" defer></script>
     <script src="./assets/docs-kit/copy-button.js" defer></script>
+    <script src="./assets/docs-kit/docs-copy-chrome.js" defer></script>
     <script src="./assets/docs-kit/dropdown.js" defer></script>
 
     

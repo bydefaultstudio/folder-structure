@@ -9,7 +9,7 @@
    ───────────────────────────── */
 
 (function () {
-  var VERSION = '1.1.0';
+  var VERSION = '1.3.0';
   var APP_URL = 'https://folder-structure.bydefault.studio/';
 
   function fs() { return window.FolderStructure; }
@@ -34,7 +34,8 @@
   }
 
   function importText(text) {
-    var result = fs().parsers.parse(text);
+    // Share links are full-fidelity: comments always ride along.
+    var result = fs().parsers.parse(text, { comments: true });
     if (!result) {
       showError('Couldn’t read the structure in this link.');
       return;
@@ -45,7 +46,8 @@
       model.assignIds(result.tree.children[i]);
     }
     model.replaceTree(result.tree);
-    model.state.focusedId = result.tree.children[0] ? result.tree.children[0].id : null;
+    // Embeds land calm: nothing selected, so nothing fades.
+    model.state.focusedId = null;
     fs().canvas.fit();
     hideError();
   }

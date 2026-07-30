@@ -57,7 +57,7 @@ Grammar rules:
 - The **root** sits alone on the first line
 - **Spaces, not tabs**
 - Folders sort before files (`tree --dirsfirst`) — matches what people expect visually
-- Inline comments after `#` are common: `├── theme.css  # brand tokens`
+- Inline comments after `#` are common: `├── theme.css  # brand tokens` — see **Comments** below for the exact grammar
 - In markdown, wrap the block in a fenced code block (```` ```text ````)
 
 This format is also the best one to hand to an LLM — models have seen millions of `tree` blocks in training data and parse it natively.
@@ -74,13 +74,44 @@ The parser should auto-detect and accept all of these:
 4. **Markdown nested list** — `- assets/` with indented sub-items; common in docs and Notion
 5. **Path list** — one path per line (`assets/css/style.css`), i.e. `find` / `git ls-files` output
 
-Detection heuristics: box-drawing chars → tree; `|--`/`` `-- `` → ASCII tree; leading `-`/`*` → markdown list; `/` mid-line without indentation → path list; otherwise → indentation.
+Detection heuristics: box-drawing chars → tree; `|--`/`` `-- `` → ASCII tree; leading `-`/`*` → markdown list; `/` mid-line without indentation → path list; otherwise → indentation. Detection always runs on comment-stripped text, so a `/` or bullet inside a comment never skews the result.
+
+---
+
+## Comments
+
+Any line in any input format may carry an inline comment, and any node in the diagram may hold one, shown in a floating pill beside the row whenever it is selected. The pill is the single comment control: its chat button adds or edits (double-clicking the comment or pressing `C` in edit mode also works), and its delete button removes.
+
+**Grammar** (same for parse and emit):
+
+- A comment starts at the **first `#` preceded by whitespace** and runs to the end of the line: `name  # comment`. Everything after that first marker is the comment — a later ` # ` inside it stays part of the comment.
+- `#` **not** preceded by whitespace is part of the name: `#hashtag-notes/` is a folder, not a comment.
+- A line at column 0 starting with `#` is therefore a *name*, not a comment; an indented line that is *only* a comment is dropped entirely.
+- Serializers emit **two spaces** before the `#` (`theme.css  # brand tokens`); the parser accepts one or more.
+- Comments may contain `/` and `#`; newlines and box-drawing characters are stripped when editing in the app. The in-app editor caps comments at 80 characters, but longer imported comments are preserved untouched.
+
+**Capture and emission are both opt-in:**
+
+- **Paste-in:** comments are stripped by default (historical behavior). When a paste contains comments, the import dialog reveals a "Keep `# comments` as annotations" checkbox — tick it to capture them onto the nodes.
+- **Copy-out:** comments are omitted by default. When the diagram contains comments, the export dialog reveals an "Include comments" checkbox.
+- **Share/embed links:** always full-fidelity — comments ride in the payload and are always restored, regardless of either toggle.
+
+**Per-format emission** (all four formats use the same `  # ` suffix, so every format round-trips):
+
+```text
+├── theme.css  # brand tokens        (unicode tree)
+|-- theme.css  # brand tokens        (ASCII tree)
+- theme.css  # brand tokens          (markdown list)
+assets/css/theme.css  # brand tokens (path list)
+```
+
+Path lists normally leave non-empty folders implicit; a *commented* non-empty folder gets its own explicit `path/  # comment` line before its children so the comment survives — the parser's per-segment dedupe merges it back into one folder.
 
 ---
 
 ## Output Formats (copy-out)
 
-All serializers are pure functions of the same node tree, so paste → edit → copy round-trips losslessly.
+All serializers are pure functions of the same node tree, so paste → edit → copy round-trips losslessly — including comments when both the capture and emit toggles are on. One known caveat: a *name* containing space-then-`#` (e.g. `my #file.txt`) is indistinguishable from a comment in the text notation, so its tail is read back as a comment rather than as part of the name.
 
 **1. Unicode tree** (default, AI-ready):
 
@@ -157,7 +188,7 @@ https://folder-structure.bydefault.studio/embed#t=<payload>[&theme=light|dark]
 | `0` | uncompressed UTF-8 (encoder fallback when `CompressionStream` is unavailable; decoders accept it forever) |
 
 - Any other version char is a clean decode error — a future payload format fails loudly on old pages instead of rendering garbage.
-- The canonical body is the **unicode-tree serialization**, so links inherit the serializer round-trip guarantee. Open/closed folder state is **not** encoded — imported structures open fully.
+- The canonical body is the **unicode-tree serialization with comments included**, so links inherit the serializer round-trip guarantee and comments always survive sharing. Open/closed folder state is **not** encoded — imported structures open fully.
 - `theme=light|dark` forces a theme on `/embed` only (embeds in tools like Notion can't see the host's dark mode); without it the embed follows the viewer's OS preference. The main app ignores the param.
 
 ---

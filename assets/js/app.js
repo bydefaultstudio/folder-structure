@@ -8,7 +8,7 @@
    ───────────────────────────── */
 
 (function () {
-  var VERSION = '1.2.0';
+  var VERSION = '1.4.0';
   var TOAST_DURATION_MS = 5000;
   // Hard-coded https: the subdomain serves plain http without a
   // redirect, and an http embed URL is mixed content inside Notion.
@@ -79,12 +79,17 @@
       'indentation': 'indented list'
     };
     hint.textContent = format ? 'Detected: ' + labels[format] : 'Paste a structure to auto-detect the format';
+    // The keep-comments row doubles as the "comments detected" notice —
+    // it only appears when the paste actually contains # comments.
+    var commentsRow = importDialog.querySelector('.import-comments-row');
+    commentsRow.classList.toggle('is-hidden', !fs().parsers.containsComments(textarea.value));
   }
 
   function runImport() {
     var textarea = importDialog.querySelector('.import-textarea');
     var error = importDialog.querySelector('.import-error');
-    var result = fs().parsers.parse(textarea.value);
+    var keepComments = importDialog.querySelector('.import-comments');
+    var result = fs().parsers.parse(textarea.value, { comments: keepComments.checked });
     if (!result) {
       error.textContent = 'Couldn’t find a folder structure in that text — try a tree diagram, indented list, or paths.';
       error.classList.remove('is-hidden');
@@ -94,6 +99,7 @@
     applyImportedTree(result.tree);
     importDialog.close();
     textarea.value = '';
+    keepComments.checked = false;                  // strip is the default each time
     updateImportDetection();
     fs().canvas.fit();
     toast('Imported — ' + countNodes(result.tree) + ' items');
@@ -106,7 +112,8 @@
       model.assignIds(tree.children[i]);
     }
     model.replaceTree(tree);
-    model.state.focusedId = tree.children[0] ? tree.children[0].id : null;
+    // Imports land calm: nothing selected, so nothing fades.
+    model.state.focusedId = null;
   }
 
   function countNodes(root) {
@@ -131,7 +138,8 @@
       function handleShared(result) {
         clearFragment();
         if (!result) { return; }
-        var parsed = fs().parsers.parse(result.text);
+        // Share links are full-fidelity: comments always ride along.
+        var parsed = fs().parsers.parse(result.text, { comments: true });
         if (!parsed) {
           toast('Couldn’t read the shared link');
           return;
@@ -173,12 +181,29 @@
       return;
     }
     var fence = exportDialog.querySelector('.export-fence').checked;
-    output.value = fs().serializers.serialize(fs().model.state.root, exportFormat, { fence: fence });
+    var comments = exportDialog.querySelector('.export-comments').checked;
+    output.value = fs().serializers.serialize(fs().model.state.root, exportFormat, { fence: fence, comments: comments });
+  }
+
+  function treeHasComments() {
+    function walk(node) {
+      if (node.comment) { return true; }
+      if (node.children) {
+        for (var i = 0; i < node.children.length; i++) {
+          if (walk(node.children[i])) { return true; }
+        }
+      }
+      return false;
+    }
+    return walk(fs().model.state.root);
   }
 
   function toggleExportControls() {
     var isEmbed = exportFormat === 'embed';
     exportDialog.querySelector('.export-fence-row').classList.toggle('is-hidden', isEmbed);
+    // Only offer the comments toggle when there are comments to include
+    // (embed links always carry them, so the toggle is moot there too).
+    exportDialog.querySelector('.export-comments-row').classList.toggle('is-hidden', isEmbed || !treeHasComments());
     exportDialog.querySelector('.export-embed-url-row').classList.toggle('is-hidden', !isEmbed);
     if (!isEmbed) {
       exportDialog.querySelector('.export-embed-warning').classList.add('is-hidden');
@@ -200,7 +225,8 @@
       return;
     }
     output.placeholder = 'Generating link…';
-    var text = fs().serializers.serialize(fs().model.state.root, 'unicode-tree', { fence: false });
+    // Share links are full-fidelity: comments always ride along.
+    var text = fs().serializers.serialize(fs().model.state.root, 'unicode-tree', { fence: false, comments: true });
     fs().share.encodeTree(text).then(
       function handleEncoded(payload) {
         if (token !== exportPreviewToken) { return; }
@@ -369,6 +395,7 @@
     importDialog.querySelector('.import-run').addEventListener('click', runImport);
     exportDialog.querySelector('.export-formats').addEventListener('click', handleExportFormatClick);
     exportDialog.querySelector('.export-fence').addEventListener('change', updateExportPreview);
+    exportDialog.querySelector('.export-comments').addEventListener('change', updateExportPreview);
     exportDialog.querySelector('.export-embed-url').addEventListener('change', updateExportPreview);
     exportDialog.querySelector('.export-copy').addEventListener('click', copyExport);
 

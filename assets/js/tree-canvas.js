@@ -7,17 +7,24 @@
    JS-set transform is view state, not styling. A 4px threshold
    separates clicks (toggle + center) from drags (pan); panning
    swallows the click that would otherwise fire on release.
+   Wheel gestures follow the design-tool (Figma) model: plain scroll
+   pans, Shift+wheel pans horizontally, Ctrl/⌘+wheel zooms at the
+   cursor (browsers report a trackpad pinch as Ctrl+wheel, so pinch
+   zooms via the same branch).
    Clicking any row centers it at 1/3 viewport width, 1/2 height —
-   folders toggle open/closed as well.
+   folders toggle open/closed as well. Clicking empty canvas clears
+   the selection.
    ───────────────────────────── */
 
 (function () {
-  var VERSION = '1.0.0';
+  var VERSION = '1.2.0';
   var DRAG_THRESHOLD_PX = 4;
   var ZOOM_MIN = 0.25;
   var ZOOM_MAX = 2.5;
   var ZOOM_STEP = 1.25;
   var WHEEL_ZOOM_SPEED = 0.0015;
+  // Firefox reports mouse-wheel deltas in lines, not pixels.
+  var WHEEL_LINE_PX = 16;
   var FIT_PADDING_PX = 64;
 
   var viewportEl = null;
@@ -205,11 +212,29 @@
 
   function handleWheel(event) {
     event.preventDefault();
-    var rect = viewportEl.getBoundingClientRect();
-    var cx = event.clientX - rect.left;
-    var cy = event.clientY - rect.top;
-    var factor = Math.exp(-event.deltaY * WHEEL_ZOOM_SPEED * (event.ctrlKey ? 4 : 1));
-    zoomAbout(view().zoom * factor, cx, cy);
+    var scale = event.deltaMode === 1 ? WHEEL_LINE_PX
+      : event.deltaMode === 2 ? viewportEl.clientHeight
+      : 1;
+    if (event.ctrlKey || event.metaKey) {
+      var rect = viewportEl.getBoundingClientRect();
+      var cx = event.clientX - rect.left;
+      var cy = event.clientY - rect.top;
+      // Pinch deltas are small relative to wheel ticks — boost them.
+      var factor = Math.exp(-event.deltaY * scale * WHEEL_ZOOM_SPEED * (event.ctrlKey ? 4 : 1));
+      zoomAbout(view().zoom * factor, cx, cy);
+      return;
+    }
+    var dx = event.deltaX * scale;
+    var dy = event.deltaY * scale;
+    // Shift turns a mouse wheel's vertical delta into horizontal pan.
+    // Some browsers pre-swap the axes for Shift+wheel, so only remap
+    // when the event still reports a vertical-only delta.
+    if (event.shiftKey && dx === 0) { dx = dy; dy = 0; }
+    var v = view();
+    v.x -= dx;
+    v.y -= dy;
+    applyTransform();
+    window.FolderStructure.model.notifyViewChange();
   }
 
   //
@@ -231,10 +256,24 @@
     if (rowEl) { rowEl.focus({ preventScroll: true }); }
   }
 
+  // Clicking empty canvas clears the selection (and with it the edit
+  // chip). The first row stays keyboard-reachable via tree-render's
+  // tab-stop fallback.
+  function clearSelection() {
+    var model = window.FolderStructure.model;
+    if (model.state.focusedId === null) { return; }
+    model.state.focusedId = null;
+    window.FolderStructure.render.render();
+    model.notifyViewChange();
+  }
+
   function handleViewportClick(event) {
-    if (event.target.closest('.tree-item-actions') || event.target.closest('.add-pill')) { return; }
+    if (event.target.closest('.tree-item-overlays') || event.target.closest('.add-pill')) { return; }
     var rowEl = event.target.closest('.tree-item');
-    if (!rowEl) { return; }
+    if (!rowEl) {
+      clearSelection();
+      return;
+    }
     activateNode(rowEl.getAttribute('data-id'));
   }
 

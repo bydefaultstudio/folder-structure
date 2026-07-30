@@ -4,6 +4,84 @@ Track what's been done and what still needs doing across sessions. Add a dated s
 
 ---
 
+## 2026-07-30 — Selection-driven path fading + calm starting state
+
+Major visual model change per Erlen's spec (articulated + confirmed first). Fading is no longer structural ("sibling of an open folder fades" — that rule is gone from tree-layout); it now visualises the *path to the selection*:
+
+- Nothing selected → every row `--text-primary`, nothing faded
+- Row selected → the row, its ancestors, and (for folders) its **immediate children** stay primary; every other visible row fades. Connectors deliberately never fade (kept full strength per Erlen)
+- Click-away deselect (earlier today) resets everything to primary — the two features compose
+
+Starting state is now calm on every load: **view mode, nothing selected** (load() ignores the persisted mode/focusedId; payload shape unchanged), and the fresh-visit sample ships **all folders open**. Imports, share-link loads, and embeds also land with nothing selected. Restored sessions still keep their tree, open/closed states, and view position. startFresh keeps its explicit edit-mode + selection (deliberate: it's a "begin building" action).
+
+- **tree-layout.js 1.3.0** — `faded` field + groupHasOpen scan removed (layout is geometry-only again)
+- **tree-render.js 1.6.0** — render() builds `primaryIds` (focusedId + `ancestorIds` + immediate children when a folder) and `is-faded` = selection active && row not in the set
+- **tree-model.js 1.4.0** — sample all-open; load() forces `mode:'view'`, `focusedId:null` (also fixes a pre-existing inconsistency: restored 'edit' mode never applied `.is-edit-mode` to the DOM, leaving hidden-but-active edit state)
+- **app.js 1.4.0 / embed.js 1.3.0** — imports/embeds set `focusedId = null` instead of first row
+- **style.css** — `.is-faded` comment rewritten; hover-restores kept; connector rule untouched
+- **Verified**: headless-Chrome harness (real modules, real click paths) 10/10 — boot calm state, deep-file path matrix, folder children-stay-primary matrix, canvas-click deselect reset
+
+Follow-up round on the pill per Erlen's feedback: the chat icon appeared twice in edit mode (chip + pill), so the chip's chat button is gone — the pill is now the single comment control. To keep a mouse add-affordance, the pill shows on **every** selected row in edit mode, collapsed to just its chat button until a comment exists (text and delete stay hidden via `.tree-comment:empty` and an `is-commented` gate). Rename's pencil swapped to Erlen's new artwork.
+
+- **assets/icons/project-icons.svg** — new `pencil` symbol from `assets/images/svgs/pencil.svg` (fill normalized to `currentColor`); **icons.manifest.json** dropped `pencil-draw` (now unused) → DS sprite resynced to 13 icons (`chat`/`check` remain for the pill states)
+- **tree-render.js 1.5.0** — chip's `comment` button removed; rename button now `project-icons.svg#pencil`; pill edit button gets add/edit aria-label + tooltip per state
+- **tree-edit.js 1.4.0** — `swapButtonIcon` is sprite-aware (pencil lives in the project sprite, check/chat in the DS sprite); `setCommentButton` targets the pill button only; delegation drops the `comment` action
+- **Input crop fix** (also reported by Erlen): the DS reset applies `box-sizing: border-box`, so the inline inputs' 2×2px padding + 2×1px border were carved out of the `ch`-based width and cropped the last letters — width now adds the chrome back via `calc()`, sizes empty inputs to their placeholder, and self-corrects against `scrollWidth` for wide glyphs the proportional-font `ch` unit under-measures (affected rename too)
+- **`#` prefix hidden while editing** (Erlen's request): `.tree-item.is-commenting .tree-comment::before { content: none; }`
+- **Orphaned-input bug found by the new test**: cancelling/empty-committing on an *uncommented* row left the input element in the DOM (the render diff sees `'' === ''` and never rewrites the span) — commit/cancel now remove the input explicitly
+- **Verified**: headless-Chrome smoke suite 32/32 — exactly one chat control per row, pencil swap incl. check↔pencil toggling, collapsed add-only pill, add/edit/delete/undo flows, no orphaned inputs, no cropped text at wide glyphs, placeholder-sized empty input, `#` hidden while editing, view-mode read-only, one-input invariant
+
+---
+
+## 2026-07-30 — New wordmark artwork
+
+Replaced the `logo-wordmark` symbol in `project-icons.svg` with Erlen's new "folder-structure/" artwork (17 paths, `currentColor`, viewBox `0 0 245 23`, was `246 25`). Updated the three `<svg viewBox>` references (index header, about dialog, embed branding) and the three `aspect-ratio`/width rules in style.css to match. Verified: sprite XML parses, rendered preview shows the full wordmark, no stale `246 25` refs.
+
+---
+
+## 2026-07-30 — Comment pills: floating overlay redesign
+
+Same-day iteration on the comments feature per Erlen's feedback: comments moved out of the row's text flow into a floating pill with its own edit/delete toolbar, decoupling comment editing from name editing. Pill shows only while its row is selected (view mode read-only; embeds too). Data model, `# comment` notation, import/export toggles and share fidelity unchanged.
+
+- **tree-render.js 1.4.0** — new `.tree-item-overlays` rail (absolute, `left:100%`) holding the edit chip and the new `.tree-comment-pill` (`.tree-comment` text span + `comment-edit`/`comment-delete` buttons). The rail is selected-row furniture; comments no longer sit in the row flex flow
+- **style.css** — rail takes over the chip's old positioning; pill reuses the chip's card recipe; visibility matrix: `.is-selected.is-commented` or `.is-commenting` shows the pill, pill toolbar gated on `.is-edit-mode` (embeds never get it); open folders offset the pill 35px (CELL_W+GAP) past the connector arm in view mode — in edit mode the chip covers the arm as before. Print hides `.tree-item-overlays` wholesale (print treatment of comments deliberately deferred). Cosmetic edge: an open *empty* folder has no arm but still gets the offset
+- **tree-layout.js 1.2.0** — comment width reverted out of `rowWidth`; comments are pure overlay, so the open-folder child-column shift from the first build is gone. Rows still carry `comment` for the renderer
+- **tree-edit.js 1.3.0** — delegation widened to `.tree-item-overlays [data-action]`; `comment-edit` toggles start/commit exactly like the chip's `comment`; new `deleteComment` (cancels an in-progress edit rather than saving it, then clears with an Undo toast); `setCommentButton` swaps chat↔check on both buttons; outside-click exclusion widened to the rail; dblclick on overlay buttons no longer falls through to rename (also fixes a pre-existing chip quirk)
+- **tree-canvas.js 1.2.0** — viewport-click exclusion `.tree-item-actions` → `.tree-item-overlays` so pill clicks don't toggle/center rows (single-line change on top of the uncommitted gestures work)
+- **Verified**: Node harness still 55/55 (parsers/serializers untouched); headless-Chrome smoke suite against `dist/` — 25/25 incl. width-neutrality, selection-driven visibility, chip + pill edit flows, delete + undo, pill click on an open folder not toggling it, one-input invariant, keyboard guard, first-comment pill reveal, view-mode read-only. Hands-on QA pending: pill feel at zoom levels, dark mode, embeds
+
+---
+
+## 2026-07-30 — File/folder comments (annotations)
+
+First ROADMAP.md feature. Any node can hold an optional `comment` shown as muted `# text` after its name, editable inline in edit mode (chat button next to Rename, double-click the comment, or `C`), mirroring the rename triad exactly. Comments use the `# ` suffix notation the parser already tolerated; capture on paste and emission on export are both opt-in checkboxes (progressive disclosure — each row appears only when comments exist), while share/embed links always carry comments. Markdown export uses `  # comment` like the other formats (ROADMAP's em-dash sketch dropped: it can't round-trip).
+
+- **tree-model.js 1.3.0** — `setComment(id, text)` beside `rename()`; empty text deletes the field; no-op guard so unchanged commits create no undo step. Undo/localStorage cover the field for free (whole-tree clones, verbatim stringify; no version bump needed)
+- **tree-parsers.js 1.1.0** — `normalize` → `normalizeEntries` returning `[{text, comment}]` (single pass; capture regex `/\s+#\s?(.*)$/`, first marker wins, `#hashtag` names survive); detection runs on stripped text so comment content can't skew heuristics; `parse(text, {comments})` attaches only on opt-in (default byte-identical to old parser — verified against `git show HEAD`); new `containsComments(text)` export drives the import-dialog disclosure; path-list comments attach to the line's last segment, non-empty last-wins on dedupe
+- **tree-serializers.js 1.1.0** — `serialize(root, format, {fence, comments})`; `  # ` suffix in all four formats; path-list additionally emits an explicit `path/  # comment` line for commented non-empty folders so the parser's dedupe merges them back (folder comments round-trip)
+- **tree-layout.js 1.1.0** — `rowWidth` adds `GAP + labelWidth('# ' + comment)` and rows carry `comment`, so connectors, add-pill gaps, bounds and the actions chip all clear the comment text. Intended consequence: a comment on an open folder shifts its child column right
+- **tree-render.js 1.3.0** — `.tree-comment` span between label and actions (text is the bare comment; the `# ` prefix is CSS `::before`, keeping the accessible name clean); chat button next to Rename; `is-commented` row class; add/edit aria-label/tooltip refreshed per render except mid-edit
+- **tree-edit.js 1.2.0** — comment triad (`startComment`/`commitComment`/`cancelComment`) with separate `commentingId`; starting either edit commits the other (one inline input globally); shared capture-phase outside-click + Enter/Esc handlers cover both inputs; `COMMENT_FORBIDDEN` allows `/` and `#` but strips newlines/box glyphs; `maxlength=80` (UI only — longer imported comments preserved)
+- **tree-keyboard.js 1.3.0** — critical guard: keydown now bails inside `.tree-comment-input` too (Space/Delete/`a` no longer fire while typing a comment); `c` starts a comment (modifier-guarded so ⌘C stays copy); same modifier guard added to `a` (pre-existing ⌘A bug, disclosed)
+- **app.js 1.3.0 / index.html** — import dialog gains "Keep `# comments` as annotations" checkbox (hidden unless the paste contains comments = the detection notice; unchecked default per spec, reset after import); export dialog gains "Include comments" (hidden when no comments or Embed format); embed payload serializes with comments; share-fragment import parses with capture; About copy updated
+- **embed.js 1.2.0** — fragment parse with `{comments: true}`; read-only rendering needs nothing else
+- **icons.manifest.json** — added `chat` (14 symbols); `npx bd-sync` rerun, `#chat` verified in the sprite
+- **docs/tree-notation.md** — new "Comments" section (grammar, opt-in capture/emit, per-format emission, path-list folder-line rule, share-link fidelity) + round-trip caveat for names containing ` #` (pre-existing lossy hole, documented not fixed); site regenerated
+- **Verified**: Node harness (scratchpad) — 55 checks: strip-regression across all five parse formats, capture, per-format round-trips with and without comments, path-list folder merge, detection-skew, `#hashtag`/fence/col-0-`#`/full-line-comment edges, `containsComments`; plus old-vs-new parser byte-identity on default mode. Browser QA still pending (inline editing flow, layout at zoom levels, dark mode, VoiceOver)
+
+---
+
+## 2026-07-30 — Figma-style canvas gestures + click-away deselect
+
+Per Erlen's spec (confirmed before build): scroll should move the canvas, zoom is always a deliberate modifier/gesture.
+
+- **tree-canvas.js 1.1.0** — `handleWheel` rework: plain wheel/two-finger scroll pans both axes (`deltaMode` scaled: lines ×16, pages ×viewport); Shift+wheel pans horizontally (remaps deltaY→deltaX only when the browser didn't pre-swap); Ctrl/⌘+wheel zooms at the cursor. Trackpad pinch arrives as Ctrl+wheel so it zooms via the same branch (kept the 4× boost — pinch deltas are small). Left-drag pan unchanged (no marquee here, unlike Figma). Clicking empty canvas now calls `clearSelection()` → `focusedId = null` + render + `notifyViewChange` (persists)
+- **tree-render.js 1.2.0** — "always selected" invariant removed: render() no longer force-selects row 0 when `focusedId` is null. Roving tab stop decoupled from selection: new `tabId` (= focusedId, else first row) drives `tabIndex`, `.is-selected` still tracks focusedId only — tree stays keyboard-reachable with nothing selected, and the edit chip disappears until a row is clicked. Hidden-focus pull-up (collapsed ancestor) unchanged
+- Audited all `focusedId` consumers: everything else only writes it; `nextFocusAfterDelete` already returns sibling→parent (null only for an emptied tree); tree-keyboard reads the row id from the DOM-focused element so null selection is safe
+- Not yet deployed (needs commit + push)
+
+---
+
 ## 2026-07-30 — Fix: live site missing chevron-left/right, pencil-draw, check icons
 
 `icons.manifest.json` (adopted in 1e5afb2) is the sole input to the bd-sprite subset build — nothing scans usage. It had been written from HTML markup only, so the four DS icons referenced from **JS** (edit-chip outdent/indent chevrons + rename pencil in tree-render.js, save-rename check in tree-edit.js) were dropped from the sprite that CI's `npm install` → `bd-sync` regenerates before deploy. Added the four names to the manifest and reran `npx bd-sprite` (13 symbols, DS v2.1.0). Reaches live on next push. Rule of thumb saved to memory: any new `icons.svg#<name>` usage — especially JS-injected — needs a manifest entry.

@@ -3,6 +3,7 @@
   "icons": [
     "add",
     "back-arrow",
+    "chat",
     "check",
     "chevron-left",
     "chevron-right",
@@ -12,7 +13,6 @@
     "full-screen",
     "info",
     "minus",
-    "pencil-draw",
     "refresh"
   ]
 }

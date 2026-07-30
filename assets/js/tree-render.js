@@ -13,7 +13,7 @@
    ───────────────────────────── */
 
 (function () {
-  var VERSION = '1.1.0';
+  var VERSION = '1.6.0';
   var SPRITE = 'assets/icons/project-icons.svg';
   var DS_SPRITE = 'assets/icons/icons.svg';
   var SVG_NS = 'http://www.w3.org/2000/svg';
@@ -84,6 +84,11 @@
     label.textContent = row.name;
     el.appendChild(label);
 
+    // Overlay rail: selected-row furniture (edit chip + comment pill)
+    // floats right of the row without participating in layout geometry.
+    var overlays = document.createElement('span');
+    overlays.className = 'tree-item-overlays';
+
     var actions = document.createElement('span');
     actions.className = 'tree-item-actions';
     if (row.type === 'folder') {
@@ -97,9 +102,23 @@
     divider.className = 'divider--vertical';
     divider.setAttribute('aria-hidden', 'true');
     actions.appendChild(divider);
-    actions.appendChild(makeActionButton('rename', 'pencil-draw', DS_SPRITE, 'Rename ' + row.name, 'Rename'));
+    actions.appendChild(makeActionButton('rename', 'pencil', SPRITE, 'Rename ' + row.name, 'Rename'));
     actions.appendChild(makeActionButton('delete', 'close-circled', SPRITE, 'Delete ' + row.name, 'Delete'));
-    el.appendChild(actions);
+    overlays.appendChild(actions);
+
+    var pill = document.createElement('span');
+    pill.className = 'tree-comment-pill';
+    var comment = document.createElement('span');
+    comment.className = 'tree-comment';
+    comment.textContent = row.comment || '';
+    pill.appendChild(comment);
+    pill.appendChild(makeActionButton('comment-edit', 'chat', DS_SPRITE,
+      (row.comment ? 'Edit comment on ' : 'Add comment to ') + row.name,
+      row.comment ? 'Edit comment' : 'Add comment'));
+    pill.appendChild(makeActionButton('comment-delete', 'close-circled', SPRITE, 'Delete comment on ' + row.name, 'Delete comment'));
+    overlays.appendChild(pill);
+
+    el.appendChild(overlays);
 
     requestAnimationFrame(function removeEntering() {
       el.classList.remove('is-entering');
@@ -164,14 +183,14 @@
     if (el.style.transform !== value) { el.style.transform = value; }
   }
 
-  function updateRowEl(el, row, focusedId) {
+  function updateRowEl(el, row, focusedId, tabId, primaryIds) {
     setTransform(el, row.x, row.y);
     el.classList.toggle('is-open', row.open);
-    el.classList.toggle('is-faded', !!row.faded);
+    el.classList.toggle('is-faded', !!primaryIds && !primaryIds[row.id]);
     el.classList.toggle('is-folder', row.type === 'folder');
     el.classList.toggle('is-file', row.type === 'file');
     el.classList.toggle('is-selected', row.id === focusedId);
-    el.tabIndex = row.id === focusedId ? 0 : -1;
+    el.tabIndex = row.id === tabId ? 0 : -1;
     el.setAttribute('aria-level', row.level);
     el.setAttribute('aria-setsize', row.setSize);
     el.setAttribute('aria-posinset', row.posInSet);
@@ -182,6 +201,23 @@
     }
     var label = el.querySelector('.tree-label');
     if (label.textContent !== row.name) { label.textContent = row.name; }
+    var commentText = row.comment || '';
+    el.classList.toggle('is-commented', !!row.comment);
+    var commentEl = el.querySelector('.tree-comment');
+    if (commentEl.textContent !== commentText) { commentEl.textContent = commentText; }
+    // Keep the add/edit distinction fresh, except while its input is open
+    // (tree-edit owns the button state as check/save during editing).
+    if (!el.classList.contains('is-commenting')) {
+      var pillEditBtn = el.querySelector('[data-action="comment-edit"]');
+      if (pillEditBtn) {
+        pillEditBtn.setAttribute('aria-label', (row.comment ? 'Edit comment on ' : 'Add comment to ') + row.name);
+        pillEditBtn.setAttribute('data-tooltip', row.comment ? 'Edit comment' : 'Add comment');
+      }
+      var pillDeleteBtn = el.querySelector('[data-action="comment-delete"]');
+      if (pillDeleteBtn) {
+        pillDeleteBtn.setAttribute('aria-label', 'Delete comment on ' + row.name);
+      }
+    }
     var iconUse = el.querySelector('.tree-icon use');
     setIconHref(iconUse, SPRITE, iconFor(row));
   }
@@ -200,7 +236,7 @@
     }
   }
 
-  function syncTreeStructure(rowsById, focusedId) {
+  function syncTreeStructure(rowsById, focusedId, tabId, primaryIds) {
     var model = window.FolderStructure.model;
     var seenRows = {};
     var seenGroups = {};
@@ -217,7 +253,7 @@
           el = makeRowEl(row);
           rowEls[child.id] = el;
         }
-        updateRowEl(el, row, focusedId);
+        updateRowEl(el, row, focusedId, tabId, primaryIds);
         seenRows[child.id] = true;
         expected.push(el);
         if (child.type === 'folder' && child.open && child.children && child.children.length) {
@@ -323,12 +359,30 @@
       if (!focusedId && result.rows.length) { focusedId = result.rows[0].id; }
       model.state.focusedId = focusedId;
     }
-    if (!focusedId && result.rows.length) {
-      focusedId = result.rows[0].id;
-      model.state.focusedId = focusedId;
+    // Nothing selected is a valid state (canvas-click deselect). The
+    // roving tab stop falls back to the first row so the tree stays
+    // keyboard-reachable without visually selecting anything.
+    var tabId = focusedId || (result.rows.length ? result.rows[0].id : null);
+
+    // Selection-driven path fading: with a row selected, only that row,
+    // its ancestors (the path to it), and — for folders — its immediate
+    // children stay at full strength; every other row fades. With
+    // nothing selected, primaryIds stays null and nothing fades.
+    var primaryIds = null;
+    if (focusedId) {
+      primaryIds = {};
+      primaryIds[focusedId] = true;
+      var pathIds = model.ancestorIds(focusedId);
+      for (var p = 0; p < pathIds.length; p++) { primaryIds[pathIds[p]] = true; }
+      var focusedNode = model.findNode(focusedId);
+      if (focusedNode && focusedNode.type === 'folder' && focusedNode.children) {
+        for (var c = 0; c < focusedNode.children.length; c++) {
+          primaryIds[focusedNode.children[c].id] = true;
+        }
+      }
     }
 
-    syncTreeStructure(rowsById, focusedId);
+    syncTreeStructure(rowsById, focusedId, tabId, primaryIds);
     syncFlatLayer(connectorLayerEl, result.connectors, connectorEls, makeConnectorEl, updateConnectorEl);
     syncFlatLayer(gapLayerEl, result.gaps, gapEls, makeGapEl, updateGapEl);
 

@@ -12,7 +12,7 @@
    ───────────────────────────── */
 
 (function () {
-  var VERSION = '1.0.0';
+  var VERSION = '1.3.0';
 
   // Geometry contract with the Figma design and style.css (.tree-item et al).
   var ROW_H = 40;
@@ -62,7 +62,7 @@
   //
 
   // Returns {rows, connectors, gaps, bounds}
-  // row: {id, name, type, open, x, y, row, level, posInSet, setSize, parentId, width}
+  // row: {id, name, type, comment, open, x, y, row, level, posInSet, setSize, parentId, width}
   // connector: {key, x, y, glyph}
   // gap: {key, parentId, index, x, y, width}  (insertion points, edit mode)
   function layout() {
@@ -75,6 +75,8 @@
     var rowCounter = 0;
     var maxX = 0;
 
+    // Comments render in an overlay pill and deliberately stay out of
+    // row geometry — only the name participates in layout.
     function rowWidth(node) {
       return ICON + GAP + labelWidth(node.name);
     }
@@ -89,18 +91,6 @@
       var maxChildWidth = MIN_GAP_WIDTH;
       var i;
 
-      // A row fades only when a sibling folder is open and this row isn't
-      // the open one — with nothing open in the group, everything reads
-      // at full strength.
-      var groupHasOpen = false;
-      for (i = 0; i < children.length; i++) {
-        if (children[i].type === 'folder' && children[i].open &&
-            children[i].children && children[i].children.length) {
-          groupHasOpen = true;
-          break;
-        }
-      }
-
       for (i = 0; i < children.length; i++) {
         var child = children[i];
         var isOpen = child.type === 'folder' && !!child.open;
@@ -112,8 +102,8 @@
           id: child.id,
           name: child.name,
           type: child.type,
+          comment: child.comment,
           open: isOpen,
-          faded: groupHasOpen && !(isOpen && child.children && child.children.length),
           x: childX,
           y: y,
           row: rowCounter,

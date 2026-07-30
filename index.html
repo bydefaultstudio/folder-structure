@@ -80,7 +80,7 @@
     <div class="app-logo">
       <button class="button app-logo-button" type="button" data-variant="transparent" data-size="small" data-app-action="about" aria-label="About Folder Structure" data-tooltip="About" data-tooltip-position="right">
         <span class="svg-logo">
-          <svg viewBox="0 0 246 25" fill="none" width="100%" height="100%" aria-hidden="true"><use href="assets/icons/project-icons.svg#logo-wordmark"></use></svg>
+          <svg viewBox="0 0 245 23" fill="none" width="100%" height="100%" aria-hidden="true"><use href="assets/icons/project-icons.svg#logo-wordmark"></use></svg>
         </span>
         <span class="svg-icn app-logo-info" data-icon="info"><svg fill="none" width="100%" height="100%" aria-hidden="true"><use href="assets/icons/icons.svg#info"></use></svg></span>
       </button>
@@ -134,6 +134,10 @@
       <div class="block gap-s">
         <p class="form-hint import-detected">Paste a structure to auto-detect the format</p>
         <textarea class="import-textarea" rows="12" aria-label="Structure text" placeholder="my-project/&#10;├── index.html&#10;└── assets/&#10;    └── style.css&#10;&#10;Also works: indented lists, markdown bullets, or file paths."></textarea>
+        <label class="form-check import-comments-row is-hidden">
+          <input type="checkbox" class="import-comments" />
+          <span>Keep <code># comments</code> as annotations</span>
+        </label>
         <p class="form-error import-error is-hidden"></p>
       </div>
     </div>
@@ -163,6 +167,10 @@
           <input type="checkbox" class="export-fence" />
           <span>Wrap in a <code>```text</code> code fence</span>
         </label>
+        <label class="form-check export-comments-row is-hidden">
+          <input type="checkbox" class="export-comments" />
+          <span>Include comments</span>
+        </label>
         <label class="form-check export-embed-url-row is-hidden">
           <input type="checkbox" class="export-embed-url" />
           <span>Plain URL only (for Notion)</span>
@@ -189,10 +197,10 @@
       <div class="block gap-l">
         <div class="about-logo">
           <div class="svg-logo">
-            <svg viewBox="0 0 246 25" fill="none" width="100%" height="100%" aria-hidden="true"><use href="assets/icons/project-icons.svg#logo-wordmark"></use></svg>
+            <svg viewBox="0 0 245 23" fill="none" width="100%" height="100%" aria-hidden="true"><use href="assets/icons/project-icons.svg#logo-wordmark"></use></svg>
           </div>
         </div>
-        <p>Folder Structure is a free tool for visualising folder structures. Paste a structure in any common format, whether that is a tree diagram, an indented list, markdown bullets or file paths, and it becomes an interactive diagram. Click a folder to open or close it, drag the canvas to move around, and switch on Edit to add, rename, reorder and delete items. When you are happy, export your structure as clean tree text, ready to paste into Claude or any other AI tool.</p>
+        <p>Folder Structure is a free tool for visualising folder structures. Paste a structure in any common format, whether that is a tree diagram, an indented list, markdown bullets or file paths, and it becomes an interactive diagram. Click a folder to open or close it, drag the canvas to move around, and switch on Edit to add, rename, reorder, delete and comment on items. When you are happy, export your structure as clean tree text, with or without your comments, ready to paste into Claude or any other AI tool.</p>
         <p class="text-faded">Made by <a href="https://bydefault.studio">By Default</a></p>
       </div>
     </div>

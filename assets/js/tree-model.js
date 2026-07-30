@@ -13,7 +13,7 @@
    ───────────────────────────── */
 
 (function () {
-  var VERSION = '1.2.0';
+  var VERSION = '1.4.0';
   var STORAGE_KEY = 'folder-structure:v1';
   var SAVE_DEBOUNCE_MS = 300;
 
@@ -159,6 +159,22 @@
     snapshot();
     node.name = name;
     emitChange('rename', id);
+    return true;
+  }
+
+  // Empty text removes the comment; the field is absent when unset.
+  function setComment(id, text) {
+    var node = findNode(id);
+    if (!node) { return false; }
+    var comment = String(text || '').trim();
+    if (comment === (node.comment || '')) { return false; }
+    snapshot();
+    if (comment) {
+      node.comment = comment;
+    } else {
+      delete node.comment;
+    }
+    emitChange('comment', id);
     return true;
   }
 
@@ -310,12 +326,12 @@
           {
             name: 'assets', type: 'folder', open: true,
             children: [
-              { name: 'css', type: 'folder', open: false, children: [{ name: 'style.css', type: 'file' }] },
-              { name: 'js', type: 'folder', open: false, children: [{ name: 'main.js', type: 'file' }] },
-              { name: 'images', type: 'folder', open: false, children: [{ name: 'logo.svg', type: 'file' }] }
+              { name: 'css', type: 'folder', open: true, children: [{ name: 'style.css', type: 'file' }] },
+              { name: 'js', type: 'folder', open: true, children: [{ name: 'main.js', type: 'file' }] },
+              { name: 'images', type: 'folder', open: true, children: [{ name: 'logo.svg', type: 'file' }] }
             ]
           },
-          { name: 'docs', type: 'folder', open: false, children: [{ name: 'README.md', type: 'file' }] }
+          { name: 'docs', type: 'folder', open: true, children: [{ name: 'README.md', type: 'file' }] }
         ]
       }]
     };
@@ -391,8 +407,12 @@
     }
     state.root = payload.tree;
     state.view = payload.view || { x: 0, y: 0, zoom: 1 };
-    state.mode = payload.mode === 'edit' ? 'edit' : 'view';
-    state.focusedId = payload.focusedId || null;
+    // Every visit starts calm: view mode, nothing selected. The saved
+    // mode/focusedId still ride in the payload but are ignored on load
+    // (selection now drives path fading, so restoring it would open the
+    // app mostly faded).
+    state.mode = 'view';
+    state.focusedId = null;
     state.lastId = payload.lastId || 0;
     return true;
   }
@@ -414,7 +434,6 @@
     var restored = config.persist === false ? false : load();
     if (!restored) {
       state.root = config.sample === false ? emptyRoot() : buildSample();
-      state.focusedId = state.root.children[0] ? state.root.children[0].id : null;
     }
     window.FolderStructure = window.FolderStructure || {};
     window.FolderStructure.model = {
@@ -426,6 +445,7 @@
       walkVisible: walkVisible,
       addChild: addChild,
       rename: rename,
+      setComment: setComment,
       remove: remove,
       move: move,
       indent: indent,

@@ -10,13 +10,15 @@
      Enter/Space  activate (toggle + center — same as click)
      Home/End   first / last visible row
      F2         rename    Delete  delete    a  add inside folder
+     c          comment on the focused row
      Alt+↑/↓    reorder among siblings
      Alt+→/←    indent into the folder above / outdent to the parent
-   Rename-input keys are handled (and stopped) by tree-edit.
+   Inline-input keys (rename/comment) are handled (and stopped) by
+   tree-edit.
    ───────────────────────────── */
 
 (function () {
-  var VERSION = '1.2.0';
+  var VERSION = '1.3.0';
 
   function model() { return window.FolderStructure.model; }
 
@@ -37,7 +39,7 @@
 
   function handleTreeKeydown(event) {
     var rowEl = event.target.closest('.tree-item');
-    if (!rowEl || event.target.closest('.tree-rename-input')) { return; }
+    if (!rowEl || event.target.closest('.tree-rename-input, .tree-comment-input')) { return; }
 
     var id = rowEl.getAttribute('data-id');
     var node = model().findNode(id);
@@ -86,8 +88,12 @@
       window.FolderStructure.edit.startRename(id);
     } else if ((key === 'Delete' || key === 'Backspace') && editMode) {
       window.FolderStructure.edit.deleteNode(id);
-    } else if (key === 'a' && editMode && node.type === 'folder') {
+    } else if (key === 'a' && editMode && node.type === 'folder' &&
+               !event.metaKey && !event.ctrlKey && !event.altKey) {
       window.FolderStructure.edit.addNode(id, (node.children || []).length);
+    } else if (key === 'c' && editMode &&
+               !event.metaKey && !event.ctrlKey && !event.altKey) {
+      window.FolderStructure.edit.startComment(id);
     } else {
       handled = false;
     }
