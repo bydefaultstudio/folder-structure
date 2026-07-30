@@ -16,6 +16,9 @@ dist/
 # Design system artefacts synced from @bydefaultstudio/design-system on npm install
 assets/css/design-system.css
 assets/icons/icons.svg
+assets/icons/cursors.svg
+assets/js/design-system/
+assets/css/design-system/
 DESIGN.md
 
 # OS files
