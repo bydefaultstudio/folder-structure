@@ -23,6 +23,7 @@ Before generating or modifying code, treat the following as authoritative:
 
 **Local files:**
 
+0. `HANDOVER.md` — **read this first every session**: current state, what to pick up, what's blocked
 1. `PROJECT_BRIEF.md` — project intent and constraints
 2. `docs/brand-book.md` — brand identity preview and theming
 3. `docs/seo-best-practices.md` — SEO meta tags and social sharing
@@ -154,6 +155,26 @@ See `docs/folder-structure.md` for complete directory structure.
 - `templates/` — reusable templates
 - `docs/` — documentation (markdown sources; generated site in `docs/site/`)
 
+### Local Preview — always port 3100
+
+The local address for this project is **http://localhost:3100/**. Never pick another port: `.vscode/settings.json` pins VS Code Live Server to `3100` with root `/`.
+
+Serve the **repo root**, not `dist/` — `index.html` and `assets/` are edited in place; `dist/` is build output and only exists after `npm run build`.
+
+If Live Server isn't running, any static server on the same port works and needs no install:
+
+```bash
+python3 -m http.server 3100 --bind 127.0.0.1
+```
+
+If running `wrangler dev` here, pass `--port 3100` so it doesn't default to 8787.
+
+Routes to check: `/` (the app), `/embed.html` (embed view), `/docs/site/index.html` (generated docs).
+
+Port 3100 is fixed. Studio-wide scheme: **2xxx** foundation & owned sites, **3xxx** products, **4xxx** tools; never 3000 (Next.js), and 5xxx/7xxx/8xxx are avoided (Vite, Live Server, macOS AirPlay, wrangler, netlify). Full registry lives in the Design System repo's `CLAUDE.md`. This project previously shared 5501 with several other repos, so two open at once would silently collide.
+
+For browser-level QA the app also runs over `file://` — see the headless Chrome recipe in memory; a server is only required when testing something that `file://` can't do.
+
 ---
 
 ## 6. Documentation Discipline
@@ -273,7 +294,11 @@ Use **TodoWrite** for any multi-step task:
 3. Mark `completed` immediately when done — not before it's proven to work
 4. Add a brief summary of what changed at each major step
 
-TodoWrite is per-session only. Log progress that must survive across sessions in `PROJECT_PROGRESS.md` — dated sections, newest first.
+TodoWrite is per-session only. Three files carry work across sessions, and they must not duplicate each other:
+
+- **`HANDOVER.md`** — the live state-of-play. Read it at the start of every session and **rewrite it at the end** (it is overwritten, never appended to): current state, what to pick up next, what's blocked and on whom.
+- **`PROJECT_PROGRESS.md`** — append-only record of what shipped, dated sections newest first, with reasoning and verification. Never a to-do list.
+- **`ROADMAP.md`** — feature bank (Ideas → In Progress → Done) plus the launch checklist.
 
 ### Verification Before Done
 Never mark a task complete without proving it works:
