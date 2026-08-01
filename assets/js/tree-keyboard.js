@@ -7,7 +7,9 @@
      ↑/↓        previous / next visible row
      →          open a closed folder, else first child
      ←          close an open folder, else parent
-     Enter/Space  activate (toggle + center — same as click)
+     Enter/Space  select the row, or toggle it if already selected
+                  (same staged rule as a click — ←/→ stay the
+                  one-press way to open and close)
      Home/End   first / last visible row
      F2         rename    Delete  delete    a  add inside folder
      c          comment on the focused row
@@ -18,7 +20,7 @@
    ───────────────────────────── */
 
 (function () {
-  var VERSION = '1.3.0';
+  var VERSION = '1.4.0';
 
   function model() { return window.FolderStructure.model; }
 

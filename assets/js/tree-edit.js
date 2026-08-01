@@ -2,9 +2,10 @@
    TREE EDIT
    ─────────────────────────────
    Edit mode + all mutating interactions: the add-pill (with its
-   folder/file type toggle), inline rename (double-click, pencil
-   button, or F2 via tree-keyboard), comment pills (the pill's own
-   chat/edit + delete toolbar, double-click on the comment, or C via
+   folder/file type toggle), inline rename (pencil button or F2 via
+   tree-keyboard — not double-click, which rows reserve for
+   select-then-toggle), comment pills (the pill's own chat/edit +
+   delete toolbar, double-click on the comment, or C via
    tree-keyboard — the pill is the single comment control), delete
    with a one-step Undo toast, and move up/down. Edit mode is a state
    on the app root (.is-edit-mode) — view mode hides every editing
@@ -13,7 +14,7 @@
    ───────────────────────────── */
 
 (function () {
-  var VERSION = '1.4.0';
+  var VERSION = '1.5.0';
   var NAME_FORBIDDEN = /[\/\\─-╿]/g;
   // Comments allow slashes and #; newlines and tree glyphs would break
   // the `name  # comment` line notation.
@@ -396,22 +397,29 @@
     if (!renamingId && !commentingId) { return; }
     if (event.target.closest('.tree-rename-input, .tree-comment-input')) { return; }
     if (event.target.closest('.tree-item-overlays')) { return; }
+    // Read the target row before committing — commits re-render.
+    var rowEl = event.target.closest('.tree-item');
+    var clickedId = rowEl ? rowEl.getAttribute('data-id') : null;
+    var editingId = renamingId || commentingId;   // only ever one at a time
     commitRename();
     commitComment();
+    // Dismissing an inline input is the whole job of that click; letting
+    // it fall through would also toggle the row it just committed on.
+    if (clickedId && clickedId === editingId) { event.stopPropagation(); }
   }
 
+  // Double-click belongs to the comment pill only. Rows deliberately do
+  // not answer it: a row's two clicks mean select-then-toggle (see
+  // tree-canvas activateNode), and dblclick fires alongside those two
+  // clicks, so binding rename here would make a fast open/close
+  // ambiguous with a rename. Rename lives on the chip's pencil and F2.
   function handleDoubleClick(event) {
     if (getMode() !== 'edit') { return; }
-    var rowEl = event.target.closest('.tree-item');
-    if (!rowEl || event.target.closest('.tree-rename-input, .tree-comment-input')) { return; }
-    if (event.target.closest('.tree-comment')) {
-      startComment(rowEl.getAttribute('data-id'));
-      return;
-    }
-    // Rapid clicks on overlay buttons already acted twice via the click
-    // handler — don't let the dblclick also start a rename.
-    if (event.target.closest('.tree-item-overlays')) { return; }
-    startRename(rowEl.getAttribute('data-id'));
+    if (event.target.closest('.tree-rename-input, .tree-comment-input')) { return; }
+    var commentEl = event.target.closest('.tree-comment');
+    if (!commentEl) { return; }
+    var rowEl = commentEl.closest('.tree-item');
+    if (rowEl) { startComment(rowEl.getAttribute('data-id')); }
   }
 
   function handleInlineEditKeydown(event) {

@@ -4,6 +4,27 @@ Track what's been done and what still needs doing across sessions. Add a dated s
 
 ---
 
+## 2026-08-01 — Click model: select first, toggle on the second click
+
+Selection and disclosure were fused into one gesture — a click selected a row *and* toggled it, so there was no way to reach a row's comment pill or edit chip without collapsing or expanding it. Reading a comment on an open folder destroyed the view you were reading it in; using the edit chip on a folder hid the children you were reorganising. Now: **a click selects, and a click on the already-selected row toggles it.** Inspect, then navigate.
+
+Erlen proposed the staged click; the alternatives were argued out first and both rejected on evidence:
+
+- **Folder icon as a disclosure control** (the Finder/VS Code convention, and the one that keeps opening at one click) — rejected because the icon is 24px inside a 40px row on a canvas that zooms to 0.25×, so the target shrinks exactly when precision gets harder. Erlen's call, and correct: the big forgiving target should carry the common action.
+- **Double-click to open** — strictly worse than the staged click, which tolerates any gap between the two clicks.
+
+The cost is real and worth naming: opening a folder now takes two clicks instead of one. It lands on the action that has an escape hatch (expand/collapse-all in the toolbar); the action that got cheaper — selection — had none.
+
+- **tree-canvas.js 1.3.0** — `activateNode` is now the single implementation of the rule, and both the click handler and Enter/Space route through it, so mouse and keyboard obey one model. Selecting deliberately does **not** re-center: the row the user just clicked is by definition already on screen. Toggling still centers, because opening can push children off it
+- **tree-edit.js 1.5.0** — row `dblclick` no longer starts a rename. This was forced, not optional: `dblclick` fires *alongside* the two `click` events, so a fast open/close would have been indistinguishable from a rename. Rename keeps the chip's pencil and `F2` — and since the first click now reveals the chip, the pencil sits one click from selection, which is better discovery than a hidden gesture. `dblclick` on the comment pill is untouched (the pill is outside the row's click target). Also: a click that commits an open rename/comment input no longer falls through to toggle the row it just committed on
+- **tree-keyboard.js 1.4.0** — header rewritten for the staged Enter/Space. `←`/`→` are unchanged and remain the one-press way to open and close, so the keyboard never pays the two-press cost
+- **index.html** — About copy said "Click a folder to open or close it"; now describes the staged behaviour
+- **No CSS, token or design-system changes.** The comment pill and edit chip were already gated on `.is-selected` — this change only made selection reachable
+- **Verified**: headless Chrome 38/38 across all sixteen scenarios — select-without-toggle on open and closed folders, second/third click toggling, switching rows, inert second click on files, canvas not panning on select, click-away deselect, Enter staging, arrow keys still one-press, `dblclick` on folders/files/comment-pill, rename-commit suppression, inherited selection after collapse-all, and view mode. `embed.html` re-checked: initialises clean with `tree-edit` absent, so the read-only viewer inherits the model and can finally show a comment without collapsing the folder
+- **One test expectation was wrong, not the code**: `setAllOpen` keeps top-level folders open by design (`child.open = open || depth === 0`), so after collapse-all the nearest *visible* ancestor is the nested folder, not the root one
+
+---
+
 ## 2026-07-30 — Adopted the design system's dialog component (tooltips were already native)
 
 Replaced the custom dialog wiring with the delivered `assets/js/design-system/dialog.js` module (v2.1.0 ships it; loaded first in index.html's script block). Tooltips needed no migration — every tooltip already used the system's `data-tooltip`/`data-tooltip-position` on focusable buttons, with no `title=""` doubles and no custom hover CSS.
@@ -223,17 +244,10 @@ Cloned the studio template, fresh `git init` (not yet connected to GitHub), and 
 - Trimmed `CLAUDE.md`: removed completed onboarding section, non-applicable MCP integrations (Webflow/Notion/Slack), corrected stack to static HTML/CSS/JS
 - Regenerated the docs site
 
-## Onboarding
+## Onboarding — closed 2026-07-29
 
-- [x] Run `npm install` (syncs the design system)
-- [x] Fill in `PROJECT_BRIEF.md`
-- [x] Propagate the project name across the template
-- [x] Apply brand tokens in `assets/css/theme.css`
-- [ ] Replace logo (`assets/images/logo.svg`) and favicons (`assets/icons/`)
-- [x] Regenerate the docs site (`npm run docs:build`)
-- [ ] Configure hosting on Cloudflare Pages (build command `npm install`, publish directory `/`)
-- [ ] Connect repo to GitHub
+Template onboarding is done: `npm install` / design-system sync, `PROJECT_BRIEF.md`, project name propagated, brand tokens in `theme.css`, docs site generated, repo connected to GitHub (`bydefaultstudio/folder-structure`), hosting live on Cloudflare **Workers static assets** with push-triggered CI — not Pages, as the original checklist assumed (see the 2026-07-29 entries above).
 
-## Next up
+One onboarding item never got done and now lives in the launch checklist in `ROADMAP.md`: replacing the template's `logo.svg` and favicons.
 
-- Build v1 of the tool: input parser (ASCII tree / indentation / path list), interactive tree renderer, manual editing, copy-out text output — see `PROJECT_BRIEF.md` §9 open questions
+Forward-looking work is no longer tracked here. `HANDOVER.md` holds the current state and what to pick up next; `ROADMAP.md` holds the feature bank and launch checklist. This file stays an append-only record of what shipped.

@@ -5,19 +5,19 @@
    (.canvas-viewport) owns pointer + wheel gestures; the surface
    (.canvas-surface) is moved with translate(x,y) scale(z). The
    JS-set transform is view state, not styling. A 4px threshold
-   separates clicks (toggle + center) from drags (pan); panning
+   separates clicks (select / toggle) from drags (pan); panning
    swallows the click that would otherwise fire on release.
    Wheel gestures follow the design-tool (Figma) model: plain scroll
    pans, Shift+wheel pans horizontally, Ctrl/⌘+wheel zooms at the
    cursor (browsers report a trackpad pinch as Ctrl+wheel, so pinch
    zooms via the same branch).
-   Clicking any row centers it at 1/3 viewport width, 1/2 height —
-   folders toggle open/closed as well. Clicking empty canvas clears
-   the selection.
+   Clicking a row selects it; clicking the already-selected row toggles
+   a folder open/closed and centers it at 1/3 viewport width, 1/2
+   height. Clicking empty canvas clears the selection.
    ───────────────────────────── */
 
 (function () {
-  var VERSION = '1.2.0';
+  var VERSION = '1.3.0';
   var DRAG_THRESHOLD_PX = 4;
   var ZOOM_MIN = 0.25;
   var ZOOM_MAX = 2.5;
@@ -241,17 +241,25 @@
   //------- Row activation -------//
   //
 
+  // Selection and disclosure are staged, not fused: the first click on a
+  // row selects it (revealing its comment pill and, in edit mode, the
+  // edit chip) without disturbing the diagram; clicking the row that is
+  // already selected toggles it. Inspect, then navigate. Keyboard
+  // Enter/Space routes here too, so both input methods obey one rule —
+  // ←/→ remain the one-press disclosure shortcut.
   function activateNode(id) {
     var model = window.FolderStructure.model;
     var node = model.findNode(id);
     if (!node) { return; }
-    model.state.focusedId = id;
-    if (node.type === 'folder') {
-      model.toggle(id);      // re-renders via fs:modelchange
-    } else {
+    if (model.state.focusedId !== id) {
+      // Selecting only reveals furniture — no centering, because the row
+      // the user just clicked is by definition already on screen.
+      model.state.focusedId = id;
       window.FolderStructure.render.render();
+    } else if (node.type === 'folder') {
+      model.toggle(id);      // re-renders via fs:modelchange
+      centerOnNode(id);      // opening can push children off screen
     }
-    centerOnNode(id);
     var rowEl = window.FolderStructure.render.getRowEl(id);
     if (rowEl) { rowEl.focus({ preventScroll: true }); }
   }
