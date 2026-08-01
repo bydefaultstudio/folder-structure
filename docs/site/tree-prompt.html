@@ -1,0 +1,411 @@
+<!DOCTYPE html>
+<html lang="en" >
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AI Prompt - Documentation</title>
+    <meta name="description" content="A copy-paste prompt that makes any AI output a folder structure this tool imports cleanly, plus the parser behaviour behind each rule.">
+
+    <!-- Favicon (per-brand via brand.json, site default otherwise) -->
+    <link rel="icon" type="image/svg+xml" href="./assets/icons/favicon.svg">
+    <link rel="icon" type="image/x-icon" href="./assets/icons/favicon.ico">
+
+    <!-- Open Graph -->
+    <meta property="og:title" content="AI Prompt - Documentation">
+    <meta property="og:description" content="A copy-paste prompt that makes any AI output a folder structure this tool imports cleanly, plus the parser behaviour behind each rule.">
+    <meta property="og:image" content="./assets/images/og/og-default.jpg">
+    <meta property="og:type" content="website">
+
+    <!-- Design System Framework (path set in docs.config.js) -->
+    <link rel="stylesheet" href="./assets/docs-kit/design-system.css" id="design-system-css"
+          onerror="document.getElementById('ds-missing-banner').style.display='flex'">
+    <link rel="stylesheet" href="./assets/css/theme.css">
+
+    
+
+    <!-- Docs chrome styles (layout, nav, page chrome; path set in docs.config.js) -->
+    <link rel="stylesheet" href="./assets/docs-kit/docs.css">
+
+    
+
+    
+
+    
+</head>
+<body>
+
+    <!-- Design system missing banner (shown by JS if CSS variables fail to load) -->
+    <div id="ds-missing-banner" style="display:none;position:fixed;top:0;left:0;right:0;z-index:9999;background:#fffbea;border-bottom:1px solid #f0c040;padding:12px 20px;font-family:sans-serif;font-size:14px;color:#7a5c00;align-items:center;gap:12px;">
+        <span>⚠️</span>
+        <span>Design system CSS not found. Check the path in <code style="background:#fef3c7;padding:2px 6px;border-radius:4px;">docs/docs.config.js</code> → <code style="background:#fef3c7;padding:2px 6px;border-radius:4px;">designSystemPath</code>, then re-run <code style="background:#fef3c7;padding:2px 6px;border-radius:4px;">npm run docgen</code>.</span>
+        <button onclick="document.getElementById('ds-missing-banner').style.display='none'" style="margin-left:auto;background:none;border:1px solid #f0c040;border-radius:4px;padding:4px 10px;cursor:pointer;color:#7a5c00;font-size:13px;">Dismiss</button>
+    </div>
+
+    <!-- Layout grid: nav.js injects header + sidebar before <main> via insertAdjacentHTML -->
+    <div class="docs-layout" id="site-nav" data-base="./">
+    <main class="docs-main-area">
+    <div>
+    <div>
+        <!-- Page Header (full width, outside grid) -->
+        <div class="page-header">
+      <div class="container-s">
+        <h1 data-flip-id="tree-prompt">AI Prompt</h1>
+        <p class="page-subtitle" data-text-wrap="pretty">Asking an AI for a paste-ready tree</p>
+        
+      </div>
+    </div>
+
+        <!-- Page sub-header bar (full width, sticky: breadcrumb + filename + actions) -->
+        
+
+        <!-- Main Content + TOC grid -->
+        <div class="docs-content-grid padding-global">
+            <!-- Main Content -->
+            <main class="docs-main">
+                <article>
+                    <blockquote>
+<p>Claude: The rules here must match <code>assets/js/tree-parsers.js</code>. If the parser changes, change this page and <code>docs/tree-notation.md</code> together.</p>
+</blockquote>
+<p>Models produce folder trees readily, but they improvise: two-space indents, bare <code>README</code>, a stray comment line, a summary paragraph underneath. Each of those changes what the parser builds. This page is the prompt that removes the guesswork — hand it to any model alongside your actual request, and the output pastes into the tool without cleanup.</p>
+<p><code>docs/tree-notation.md</code> documents every format the parser accepts. This page picks <strong>one</strong> of them — the Unicode tree — and states it as a contract, because a prompt that offers choices gets inconsistent output.</p>
+<hr>
+<h2 id="the-prompt">The Prompt</h2>
+
+      <div class="code-block-wrapper">
+        <button class="button copy-btn is-icon-only" data-size="xsmall" data-clipboard-target="#code-0" data-tooltip="Copy" type="button" aria-label="Copy code"><span class="copy-btn-default"><div class="svg-icn"><svg data-icon="copy" aria-hidden="true" width="100%" height="100%" viewBox="0 0 24 24" fill="none"><path d="M8 14C8 15.1046 8.89543 16 10 16H18C19.1046 16 20 15.1046 20 14V6C20 4.89543 19.1046 4 18 4H10C8.89543 4 8 4.89543 8 6V14ZM6 18V2H22V18H6ZM2 22V6H4V20H18V22H2Z" fill="currentColor"/></svg></div></span><span class="copy-btn-copied"><div class="svg-icn"><svg data-icon="check" aria-hidden="true" width="100%" height="100%" viewBox="0 0 24 24" fill="none"><path d="M9.54998 18L3.84998 12.3L5.27498 10.875L8.13576 13.7358C8.91681 14.5168 10.1831 14.5168 10.9642 13.7358L18.725 5.97501L20.15 7.40001L9.54998 18Z" fill="currentColor"/></svg></div></span></button>
+        <pre><code id="code-0" class="language-text">Output a folder structure as text, following this contract exactly.
+
+Output nothing but the tree — no preamble, no explanation, no summary
+afterwards. Wrap it in a ```text code fence.
+
+Format (Unix `tree` grammar, Unicode box-drawing characters):
+
+```text
+project/
+├── assets/
+│   ├── css/
+│   │   └── style.css  # brand tokens
+│   └── js/
+├── docs/
+│   └── setup.md
+└── index.html
+```
+
+Rules:
+
+1.  One item per line. Never two items on one line.
+2.  A single root on the first line, at column 0, with no connector.
+3.  Folders always end with `/`, including empty ones. The trailing
+    slash is the only reliable folder marker.
+4.  Files must carry an extension. A name with no `/` and no `.` is
+    read as a folder — `README`, `LICENSE`, `Makefile` and `.gitignore`
+    all import as folders. Write `README.md`, `LICENSE.txt` and so on
+    wherever the distinction matters.
+5.  Use `├── ` for every child except the last one in its folder, and
+    `└── ` for the last one. One space after the dashes.
+6.  Indent in units of exactly 4 characters, one unit per level:
+    `│   ` (vertical bar plus three spaces) where an ancestor still has
+    items below it, or four spaces where it does not. Spaces only,
+    never tabs. Any other width silently collapses levels together.
+7.  List folders before files, alphabetically within each group. Order
+    is preserved exactly as written.
+8.  Comments are optional and belong on the same line as their item,
+    after two spaces and a `#`:  `style.css  # brand tokens`
+    One per line, running to the end of the line.
+9.  Never put a comment on its own line, and never start a name with
+    `#`. Both corrupt the structure.
+10. Never use `/` inside a name, and never write a space followed by
+    `#` or `←` inside a name.
+11. Use only these glyphs: `├── `, `└── `, `│   `. No other
+    box-drawing variants, no emoji, no icons, no trailing whitespace.
+</code></pre>
+      </div>
+    
+<p>Paste it, then add your request underneath — <em>&quot;Structure for a small marketing site&quot;</em>, <em>&quot;map this repo&quot;</em>, <em>&quot;a photography client&#39;s delivery folders&quot;</em>.</p>
+<hr>
+<h2 id="why-each-rule-exists">Why Each Rule Exists</h2>
+<p>Every rule below traces to real parser behaviour in <code>assets/js/tree-parsers.js</code>, verified against the parser rather than inferred from it.</p>
+<h3 id="extensions-decide-file-vs-folder-rule-4">Extensions decide file vs folder (rule 4)</h3>
+<p><code>makeNode</code> classifies a name in two steps: a trailing <code>/</code> means folder; failing that, a dot with characters either side means file; <strong>anything else is a folder</strong>. So this input:</p>
+
+      <div class="code-block-wrapper">
+        <button class="button copy-btn is-icon-only" data-size="xsmall" data-clipboard-target="#code-1" data-tooltip="Copy" type="button" aria-label="Copy code"><span class="copy-btn-default"><div class="svg-icn"><svg data-icon="copy" aria-hidden="true" width="100%" height="100%" viewBox="0 0 24 24" fill="none"><path d="M8 14C8 15.1046 8.89543 16 10 16H18C19.1046 16 20 15.1046 20 14V6C20 4.89543 19.1046 4 18 4H10C8.89543 4 8 4.89543 8 6V14ZM6 18V2H22V18H6ZM2 22V6H4V20H18V22H2Z" fill="currentColor"/></svg></div></span><span class="copy-btn-copied"><div class="svg-icn"><svg data-icon="check" aria-hidden="true" width="100%" height="100%" viewBox="0 0 24 24" fill="none"><path d="M9.54998 18L3.84998 12.3L5.27498 10.875L8.13576 13.7358C8.91681 14.5168 10.1831 14.5168 10.9642 13.7358L18.725 5.97501L20.15 7.40001L9.54998 18Z" fill="currentColor"/></svg></div></span></button>
+        <pre><code id="code-1" class="language-text">project/
+├── README
+├── LICENSE
+├── .gitignore
+└── index.html
+</code></pre>
+      </div>
+    
+<p>imports as three <em>folders</em> and one file. <button type="button" class="token-copy is-class" data-copy=".gitignore" aria-label="Copy .gitignore"><code>.gitignore</code></button> catches people out — its only dot is at position 0, with nothing before it, so it fails the extension test. There is no notation that forces a file type onto an extensionless name; either give it an extension in the prompt, or switch the type in the app after import.</p>
+<h3 id="indent-width-is-load-bearing-rule-6">Indent width is load-bearing (rule 6)</h3>
+<p>Depth is computed as <code>Math.round(indexOfConnector / 4) + 1</code>. At four characters per level the arithmetic is exact. At two, levels start colliding from the third one down — a grandchild lands as a sibling of its own parent:</p>
+
+      <div class="code-block-wrapper">
+        <button class="button copy-btn is-icon-only" data-size="xsmall" data-clipboard-target="#code-2" data-tooltip="Copy" type="button" aria-label="Copy code"><span class="copy-btn-default"><div class="svg-icn"><svg data-icon="copy" aria-hidden="true" width="100%" height="100%" viewBox="0 0 24 24" fill="none"><path d="M8 14C8 15.1046 8.89543 16 10 16H18C19.1046 16 20 15.1046 20 14V6C20 4.89543 19.1046 4 18 4H10C8.89543 4 8 4.89543 8 6V14ZM6 18V2H22V18H6ZM2 22V6H4V20H18V22H2Z" fill="currentColor"/></svg></div></span><span class="copy-btn-copied"><div class="svg-icn"><svg data-icon="check" aria-hidden="true" width="100%" height="100%" viewBox="0 0 24 24" fill="none"><path d="M9.54998 18L3.84998 12.3L5.27498 10.875L8.13576 13.7358C8.91681 14.5168 10.1831 14.5168 10.9642 13.7358L18.725 5.97501L20.15 7.40001L9.54998 18Z" fill="currentColor"/></svg></div></span></button>
+        <pre><code id="code-2" class="language-text">project/          →   project/
+├── a/                  a/
+  ├── b/                  b/
+    └── c.txt             c.txt   ← flattened, not inside b/
+</code></pre>
+      </div>
+    
+<h3 id="comments-need-whitespace-before-the-marker-rules-810">Comments need whitespace before the marker (rules 8–10)</h3>
+<p>A comment starts at the <strong>first marker preceded by whitespace</strong> and runs to end of line. The markers are <code>#</code>, <code>←</code>, <code>⟵</code> and <code>&lt;-</code>; the prompt asks for <code>#</code> because it is the one the tool emits, so a <code>#</code> tree round-trips unchanged. The arrows are there for trees you did not commission — models annotate unprompted, and a padded <code>← note</code> column is the shape they reach for:</p>
+
+      <div class="code-block-wrapper">
+        <button class="button copy-btn is-icon-only" data-size="xsmall" data-clipboard-target="#code-3" data-tooltip="Copy" type="button" aria-label="Copy code"><span class="copy-btn-default"><div class="svg-icn"><svg data-icon="copy" aria-hidden="true" width="100%" height="100%" viewBox="0 0 24 24" fill="none"><path d="M8 14C8 15.1046 8.89543 16 10 16H18C19.1046 16 20 15.1046 20 14V6C20 4.89543 19.1046 4 18 4H10C8.89543 4 8 4.89543 8 6V14ZM6 18V2H22V18H6ZM2 22V6H4V20H18V22H2Z" fill="currentColor"/></svg></div></span><span class="copy-btn-copied"><div class="svg-icn"><svg data-icon="check" aria-hidden="true" width="100%" height="100%" viewBox="0 0 24 24" fill="none"><path d="M9.54998 18L3.84998 12.3L5.27498 10.875L8.13576 13.7358C8.91681 14.5168 10.1831 14.5168 10.9642 13.7358L18.725 5.97501L20.15 7.40001L9.54998 18Z" fill="currentColor"/></svg></div></span></button>
+        <pre><code id="code-3" class="language-text">WEBSITE                    ← was Design System
+└── Layout                 ← two pages merged
+</code></pre>
+      </div>
+    
+<p>That imports as <code>WEBSITE</code> and <code>Layout</code> carrying annotations, and exports as <code>#</code> comments. You do not need to ask for it; you only need to know that a name may not contain a space followed by an arrow.</p>
+<p>Two consequences worth naming:</p>
+<ul>
+<li>A line that is <em>only</em> a comment, indented, is captured then discarded — the line becomes empty and is dropped. A comment line at column 0 has no whitespace before its <code>#</code>, so it is not a comment at all: <code># Notes for later</code> imports as a folder named <code># Notes for later</code>.</li>
+<li>A name starting with <code>#</code> is unsafe in tree notation specifically, because the <code>├── </code> connector always puts a space in front of the name. <code>├── #hashtag/  # note</code> is read as the connector plus a comment, and the row vanishes entirely.</li>
+</ul>
+<h3 id="what-the-prompt-does-not-need-to-police">What the prompt does not need to police</h3>
+<p>These are handled during normalization, so there is no value in spending prompt tokens on them:</p>
+<div class="table-scroll"><table class="table">
+<thead>
+<tr>
+<th>Input</th>
+<th>Handled by</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><code>```text</code> fences around the block</td>
+<td>Fence lines are skipped</td>
+</tr>
+<tr>
+<td>Blank lines between rows</td>
+<td>Dropped</td>
+</tr>
+<tr>
+<td>CRLF line endings, non-breaking spaces</td>
+<td>Normalized to <code>\n</code> and plain spaces</td>
+</tr>
+<tr>
+<td>Heavy or rounded box glyphs (<code>┃ ┣ ┗ ━ ╰</code>)</td>
+<td>Folded to their light equivalents</td>
+</tr>
+<tr>
+<td>Trailing whitespace</td>
+<td>Trimmed</td>
+</tr>
+</tbody></table></div>
+<p>Rule 11 still asks for the light glyphs — normalization is a safety net, not a reason to leave the output loose.</p>
+<hr>
+<h2 id="variations">Variations</h2>
+<p><strong>When you want annotations.</strong> Comments are kept on import by default; the import dialog offers a <em>Keep inline comments</em> checkbox when it detects any, so you can strip them for a given import instead. Add to the prompt: <em>&quot;Add a short <code># comment</code> to every folder explaining what belongs in it.&quot;</em></p>
+<p><strong>When mapping a real repository.</strong> Add: <em>&quot;Include only files that are committed — no <code>node_modules/</code>, build output, or dotfiles that tooling generates. Cap the depth at four levels.&quot;</em> Without a cap, models list every leaf and the diagram becomes unreadable.</p>
+<p><strong>When another format suits better.</strong> The parser also auto-detects markdown lists, path lists, ASCII trees and plain indentation. Swap the format block in the prompt for one of the examples in <code>docs/tree-notation.md</code>. The rules on trailing slashes, extensions and comments apply to all of them; only rule 6 is specific to the tree formats.</p>
+
+                </article>
+            </main>
+
+            <!-- Table of Contents -->
+            <aside class="docs-toc">
+      <span class="toc-header">On this page</span>
+      <div class="toc-wrapper"><nav class="toc"><ul class="toc-list"><li class="toc-item toc-level-2"><a href="#the-prompt" class="toc-link">The Prompt</a></li><li class="toc-item toc-level-2"><a href="#why-each-rule-exists" class="toc-link">Why Each Rule Exists</a></li><li class="toc-item toc-level-2"><a href="#variations" class="toc-link">Variations</a></li></ul></nav></div>
+    </aside>
+        </div>
+
+        <!-- Page Navigation (Previous / Next) -->
+        <nav class="page-nav" aria-label="Page navigation"><div class="page-nav-inner padding-global"><a href="upgrading-docs.html" class="page-nav-link page-nav-prev" rel="prev">
+      <div class="svg-icn page-nav-arrow"><svg data-icon="chevron-left-large" aria-hidden="true" width="100%" height="100%" viewBox="0 0 24 24" fill="none"><path d="M15.225 22L5.225 12L15.225 2L17 3.775L10.1892 10.5858C9.40817 11.3668 9.40816 12.6332 10.1892 13.4142L17 20.225L15.225 22Z" fill="currentColor"/></svg></div>
+      <span class="page-nav-text">
+        <span class="page-nav-label">Previous</span>
+        
+        <h3 class="page-nav-title">Upgrading the Docs Engine</h3>
+      </span>
+    </a><span class="page-nav-link page-nav-placeholder"></span></div></nav>
+
+        
+
+        <!-- Footer -->
+        <footer class="docs-footer">
+            <div class="docs-footer-inner padding-global">
+                <p class="docs-footer-text">© 2026 By Default — Folder Structure</p>
+            </div>
+        </footer>
+
+        <!-- Per-page scripts (inside the page container so they re-execute on transition) -->
+        
+    </div>
+    </div>
+    </main>
+    </div><!-- /.docs-layout #site-nav -->
+
+    <!-- Syntax highlighting (source set in docs.config.js) -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/highlight.min.js"></script>
+
+    <!-- Initialize Highlight.js and TOC (re-callable after client-side navigation) -->
+    <script>
+        (function() {
+            'use strict';
+
+            // Track TOC observer + scroll listener so we can clean up before re-init
+            var tocObserver = null;
+            var tocScrollHandler = null;
+
+            window.bdInitHighlight = function initHighlight() {
+                if (!window.hljs) return;
+                document.querySelectorAll('pre code').forEach(function(block) {
+                    hljs.highlightElement(block);
+                });
+            };
+
+            window.bdInitTOCActiveState = function initTOCActiveState() {
+                // Tear down any prior observer + scroll listener (re-init safe)
+                if (tocObserver) { tocObserver.disconnect(); tocObserver = null; }
+                if (tocScrollHandler) {
+                    window.removeEventListener('scroll', tocScrollHandler);
+                    tocScrollHandler = null;
+                }
+
+                var tocLinks = document.querySelectorAll('.toc-link');
+                var headings = document.querySelectorAll('h1[id], h2[id]');
+                if (tocLinks.length === 0 || headings.length === 0) return;
+
+                var linkMap = new Map();
+                tocLinks.forEach(function(link) {
+                    var href = link.getAttribute('href');
+                    if (href && href.startsWith('#')) {
+                        linkMap.set(href.substring(1), link);
+                    }
+                });
+
+                var observerOptions = { rootMargin: '-20% 0px -70% 0px', threshold: 0 };
+
+                tocObserver = new IntersectionObserver(function(entries) {
+                    entries.forEach(function(entry) {
+                        var id = entry.target.id;
+                        var link = linkMap.get(id);
+                        if (entry.isIntersecting) {
+                            tocLinks.forEach(function(l) { l.classList.remove('toc-link-active'); });
+                            if (link) link.classList.add('toc-link-active');
+                        }
+                    });
+                }, observerOptions);
+
+                headings.forEach(function(heading) {
+                    if (heading.id) tocObserver.observe(heading);
+                });
+
+                function setInitialActive() {
+                    var activeHeading = null;
+                    var maxTop = -Infinity;
+                    headings.forEach(function(heading) {
+                        var rect = heading.getBoundingClientRect();
+                        if (rect.top <= 100 && rect.top > maxTop) {
+                            maxTop = rect.top;
+                            activeHeading = heading;
+                        }
+                    });
+                    if (activeHeading && activeHeading.id) {
+                        var link = linkMap.get(activeHeading.id);
+                        if (link) {
+                            tocLinks.forEach(function(l) { l.classList.remove('toc-link-active'); });
+                            link.classList.add('toc-link-active');
+                        }
+                    }
+                }
+
+                setInitialActive();
+
+                var scrollTimeout;
+                tocScrollHandler = function() {
+                    clearTimeout(scrollTimeout);
+                    scrollTimeout = setTimeout(setInitialActive, 100);
+                };
+                window.addEventListener('scroll', tocScrollHandler);
+            };
+
+            function init() {
+                window.bdInitHighlight();
+                window.bdInitTOCActiveState();
+            }
+
+            if (document.readyState === 'loading') {
+                document.addEventListener('DOMContentLoaded', init);
+            } else {
+                init();
+            }
+        })();
+    </script>
+
+    <!-- Back to Top -->
+    <div class="back-to-top-wrapper">
+      <button class="button back-to-top-btn" data-icon-only aria-label="Back to top" type="button">
+        <div class="svg-icn"><svg data-icon="arrow-top" aria-hidden="true" width="100%" height="100%" viewBox="0 0 24 24" fill="none"><path d="M4 4V2H20V4H4Z" fill="currentColor"/><path d="M11 22V12.2392C11 11.3483 9.92286 10.9021 9.29289 11.5321L5.4 15.425L4 14L12 6L20 14L18.6 15.425L14.7071 11.5321C14.0771 10.9021 13 11.3483 13 12.2392V22H11Z" fill="currentColor"/></svg></div>
+      </button>
+    </div>
+    <script>
+      (function() {
+        var btn = document.querySelector('.back-to-top-wrapper');
+        if (!btn) return;
+        window.addEventListener('scroll', function() {
+          btn.classList.toggle('is-visible', window.scrollY > 300);
+        });
+        btn.querySelector('button').addEventListener('click', function() {
+          window.scrollTo({ top: 0, behavior: 'smooth' });
+        });
+      })();
+    </script>
+
+    <!-- Site nav + docs UI behaviours -->
+    <script src="./assets/js/nav.js" defer></script>
+    <script src="./assets/docs-kit/copy-button.js" defer></script>
+    <script src="./assets/docs-kit/docs-copy-chrome.js" defer></script>
+    <script src="./assets/docs-kit/dropdown.js" defer></script>
+
+    
+
+    <script>
+      /* Tag dismiss — delegated to document, attached once */
+      document.addEventListener('click', function (e) {
+        var removeBtn = e.target.closest('.tag-remove');
+        if (removeBtn) {
+          var tag = removeBtn.closest('.tag');
+          if (tag) tag.remove();
+        }
+      });
+
+      /* Table scroll overflow hint — re-callable after client-side navigation */
+      (function() {
+        function checkOverflow(wrapper) {
+          var isOverflowing = wrapper.scrollWidth > wrapper.clientWidth;
+          var isAtEnd = wrapper.scrollLeft + wrapper.clientWidth >= wrapper.scrollWidth - 1;
+          wrapper.classList.toggle('is-overflowing', isOverflowing);
+          wrapper.classList.toggle('is-scrolled-end', isAtEnd);
+        }
+
+        window.bdInitTableScroll = function initTableScroll() {
+          var wrappers = document.querySelectorAll('.table-scroll');
+          wrappers.forEach(function(wrapper) {
+            if (wrapper.__bdTableScrollBound) return;
+            wrapper.__bdTableScrollBound = true;
+            checkOverflow(wrapper);
+            wrapper.addEventListener('scroll', function() { checkOverflow(wrapper); });
+          });
+        };
+
+        // Window resize handler attached once — re-checks all wrappers
+        window.addEventListener('resize', function() {
+          document.querySelectorAll('.table-scroll').forEach(checkOverflow);
+        });
+
+        if (document.readyState === 'loading') {
+          document.addEventListener('DOMContentLoaded', window.bdInitTableScroll);
+        } else {
+          window.bdInitTableScroll();
+        }
+      })();
+    </script>
+    
+</body>
+</html>

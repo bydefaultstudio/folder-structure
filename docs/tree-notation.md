@@ -82,17 +82,28 @@ Detection heuristics: box-drawing chars → tree; `|--`/`` `-- `` → ASCII tree
 
 Any line in any input format may carry an inline comment, and any node in the diagram may hold one, shown in a floating pill beside the row whenever it is selected. The pill is the single comment control: its chat button adds or edits (double-clicking the comment or pressing `C` in edit mode also works), and its delete button removes.
 
+**Markers.** Four are recognised on input — `#`, `←` (U+2190), `⟵` (U+27F5), and the ASCII arrow `<-` (any number of dashes: `<-`, `<--`). `#` is the canonical one and the only one ever emitted; the arrows exist because annotated trees arrive that way constantly, especially from AI chats, where a note is padded into a column beside the name:
+
+```text
+WEBSITE                    ← was Design System
+├── Component Conventions  ← moved from Docs
+└── Layout                 ← two pages merged
+```
+
+Every arrow marker normalises to `#` on export, so a tree pasted in with arrows copies out in the canonical form. The padding is not part of the grammar — it is whitespace and is trimmed either way.
+
 **Grammar** (same for parse and emit):
 
-- A comment starts at the **first `#` preceded by whitespace** and runs to the end of the line: `name  # comment`. Everything after that first marker is the comment — a later ` # ` inside it stays part of the comment.
-- `#` **not** preceded by whitespace is part of the name: `#hashtag-notes/` is a folder, not a comment.
-- A line at column 0 starting with `#` is therefore a *name*, not a comment; an indented line that is *only* a comment is dropped entirely.
-- Serializers emit **two spaces** before the `#` (`theme.css  # brand tokens`); the parser accepts one or more.
-- Comments may contain `/` and `#`; newlines and box-drawing characters are stripped when editing in the app. The in-app editor caps comments at 80 characters, but longer imported comments are preserved untouched.
+- A comment starts at the **first marker preceded by whitespace** and runs to the end of the line: `name  # comment`, `name  ← comment`. Everything after that first marker is the comment — a later ` # ` or ` ← ` inside it stays part of the comment.
+- A marker **not** preceded by whitespace is part of the name: `#hashtag-notes/` is a folder, and so is `a<-b.txt`.
+- A line at column 0 starting with a marker is therefore a *name*, not a comment; an indented line that is *only* a comment is dropped entirely.
+- Serializers emit **two spaces** before the `#` (`theme.css  # brand tokens`); the parser accepts one or more, before any marker.
+- Comments may contain `/`, `#` and arrows; newlines and box-drawing characters are stripped when editing in the app. The in-app editor caps comments at 80 characters, but longer imported comments are preserved untouched.
+- **Not markers:** `//`, `→`, and bracketed notes like `(new)` are read as part of the name. Widening further trades away more legitimate names than it buys.
 
-**Capture and emission are both opt-in:**
+**Capture is opt-out; emission is opt-in:**
 
-- **Paste-in:** comments are stripped by default (historical behavior). When a paste contains comments, the import dialog reveals a "Keep `# comments` as annotations" checkbox — tick it to capture them onto the nodes.
+- **Paste-in:** when a paste contains comments in any marker, the import dialog reveals a "Keep inline comments (`#`, `←`) as annotations" checkbox, ticked by default — untick it to strip them for that import.
 - **Copy-out:** comments are omitted by default. When the diagram contains comments, the export dialog reveals an "Include comments" checkbox.
 - **Share/embed links:** always full-fidelity — comments ride in the payload and are always restored, regardless of either toggle.
 

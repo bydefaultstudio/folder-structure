@@ -180,25 +180,37 @@
 <hr>
 <h2 id="comments">Comments</h2>
 <p>Any line in any input format may carry an inline comment, and any node in the diagram may hold one, shown in a floating pill beside the row whenever it is selected. The pill is the single comment control: its chat button adds or edits (double-clicking the comment or pressing <code>C</code> in edit mode also works), and its delete button removes.</p>
+<p><strong>Markers.</strong> Four are recognised on input — <code>#</code>, <code>←</code> (U+2190), <code>⟵</code> (U+27F5), and the ASCII arrow <code>&lt;-</code> (any number of dashes: <code>&lt;-</code>, <code>&lt;--</code>). <code>#</code> is the canonical one and the only one ever emitted; the arrows exist because annotated trees arrive that way constantly, especially from AI chats, where a note is padded into a column beside the name:</p>
+
+      <div class="code-block-wrapper">
+        <button class="button copy-btn is-icon-only" data-size="xsmall" data-clipboard-target="#code-1" data-tooltip="Copy" type="button" aria-label="Copy code"><span class="copy-btn-default"><div class="svg-icn"><svg data-icon="copy" aria-hidden="true" width="100%" height="100%" viewBox="0 0 24 24" fill="none"><path d="M8 14C8 15.1046 8.89543 16 10 16H18C19.1046 16 20 15.1046 20 14V6C20 4.89543 19.1046 4 18 4H10C8.89543 4 8 4.89543 8 6V14ZM6 18V2H22V18H6ZM2 22V6H4V20H18V22H2Z" fill="currentColor"/></svg></div></span><span class="copy-btn-copied"><div class="svg-icn"><svg data-icon="check" aria-hidden="true" width="100%" height="100%" viewBox="0 0 24 24" fill="none"><path d="M9.54998 18L3.84998 12.3L5.27498 10.875L8.13576 13.7358C8.91681 14.5168 10.1831 14.5168 10.9642 13.7358L18.725 5.97501L20.15 7.40001L9.54998 18Z" fill="currentColor"/></svg></div></span></button>
+        <pre><code id="code-1" class="language-text">WEBSITE                    ← was Design System
+├── Component Conventions  ← moved from Docs
+└── Layout                 ← two pages merged
+</code></pre>
+      </div>
+    
+<p>Every arrow marker normalises to <code>#</code> on export, so a tree pasted in with arrows copies out in the canonical form. The padding is not part of the grammar — it is whitespace and is trimmed either way.</p>
 <p><strong>Grammar</strong> (same for parse and emit):</p>
 <ul>
-<li>A comment starts at the <strong>first <code>#</code> preceded by whitespace</strong> and runs to the end of the line: <code>name  # comment</code>. Everything after that first marker is the comment — a later <code>#</code> inside it stays part of the comment.</li>
-<li><code>#</code> <strong>not</strong> preceded by whitespace is part of the name: <code>#hashtag-notes/</code> is a folder, not a comment.</li>
-<li>A line at column 0 starting with <code>#</code> is therefore a <em>name</em>, not a comment; an indented line that is <em>only</em> a comment is dropped entirely.</li>
-<li>Serializers emit <strong>two spaces</strong> before the <code>#</code> (<code>theme.css  # brand tokens</code>); the parser accepts one or more.</li>
-<li>Comments may contain <code>/</code> and <code>#</code>; newlines and box-drawing characters are stripped when editing in the app. The in-app editor caps comments at 80 characters, but longer imported comments are preserved untouched.</li>
+<li>A comment starts at the <strong>first marker preceded by whitespace</strong> and runs to the end of the line: <code>name  # comment</code>, <code>name  ← comment</code>. Everything after that first marker is the comment — a later <code>#</code> or <code>←</code> inside it stays part of the comment.</li>
+<li>A marker <strong>not</strong> preceded by whitespace is part of the name: <code>#hashtag-notes/</code> is a folder, and so is <code>a&lt;-b.txt</code>.</li>
+<li>A line at column 0 starting with a marker is therefore a <em>name</em>, not a comment; an indented line that is <em>only</em> a comment is dropped entirely.</li>
+<li>Serializers emit <strong>two spaces</strong> before the <code>#</code> (<code>theme.css  # brand tokens</code>); the parser accepts one or more, before any marker.</li>
+<li>Comments may contain <code>/</code>, <code>#</code> and arrows; newlines and box-drawing characters are stripped when editing in the app. The in-app editor caps comments at 80 characters, but longer imported comments are preserved untouched.</li>
+<li><strong>Not markers:</strong> <code>//</code>, <code>→</code>, and bracketed notes like <code>(new)</code> are read as part of the name. Widening further trades away more legitimate names than it buys.</li>
 </ul>
-<p><strong>Capture and emission are both opt-in:</strong></p>
+<p><strong>Capture is opt-out; emission is opt-in:</strong></p>
 <ul>
-<li><strong>Paste-in:</strong> comments are stripped by default (historical behavior). When a paste contains comments, the import dialog reveals a &quot;Keep <code># comments</code> as annotations&quot; checkbox — tick it to capture them onto the nodes.</li>
+<li><strong>Paste-in:</strong> when a paste contains comments in any marker, the import dialog reveals a &quot;Keep inline comments (<code>#</code>, <code>←</code>) as annotations&quot; checkbox, ticked by default — untick it to strip them for that import.</li>
 <li><strong>Copy-out:</strong> comments are omitted by default. When the diagram contains comments, the export dialog reveals an &quot;Include comments&quot; checkbox.</li>
 <li><strong>Share/embed links:</strong> always full-fidelity — comments ride in the payload and are always restored, regardless of either toggle.</li>
 </ul>
 <p><strong>Per-format emission</strong> (all four formats use the same <code> #</code> suffix, so every format round-trips):</p>
 
       <div class="code-block-wrapper">
-        <button class="button copy-btn is-icon-only" data-size="xsmall" data-clipboard-target="#code-1" data-tooltip="Copy" type="button" aria-label="Copy code"><span class="copy-btn-default"><div class="svg-icn"><svg data-icon="copy" aria-hidden="true" width="100%" height="100%" viewBox="0 0 24 24" fill="none"><path d="M8 14C8 15.1046 8.89543 16 10 16H18C19.1046 16 20 15.1046 20 14V6C20 4.89543 19.1046 4 18 4H10C8.89543 4 8 4.89543 8 6V14ZM6 18V2H22V18H6ZM2 22V6H4V20H18V22H2Z" fill="currentColor"/></svg></div></span><span class="copy-btn-copied"><div class="svg-icn"><svg data-icon="check" aria-hidden="true" width="100%" height="100%" viewBox="0 0 24 24" fill="none"><path d="M9.54998 18L3.84998 12.3L5.27498 10.875L8.13576 13.7358C8.91681 14.5168 10.1831 14.5168 10.9642 13.7358L18.725 5.97501L20.15 7.40001L9.54998 18Z" fill="currentColor"/></svg></div></span></button>
-        <pre><code id="code-1" class="language-text">├── theme.css  # brand tokens        (unicode tree)
+        <button class="button copy-btn is-icon-only" data-size="xsmall" data-clipboard-target="#code-2" data-tooltip="Copy" type="button" aria-label="Copy code"><span class="copy-btn-default"><div class="svg-icn"><svg data-icon="copy" aria-hidden="true" width="100%" height="100%" viewBox="0 0 24 24" fill="none"><path d="M8 14C8 15.1046 8.89543 16 10 16H18C19.1046 16 20 15.1046 20 14V6C20 4.89543 19.1046 4 18 4H10C8.89543 4 8 4.89543 8 6V14ZM6 18V2H22V18H6ZM2 22V6H4V20H18V22H2Z" fill="currentColor"/></svg></div></span><span class="copy-btn-copied"><div class="svg-icn"><svg data-icon="check" aria-hidden="true" width="100%" height="100%" viewBox="0 0 24 24" fill="none"><path d="M9.54998 18L3.84998 12.3L5.27498 10.875L8.13576 13.7358C8.91681 14.5168 10.1831 14.5168 10.9642 13.7358L18.725 5.97501L20.15 7.40001L9.54998 18Z" fill="currentColor"/></svg></div></span></button>
+        <pre><code id="code-2" class="language-text">├── theme.css  # brand tokens        (unicode tree)
 |-- theme.css  # brand tokens        (ASCII tree)
 - theme.css  # brand tokens          (markdown list)
 assets/css/theme.css  # brand tokens (path list)
@@ -212,8 +224,8 @@ assets/css/theme.css  # brand tokens (path list)
 <p><strong>1. Unicode tree</strong> (default, AI-ready):</p>
 
       <div class="code-block-wrapper">
-        <button class="button copy-btn is-icon-only" data-size="xsmall" data-clipboard-target="#code-2" data-tooltip="Copy" type="button" aria-label="Copy code"><span class="copy-btn-default"><div class="svg-icn"><svg data-icon="copy" aria-hidden="true" width="100%" height="100%" viewBox="0 0 24 24" fill="none"><path d="M8 14C8 15.1046 8.89543 16 10 16H18C19.1046 16 20 15.1046 20 14V6C20 4.89543 19.1046 4 18 4H10C8.89543 4 8 4.89543 8 6V14ZM6 18V2H22V18H6ZM2 22V6H4V20H18V22H2Z" fill="currentColor"/></svg></div></span><span class="copy-btn-copied"><div class="svg-icn"><svg data-icon="check" aria-hidden="true" width="100%" height="100%" viewBox="0 0 24 24" fill="none"><path d="M9.54998 18L3.84998 12.3L5.27498 10.875L8.13576 13.7358C8.91681 14.5168 10.1831 14.5168 10.9642 13.7358L18.725 5.97501L20.15 7.40001L9.54998 18Z" fill="currentColor"/></svg></div></span></button>
-        <pre><code id="code-2" class="language-text">root/
+        <button class="button copy-btn is-icon-only" data-size="xsmall" data-clipboard-target="#code-3" data-tooltip="Copy" type="button" aria-label="Copy code"><span class="copy-btn-default"><div class="svg-icn"><svg data-icon="copy" aria-hidden="true" width="100%" height="100%" viewBox="0 0 24 24" fill="none"><path d="M8 14C8 15.1046 8.89543 16 10 16H18C19.1046 16 20 15.1046 20 14V6C20 4.89543 19.1046 4 18 4H10C8.89543 4 8 4.89543 8 6V14ZM6 18V2H22V18H6ZM2 22V6H4V20H18V22H2Z" fill="currentColor"/></svg></div></span><span class="copy-btn-copied"><div class="svg-icn"><svg data-icon="check" aria-hidden="true" width="100%" height="100%" viewBox="0 0 24 24" fill="none"><path d="M9.54998 18L3.84998 12.3L5.27498 10.875L8.13576 13.7358C8.91681 14.5168 10.1831 14.5168 10.9642 13.7358L18.725 5.97501L20.15 7.40001L9.54998 18Z" fill="currentColor"/></svg></div></span></button>
+        <pre><code id="code-3" class="language-text">root/
 ├── folder-a/
 │   └── file.txt
 └── folder-b/
@@ -223,8 +235,8 @@ assets/css/theme.css  # brand tokens (path list)
 <p><strong>2. ASCII tree</strong> (older tooling, plain-ASCII environments):</p>
 
       <div class="code-block-wrapper">
-        <button class="button copy-btn is-icon-only" data-size="xsmall" data-clipboard-target="#code-3" data-tooltip="Copy" type="button" aria-label="Copy code"><span class="copy-btn-default"><div class="svg-icn"><svg data-icon="copy" aria-hidden="true" width="100%" height="100%" viewBox="0 0 24 24" fill="none"><path d="M8 14C8 15.1046 8.89543 16 10 16H18C19.1046 16 20 15.1046 20 14V6C20 4.89543 19.1046 4 18 4H10C8.89543 4 8 4.89543 8 6V14ZM6 18V2H22V18H6ZM2 22V6H4V20H18V22H2Z" fill="currentColor"/></svg></div></span><span class="copy-btn-copied"><div class="svg-icn"><svg data-icon="check" aria-hidden="true" width="100%" height="100%" viewBox="0 0 24 24" fill="none"><path d="M9.54998 18L3.84998 12.3L5.27498 10.875L8.13576 13.7358C8.91681 14.5168 10.1831 14.5168 10.9642 13.7358L18.725 5.97501L20.15 7.40001L9.54998 18Z" fill="currentColor"/></svg></div></span></button>
-        <pre><code id="code-3" class="language-text">root/
+        <button class="button copy-btn is-icon-only" data-size="xsmall" data-clipboard-target="#code-4" data-tooltip="Copy" type="button" aria-label="Copy code"><span class="copy-btn-default"><div class="svg-icn"><svg data-icon="copy" aria-hidden="true" width="100%" height="100%" viewBox="0 0 24 24" fill="none"><path d="M8 14C8 15.1046 8.89543 16 10 16H18C19.1046 16 20 15.1046 20 14V6C20 4.89543 19.1046 4 18 4H10C8.89543 4 8 4.89543 8 6V14ZM6 18V2H22V18H6ZM2 22V6H4V20H18V22H2Z" fill="currentColor"/></svg></div></span><span class="copy-btn-copied"><div class="svg-icn"><svg data-icon="check" aria-hidden="true" width="100%" height="100%" viewBox="0 0 24 24" fill="none"><path d="M9.54998 18L3.84998 12.3L5.27498 10.875L8.13576 13.7358C8.91681 14.5168 10.1831 14.5168 10.9642 13.7358L18.725 5.97501L20.15 7.40001L9.54998 18Z" fill="currentColor"/></svg></div></span></button>
+        <pre><code id="code-4" class="language-text">root/
 |-- folder-a/
 |   `-- file.txt
 `-- folder-b/
@@ -234,8 +246,8 @@ assets/css/theme.css  # brand tokens (path list)
 <p><strong>3. Markdown nested list:</strong></p>
 
       <div class="code-block-wrapper">
-        <button class="button copy-btn is-icon-only" data-size="xsmall" data-clipboard-target="#code-4" data-tooltip="Copy" type="button" aria-label="Copy code"><span class="copy-btn-default"><div class="svg-icn"><svg data-icon="copy" aria-hidden="true" width="100%" height="100%" viewBox="0 0 24 24" fill="none"><path d="M8 14C8 15.1046 8.89543 16 10 16H18C19.1046 16 20 15.1046 20 14V6C20 4.89543 19.1046 4 18 4H10C8.89543 4 8 4.89543 8 6V14ZM6 18V2H22V18H6ZM2 22V6H4V20H18V22H2Z" fill="currentColor"/></svg></div></span><span class="copy-btn-copied"><div class="svg-icn"><svg data-icon="check" aria-hidden="true" width="100%" height="100%" viewBox="0 0 24 24" fill="none"><path d="M9.54998 18L3.84998 12.3L5.27498 10.875L8.13576 13.7358C8.91681 14.5168 10.1831 14.5168 10.9642 13.7358L18.725 5.97501L20.15 7.40001L9.54998 18Z" fill="currentColor"/></svg></div></span></button>
-        <pre><code id="code-4" class="language-text">- root/
+        <button class="button copy-btn is-icon-only" data-size="xsmall" data-clipboard-target="#code-5" data-tooltip="Copy" type="button" aria-label="Copy code"><span class="copy-btn-default"><div class="svg-icn"><svg data-icon="copy" aria-hidden="true" width="100%" height="100%" viewBox="0 0 24 24" fill="none"><path d="M8 14C8 15.1046 8.89543 16 10 16H18C19.1046 16 20 15.1046 20 14V6C20 4.89543 19.1046 4 18 4H10C8.89543 4 8 4.89543 8 6V14ZM6 18V2H22V18H6ZM2 22V6H4V20H18V22H2Z" fill="currentColor"/></svg></div></span><span class="copy-btn-copied"><div class="svg-icn"><svg data-icon="check" aria-hidden="true" width="100%" height="100%" viewBox="0 0 24 24" fill="none"><path d="M9.54998 18L3.84998 12.3L5.27498 10.875L8.13576 13.7358C8.91681 14.5168 10.1831 14.5168 10.9642 13.7358L18.725 5.97501L20.15 7.40001L9.54998 18Z" fill="currentColor"/></svg></div></span></button>
+        <pre><code id="code-5" class="language-text">- root/
   - folder-a/
     - file.txt
   - folder-b/
@@ -245,8 +257,8 @@ assets/css/theme.css  # brand tokens (path list)
 <p><strong>4. Path list:</strong></p>
 
       <div class="code-block-wrapper">
-        <button class="button copy-btn is-icon-only" data-size="xsmall" data-clipboard-target="#code-5" data-tooltip="Copy" type="button" aria-label="Copy code"><span class="copy-btn-default"><div class="svg-icn"><svg data-icon="copy" aria-hidden="true" width="100%" height="100%" viewBox="0 0 24 24" fill="none"><path d="M8 14C8 15.1046 8.89543 16 10 16H18C19.1046 16 20 15.1046 20 14V6C20 4.89543 19.1046 4 18 4H10C8.89543 4 8 4.89543 8 6V14ZM6 18V2H22V18H6ZM2 22V6H4V20H18V22H2Z" fill="currentColor"/></svg></div></span><span class="copy-btn-copied"><div class="svg-icn"><svg data-icon="check" aria-hidden="true" width="100%" height="100%" viewBox="0 0 24 24" fill="none"><path d="M9.54998 18L3.84998 12.3L5.27498 10.875L8.13576 13.7358C8.91681 14.5168 10.1831 14.5168 10.9642 13.7358L18.725 5.97501L20.15 7.40001L9.54998 18Z" fill="currentColor"/></svg></div></span></button>
-        <pre><code id="code-5" class="language-text">root/folder-a/file.txt
+        <button class="button copy-btn is-icon-only" data-size="xsmall" data-clipboard-target="#code-6" data-tooltip="Copy" type="button" aria-label="Copy code"><span class="copy-btn-default"><div class="svg-icn"><svg data-icon="copy" aria-hidden="true" width="100%" height="100%" viewBox="0 0 24 24" fill="none"><path d="M8 14C8 15.1046 8.89543 16 10 16H18C19.1046 16 20 15.1046 20 14V6C20 4.89543 19.1046 4 18 4H10C8.89543 4 8 4.89543 8 6V14ZM6 18V2H22V18H6ZM2 22V6H4V20H18V22H2Z" fill="currentColor"/></svg></div></span><span class="copy-btn-copied"><div class="svg-icn"><svg data-icon="check" aria-hidden="true" width="100%" height="100%" viewBox="0 0 24 24" fill="none"><path d="M9.54998 18L3.84998 12.3L5.27498 10.875L8.13576 13.7358C8.91681 14.5168 10.1831 14.5168 10.9642 13.7358L18.725 5.97501L20.15 7.40001L9.54998 18Z" fill="currentColor"/></svg></div></span></button>
+        <pre><code id="code-6" class="language-text">root/folder-a/file.txt
 root/folder-b/
 </code></pre>
       </div>
@@ -254,8 +266,8 @@ root/folder-b/
 <p><strong>5. Shell commands</strong> (creates the structure for real):</p>
 
       <div class="code-block-wrapper">
-        <button class="button copy-btn is-icon-only" data-size="xsmall" data-clipboard-target="#code-6" data-tooltip="Copy" type="button" aria-label="Copy code"><span class="copy-btn-default"><div class="svg-icn"><svg data-icon="copy" aria-hidden="true" width="100%" height="100%" viewBox="0 0 24 24" fill="none"><path d="M8 14C8 15.1046 8.89543 16 10 16H18C19.1046 16 20 15.1046 20 14V6C20 4.89543 19.1046 4 18 4H10C8.89543 4 8 4.89543 8 6V14ZM6 18V2H22V18H6ZM2 22V6H4V20H18V22H2Z" fill="currentColor"/></svg></div></span><span class="copy-btn-copied"><div class="svg-icn"><svg data-icon="check" aria-hidden="true" width="100%" height="100%" viewBox="0 0 24 24" fill="none"><path d="M9.54998 18L3.84998 12.3L5.27498 10.875L8.13576 13.7358C8.91681 14.5168 10.1831 14.5168 10.9642 13.7358L18.725 5.97501L20.15 7.40001L9.54998 18Z" fill="currentColor"/></svg></div></span></button>
-        <pre><code id="code-6" class="language-text">mkdir -p root/folder-a root/folder-b
+        <button class="button copy-btn is-icon-only" data-size="xsmall" data-clipboard-target="#code-7" data-tooltip="Copy" type="button" aria-label="Copy code"><span class="copy-btn-default"><div class="svg-icn"><svg data-icon="copy" aria-hidden="true" width="100%" height="100%" viewBox="0 0 24 24" fill="none"><path d="M8 14C8 15.1046 8.89543 16 10 16H18C19.1046 16 20 15.1046 20 14V6C20 4.89543 19.1046 4 18 4H10C8.89543 4 8 4.89543 8 6V14ZM6 18V2H22V18H6ZM2 22V6H4V20H18V22H2Z" fill="currentColor"/></svg></div></span><span class="copy-btn-copied"><div class="svg-icn"><svg data-icon="check" aria-hidden="true" width="100%" height="100%" viewBox="0 0 24 24" fill="none"><path d="M9.54998 18L3.84998 12.3L5.27498 10.875L8.13576 13.7358C8.91681 14.5168 10.1831 14.5168 10.9642 13.7358L18.725 5.97501L20.15 7.40001L9.54998 18Z" fill="currentColor"/></svg></div></span></button>
+        <pre><code id="code-7" class="language-text">mkdir -p root/folder-a root/folder-b
 touch root/folder-a/file.txt
 </code></pre>
       </div>
@@ -276,8 +288,8 @@ touch root/folder-a/file.txt
 <p>Share and embed URLs carry the structure itself in the URL fragment — no backend, no storage. The codec lives in <code>assets/js/tree-share.js</code>; <code>/embed</code> renders the fragment read-only, and the main app imports it on load.</p>
 
       <div class="code-block-wrapper">
-        <button class="button copy-btn is-icon-only" data-size="xsmall" data-clipboard-target="#code-7" data-tooltip="Copy" type="button" aria-label="Copy code"><span class="copy-btn-default"><div class="svg-icn"><svg data-icon="copy" aria-hidden="true" width="100%" height="100%" viewBox="0 0 24 24" fill="none"><path d="M8 14C8 15.1046 8.89543 16 10 16H18C19.1046 16 20 15.1046 20 14V6C20 4.89543 19.1046 4 18 4H10C8.89543 4 8 4.89543 8 6V14ZM6 18V2H22V18H6ZM2 22V6H4V20H18V22H2Z" fill="currentColor"/></svg></div></span><span class="copy-btn-copied"><div class="svg-icn"><svg data-icon="check" aria-hidden="true" width="100%" height="100%" viewBox="0 0 24 24" fill="none"><path d="M9.54998 18L3.84998 12.3L5.27498 10.875L8.13576 13.7358C8.91681 14.5168 10.1831 14.5168 10.9642 13.7358L18.725 5.97501L20.15 7.40001L9.54998 18Z" fill="currentColor"/></svg></div></span></button>
-        <pre><code id="code-7">https://folder-structure.bydefault.studio/embed#t=&lt;payload&gt;[&amp;theme=light|dark]
+        <button class="button copy-btn is-icon-only" data-size="xsmall" data-clipboard-target="#code-8" data-tooltip="Copy" type="button" aria-label="Copy code"><span class="copy-btn-default"><div class="svg-icn"><svg data-icon="copy" aria-hidden="true" width="100%" height="100%" viewBox="0 0 24 24" fill="none"><path d="M8 14C8 15.1046 8.89543 16 10 16H18C19.1046 16 20 15.1046 20 14V6C20 4.89543 19.1046 4 18 4H10C8.89543 4 8 4.89543 8 6V14ZM6 18V2H22V18H6ZM2 22V6H4V20H18V22H2Z" fill="currentColor"/></svg></div></span><span class="copy-btn-copied"><div class="svg-icn"><svg data-icon="check" aria-hidden="true" width="100%" height="100%" viewBox="0 0 24 24" fill="none"><path d="M9.54998 18L3.84998 12.3L5.27498 10.875L8.13576 13.7358C8.91681 14.5168 10.1831 14.5168 10.9642 13.7358L18.725 5.97501L20.15 7.40001L9.54998 18Z" fill="currentColor"/></svg></div></span></button>
+        <pre><code id="code-8">https://folder-structure.bydefault.studio/embed#t=&lt;payload&gt;[&amp;theme=light|dark]
 </code></pre>
       </div>
     

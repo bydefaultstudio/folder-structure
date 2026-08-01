@@ -6,21 +6,26 @@
    ASCII tree (|-- `--), markdown nested list, path list, and plain
    indentation. Pure functions, no DOM; returns a virtual-root tree
    with no ids (tree-model.assignIds runs on import).
-   Tolerant by design: CRLF, NBSP, code fences, # comments, heavy/
+   Tolerant by design: CRLF, NBSP, code fences, inline comments, heavy/
    rounded box glyphs, tabs, and ragged indents are all normalized.
-   Inline `# comments` are always captured during normalization but
-   only attached to nodes when parse() is called with {comments:true};
-   the default strips them, matching historical behavior.
+   An inline comment is a `#` or a left arrow (`←`, `⟵`, `<-`) preceded
+   by whitespace, running to end of line. Comments are always captured
+   during normalization but only attached to nodes when parse() is called
+   with {comments:true}; the default strips them, matching historical
+   behavior. Serializers always emit `#`, so arrows normalize on export.
    ───────────────────────────── */
 
 (function () {
-  var VERSION = '1.1.0';
+  var VERSION = '1.2.0';
 
   var BOX_CHARS = /[─-╿]/;
   var ASCII_CONNECTOR = /^\s*(\|\-\-|`\-\-|\\\-\-|\+\-\-)/;
   var MARKDOWN_BULLET = /^(\s*)[-*+]\s+(.+)$/;
-  // # preceded by whitespace (so "#hashtag" names survive); first match wins.
-  var INLINE_COMMENT = /\s+#\s?(.*)$/;
+  // A marker preceded by whitespace (so "#hashtag" and "a<-b" names
+  // survive); first match wins. The arrows cover annotated trees people
+  // paste out of AI chats — "Layout   ← two pages merged" — where the
+  // note is padded out into a column and reads as a comment to any human.
+  var INLINE_COMMENT = /\s+(?:#|←|⟵|<-+)\s?(.*)$/;
 
   //
   //------- Normalization -------//

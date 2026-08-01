@@ -4,6 +4,28 @@ Track what's been done and what still needs doing across sessions. Add a dated s
 
 ---
 
+## 2026-08-01 — Arrow annotations import as comments
+
+Erlen pasted a real tree — an eight-root map of the studio's own content — annotated the way models actually write them, with a note padded into a column beside the name:
+
+```text
+WEBSITE                    ← was Design System
+├── Component Conventions  ← moved from Docs
+└── Layout                 ← two pages merged
+```
+
+The parser knew one comment marker, `#`, so none of that was stripped. `WEBSITE` imported as a folder literally named `WEBSITE                                     ← was Design System` — alignment padding and all. Nine rows were affected. Nothing else was wrong: the eight-root forest, every depth and all 113 nodes parsed correctly, which is what made the failure worth fixing rather than working around. The annotation is a comment to any human reading it, and the tool has had a comment pill to put it in since the pills shipped.
+
+- **tree-parsers.js 1.2.0** — `INLINE_COMMENT` widened from `/\s+#\s?(.*)$/` to `/\s+(?:#|←|⟵|<-+)\s?(.*)$/`. One regex; everything downstream already worked. The whitespace prefix is unchanged, so the rule that protects `#hashtag` protects `a<-b.txt` for free
+- **`#` remains the only marker emitted.** Serializers were not touched, so an arrow tree pastes in and copies out canonical — arrows are an input dialect, not a second output format
+- **Markers deliberately excluded**: `//`, `→`, and bracketed `(new)`. Each would swallow more legitimate names than it would rescue annotations, and the excluded set is now written down in `docs/tree-notation.md` so the next widening is a decision rather than a drift
+- **index.html** — the import checkbox read "Keep `# comments` as annotations", which now under-describes what it keeps; it reads "Keep inline comments (`#`, `←`) as annotations"
+- **Two stale doc claims fixed while in there**: `docs/tree-notation.md` still said capture was opt-in and stripped by default, which stopped being true when the import default flipped earlier the same day. Heading and bullet corrected
+- **Verified**: 30/30 headless-free unit checks against the parser and serializer, plus 23/23 in headless Chrome driving the real import dialog end to end. Covers: all nine annotations captured and every name clean; node count identical to pre-change (113, confirmed by running `git show HEAD:`'s parser side by side); `#` comments, `#hashtag` names and `a<-b.txt` names all unchanged; format detection unskewed for tree, ASCII, markdown and path inputs; 113 rows rendered with 9 pills carrying the annotation text; and a full round-trip where the exported text re-parses to a byte-identical tree with arrows normalised to `#`
+- **Pre-existing, not fixed, still documented**: `├── #hashtag/` drops its row entirely, because the connector puts whitespace before the `#`. Verified unchanged by this work rather than assumed
+
+---
+
 ## 2026-08-01 — Deleting a non-empty folder asks first
 
 Deleting a folder took its whole subtree with it, silently — the toast said `Deleted "src"` whether the folder was empty or held forty items, so there was no signal that anything went with it. Erlen's call, after the alternatives were argued: a dialog now appears when deleting a folder that holds anything, offering **Delete everything** or **Keep contents**. Files and empty folders are unambiguous and skip it entirely.
