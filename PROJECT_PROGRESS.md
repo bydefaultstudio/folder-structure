@@ -4,6 +4,21 @@ Track what's been done and what still needs doing across sessions. Add a dated s
 
 ---
 
+## 2026-08-01 — Deleting a non-empty folder asks first
+
+Deleting a folder took its whole subtree with it, silently — the toast said `Deleted "src"` whether the folder was empty or held forty items, so there was no signal that anything went with it. Erlen's call, after the alternatives were argued: a dialog now appears when deleting a folder that holds anything, offering **Delete everything** or **Keep contents**. Files and empty folders are unambiguous and skip it entirely.
+
+I argued against the dialog and for leaving delete destructive with a separate unwrap command, on the grounds that delete is already reversible twice over (toast Undo plus Cmd+Z against a 100-deep stack) and that a modal taxes every deletion. Erlen chose the dialog; recorded here so the reasoning isn't relitigated blind. The one thing that made a promote-only default a non-starter — and which the dialog avoids — is that it removes any way to delete a branch in one action, which is the most common deletion when stripping sections out of a pasted structure.
+
+- **tree-model.js 1.5.0** — new `unwrap(id)`: splices a folder's direct children into the parent **at the folder's own index**, so their order and position are preserved and anything nested deeper rides along attached to them. One `snapshot()`, so a single undo restores the folder around its contents. Also `countDescendants(node)`, since the dialog needs the total, not the direct-child count
+- **tree-edit.js 1.6.0** — `deleteNode` is now a gate; the two outcomes live in `removeBranch` and `removeLevel`. Both toasts now state scope: `Deleted "src" and 4 items inside` / `Removed "src", kept 2 items`, each with Undo. Both paths explicitly refocus a row afterwards — previously delete left DOM focus on a destroyed button, which mattered little before and matters a lot when returning from a modal
+- **index.html** — `#delete-folder-dialog`, built on the design system's dialog component. `autofocus` sits on **Keep contents**, not the destructive option; `Delete everything` carries `data-color="danger"`; Cancel is `data-dialog-close` and Escape/backdrop dismissal is native. `aria-labelledby` + `aria-describedby` wire the title and the item count to the dialog
+- **Opened with `showModal()` directly**, not the declarative `data-dialog-open` path, because there is no surviving trigger element — the chip button that raised it is destroyed by the very delete it starts. Commented in place so it doesn't read as a regression against the 2026-07-30 dialog migration
+- **Bug found and fixed during verification**: `dialog.close()` fires its `close` event on a queued task, so `pendingDeleteId` survived a tick past dismissal. Not user-reachable (a closed dialog has no clickable buttons) but the state machine shouldn't rely on that — the choice handler now gates on `dialog.open`, which is accurate synchronously
+- **Verified**: headless Chrome 23/23 — files and empty folders bypass the dialog; a non-empty folder opens it modally and changes nothing while it waits; the count covers every descendant rather than direct children; wording adapts between the flat and nested cases and between singular and plural; the safe option holds initial focus; Escape deletes nothing; both outcomes produce the right tree and each undoes in one step; keyboard `Delete` routes through the same gate; a choice clicked after dismissal is inert. Click-model suite re-run at 35/35 with no regression
+
+---
+
 ## 2026-08-01 — Import keeps `# comments` by default
 
 The "Keep `# comments` as annotations" checkbox shipped unchecked, so the default behaviour of a paste containing comments was to silently discard them. Per Erlen, it is now checked. A comment in a pasted structure is content the user wrote; keeping it is the safe reading and discarding is the opt-in.

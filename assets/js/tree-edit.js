@@ -7,14 +7,17 @@
    select-then-toggle), comment pills (the pill's own chat/edit +
    delete toolbar, double-click on the comment, or C via
    tree-keyboard — the pill is the single comment control), delete
-   with a one-step Undo toast, and move up/down. Edit mode is a state
+   with a one-step Undo toast, and move up/down. Deleting a folder
+   that holds anything raises a dialog first: delete the whole branch,
+   or keep the contents and promote them one level (model.unwrap).
+   Files and empty folders skip it. Edit mode is a state
    on the app root (.is-edit-mode) — view mode hides every editing
    affordance via CSS. All wiring is event delegation on document.
    At most one inline input (rename or comment) is open at a time.
    ───────────────────────────── */
 
 (function () {
-  var VERSION = '1.5.0';
+  var VERSION = '1.6.0';
   var NAME_FORBIDDEN = /[\/\\─-╿]/g;
   // Comments allow slashes and #; newlines and tree glyphs would break
   // the `name  # comment` line notation.
@@ -27,6 +30,7 @@
   var addType = 'folder';          // what the add-pill inserts
   var renamingId = null;
   var commentingId = null;
+  var pendingDeleteId = null;      // folder awaiting a delete-dialog choice
 
   function model() { return window.FolderStructure.model; }
 
@@ -296,17 +300,119 @@
   //------- Delete / add / move -------//
   //
 
+  // Deleting a folder that holds something asks first, because the two
+  // reasonable intentions — drop the whole branch, or drop just this
+  // level and keep what was inside — cannot be inferred from the click.
+  // Files and empty folders have no such ambiguity and go straight
+  // through.
   function deleteNode(id) {
     var node = model().findNode(id);
     if (!node) { return; }
+    var total = model().countDescendants(node);
+    if (node.type !== 'folder' || total === 0) {
+      removeBranch(id);
+      return;
+    }
+    openDeleteDialog(id, node, total);
+  }
+
+  function removeBranch(id) {
+    var node = model().findNode(id);
+    if (!node) { return; }
+    var total = model().countDescendants(node);
     var siblingFocus = nextFocusAfterDelete(id);
     if (!model().remove(id)) { return; }
     model().state.focusedId = siblingFocus;
     window.FolderStructure.render.render();
-    toast('Deleted “' + node.name + '”', {
+    if (siblingFocus) { refocusRow(siblingFocus); }
+    toast('Deleted “' + node.name + '”' + (total ? ' and ' + countLabel(total) + ' inside' : ''), {
       actionLabel: 'Undo',
       onAction: function undoDelete() { model().undo(); }
     });
+  }
+
+  function removeLevel(id) {
+    var node = model().findNode(id);
+    if (!node) { return; }
+    var kept = (node.children || []).length;
+    var siblingFocus = nextFocusAfterDelete(id);
+    var result = model().unwrap(id);
+    if (!result) { return; }
+    // Land on the first promoted child — it now occupies the folder's
+    // old slot, so focus stays where the user was looking.
+    model().state.focusedId = result.keptIds[0] || siblingFocus;
+    window.FolderStructure.render.render();
+    if (model().state.focusedId) { refocusRow(model().state.focusedId); }
+    toast('Removed “' + node.name + '”, kept ' + countLabel(kept), {
+      actionLabel: 'Undo',
+      onAction: function undoRemoveLevel() { model().undo(); }
+    });
+  }
+
+  function countLabel(n) {
+    return n + (n === 1 ? ' item' : ' items');
+  }
+
+  // Both dialogs offer the same "keep what was inside" choice and owe
+  // the user the same warning: only the direct children move up, and
+  // deeper nesting rides along attached to them.
+  function keepContentsDetail(total, direct) {
+    return total === direct
+      ? 'Keeping them moves all ' + countLabel(direct) + ' up one level.'
+      : 'Keeping them moves the ' + countLabel(direct) + ' directly inside up one level; anything nested deeper stays attached to those.';
+  }
+
+  //
+  //------- Delete confirmation dialog -------//
+  //
+
+  function openDeleteDialog(id, node, total) {
+    var dialog = document.querySelector('#delete-folder-dialog');
+    // No opener element exists for this one — it is raised by a keypress
+    // or a chip button that the delete itself destroys — so it calls
+    // showModal() directly rather than going through the design system's
+    // declarative data-dialog-open path.
+    if (!dialog) { removeBranch(id); return; }
+    var direct = (node.children || []).length;
+
+    dialog.querySelector('#delete-folder-title').textContent = 'Delete “' + node.name + '”?';
+    dialog.querySelector('.delete-folder-summary').textContent =
+      'It holds ' + countLabel(total) + '.';
+    dialog.querySelector('.delete-folder-detail').textContent = keepContentsDetail(total, direct);
+    dialog.querySelector('.delete-folder-all').textContent = 'Delete all ' + countLabel(total);
+
+    pendingDeleteId = id;
+    if (!dialog.open) { dialog.showModal(); }
+  }
+
+  function handleDeleteDialogClick(event) {
+    var id = pendingDeleteId;
+    if (!id) { return; }
+    // close() fires its close event on a queued task, so pendingDeleteId
+    // survives a tick past dismissal. Gate on the dialog itself, which is
+    // accurate the moment it shuts.
+    var dialog = document.querySelector('#delete-folder-dialog');
+    if (!dialog || !dialog.open) { return; }
+    if (event.target.closest('.delete-folder-all')) {
+      closeDeleteDialog();
+      removeBranch(id);
+    } else if (event.target.closest('.delete-folder-keep')) {
+      closeDeleteDialog();
+      removeLevel(id);
+    }
+  }
+
+  function closeDeleteDialog() {
+    var dialog = document.querySelector('#delete-folder-dialog');
+    pendingDeleteId = null;
+    if (dialog && dialog.open) { dialog.close(); }
+  }
+
+  // Escape and backdrop dismissal never reach the buttons — clear the
+  // pending id so a later stray click can't act on a stale node.
+  function handleDeleteDialogClose() {
+    pendingDeleteId = null;
+    if (model().state.focusedId) { refocusRow(model().state.focusedId); }
   }
 
   function nextFocusAfterDelete(id) {
@@ -443,6 +549,7 @@
   function initTreeEdit() {
     document.addEventListener('click', handleOutsideEditCommit, true);
     document.addEventListener('click', handleDocumentClick);
+    document.addEventListener('click', handleDeleteDialogClick);
     document.addEventListener('dblclick', handleDoubleClick);
     document.addEventListener('keydown', handleInlineEditKeydown, true);
 
@@ -459,17 +566,20 @@
       isCommenting: function isCommenting() { return commentingId !== null; }
     };
 
-    // Apply persisted mode once the DOM is ready.
+    // Apply persisted mode and bind the dialogs once the DOM is ready —
+    // both need elements this script may load ahead of.
     if (document.readyState === 'loading') {
-      document.addEventListener('DOMContentLoaded', applySavedMode);
+      document.addEventListener('DOMContentLoaded', initDomBindings);
     } else {
-      applySavedMode();
+      initDomBindings();
     }
     console.log('tree-edit.js v' + VERSION + ' initialised');
   }
 
-  function applySavedMode() {
+  function initDomBindings() {
     setMode(model().state.mode);
+    var deleteDialog = document.querySelector('#delete-folder-dialog');
+    if (deleteDialog) { deleteDialog.addEventListener('close', handleDeleteDialogClose); }
   }
 
   initTreeEdit();

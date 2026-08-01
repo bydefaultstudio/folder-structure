@@ -13,7 +13,7 @@
    ───────────────────────────── */
 
 (function () {
-  var VERSION = '1.4.0';
+  var VERSION = '1.5.0';
   var STORAGE_KEY = 'folder-structure:v1';
   var SAVE_DEBOUNCE_MS = 300;
 
@@ -191,6 +191,42 @@
       }
     }
     return null;
+  }
+
+  // Removes a folder but keeps what was inside it: the direct children
+  // take the folder's own slot in the parent, so their order and
+  // position are preserved and anything nested deeper rides along
+  // untouched. One snapshot, so a single undo restores the folder with
+  // its contents back inside. Files have nothing to keep — remove()
+  // is the operation for those.
+  function unwrap(id) {
+    var parent = findParent(id);
+    if (!parent) { return null; }
+    for (var i = 0; i < parent.children.length; i++) {
+      var node = parent.children[i];
+      if (node.id !== id) { continue; }
+      if (node.type !== 'folder') { return null; }
+      snapshot();
+      var kept = node.children || [];
+      parent.children.splice.apply(parent.children, [i, 1].concat(kept));
+      emitChange('unwrap', id);
+      return { node: node, parentId: parent.id, index: i, keptIds: kept.map(idOf) };
+    }
+    return null;
+  }
+
+  function idOf(node) {
+    return node.id;
+  }
+
+  // Total nodes beneath a node, at every depth.
+  function countDescendants(node) {
+    var total = 0;
+    var kids = (node && node.children) || [];
+    for (var i = 0; i < kids.length; i++) {
+      total += 1 + countDescendants(kids[i]);
+    }
+    return total;
   }
 
   function move(id, delta) {
@@ -447,6 +483,8 @@
       rename: rename,
       setComment: setComment,
       remove: remove,
+      unwrap: unwrap,
+      countDescendants: countDescendants,
       move: move,
       indent: indent,
       outdent: outdent,
