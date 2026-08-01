@@ -4,6 +4,24 @@ Track what's been done and what still needs doing across sessions. Add a dated s
 
 ---
 
+## 2026-08-01 — Change a row between folder and file
+
+A node's type was fixed at creation. The add-pill's folder/file toggle decides what gets inserted, but once a row existed there was no way to change its mind — you deleted it and re-added, losing the comment, the position, and anything inside. Erlen asked for a quick way to switch, with a dialog when a folder holding contents becomes a file. It works in both directions: a file becoming a folder is always safe, so it goes straight through.
+
+Erlen suggested the `refresh` glyph; I argued against it — ⟳ reads as reload/reset everywhere else on the web — and offered a swap glyph or a show-the-target-type button instead. He took the swap and supplied the icon, which is heading into the design system library.
+
+- **tree-model.js 1.6.0** — new `setType(id, type, contents)`. Mutates the node **in place** rather than replacing it, so `id`, `name` and `comment` survive and the renderer keeps reconciling onto the same row. `contents` is `'keep'` or `'discard'` and is read only when a folder that holds something becomes a file; `'keep'` splices the direct children in at `index + 1`, so they land in the slot the folder occupied and deeper nesting rides along attached to them. One `snapshot()`, so a single undo restores the whole previous shape. Refuses the virtual root (`findParent` null), an unknown id, and a no-op type change
+- **tree-render.js 1.7.0** — `convert` button in the chip between rename and delete, plus `convertLabel`/`convertTooltip`. The glyph is the same both ways, so direction lives in the tooltip and `aria-label`, and `updateRowEl` re-reads it every pass
+- **A latent bug this feature made reachable.** Row elements are cached in `rowEls[id]` for the life of the id, but `makeRowEl` decided the Add-inside button once, at creation, from `row.type === 'folder'` — and `updateRowEl` never revisited it. Converting a file to a folder would have left that row permanently unable to take children. Nothing could trigger it while type was immutable. Fixed by building the button on every row and gating it in CSS on `.is-file`, which `updateRowEl` already maintains — the same CSS-gated approach used for edit mode and the comment pill, and no DOM surgery in the reconcile path
+- **tree-edit.js 1.7.0** — `convertNode` gates: files and empty folders convert straight through, a folder with contents opens `#convert-type-dialog`. Both dialogs now share `keepContentsDetail(total, direct)`; the sentence was duplicated verbatim. Toasts state scope with Undo: `Changed "src" to a file, kept 2 items` / `… and deleted 3 items` / `Changed "README.md" to a folder`. The id survives the conversion, so refocusing the row afterwards is unconditional
+- **Copied both safety details from the delete dialog** rather than rediscovering them: the choice handler gates on `dialog.open` (the pending id outlives `close()` by a tick), and the `close` event clears the pending id so Escape or backdrop dismissal can't leave a stale target for a later click
+- **tree-keyboard.js 1.5.0** — `t` on the focused row. The chip's buttons are `tabIndex = -1`, so row keys are the keyboard path to every action. Safe on `embed.html`, which loads this file but not `tree-edit.js`: the existing `editApi` guard makes `editMode` false there
+- **index.html** — `#convert-type-dialog` mirroring the delete dialog exactly, `autofocus` on the non-destructive *Keep contents*, `Delete all N items` carrying `data-color="danger"`. Intro copy extended to mention the new capability
+- **Verified**: 25/25 in Node against the DOM-free model (all four conversions, undo after each, guards, the folder → file → folder round trip preserving id/name/comment, serializer output, and `addChild` into a converted file-turned-folder), then 44/44 in headless Chrome (labels and their flip, the add-child regression above, dialog wording and counts, both outcomes, cancel-then-stale-click inertness, `t` including the case where a rename input must swallow it, view mode, undo via the toolbar, and the persisted shape). The persistence check only works over http — `localStorage` is unavailable on `file://`, where it had been silently skipping. `embed.html` re-checked clean
+- **One thing deliberately left alone**: `updateRowEl` refreshes the comment buttons' `aria-label`s on rename but not those of add-child, move, indent, rename or delete — so those read the pre-rename name until the row is rebuilt. Pre-existing and unrelated; the new convert button doesn't share it because its label is regenerated every pass
+
+---
+
 ## 2026-08-01 — Arrow annotations import as comments
 
 Erlen pasted a real tree — an eight-root map of the studio's own content — annotated the way models actually write them, with a note padded into a column beside the name:

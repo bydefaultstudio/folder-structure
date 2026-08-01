@@ -207,8 +207,17 @@ body.is-app {
   display: flex;
 }
 
+/* Only folders can hold anything. The button is built on every row
+   because a row's type can change under it (the convert button) and
+   row elements are cached by id — so presence is gated here, where
+   .is-file stays current, rather than at construction. display:none
+   keeps it out of the accessibility tree too. */
+.tree-item.is-file .tree-item-actions [data-action="add-child"] {
+  display: none;
+}
+
 /* Separates the organising buttons (add, move, indent) from
-   rename/delete; the chip's gap provides the spacing. */
+   rename/convert/delete; the chip's gap provides the spacing. */
 .tree-item-actions .divider--vertical {
   margin: 0;
 }

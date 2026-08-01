@@ -13,7 +13,7 @@
    ───────────────────────────── */
 
 (function () {
-  var VERSION = '1.6.0';
+  var VERSION = '1.7.0';
   var SPRITE = 'assets/icons/project-icons.svg';
   var DS_SPRITE = 'assets/icons/icons.svg';
   var SVG_NS = 'http://www.w3.org/2000/svg';
@@ -91,9 +91,12 @@
 
     var actions = document.createElement('span');
     actions.className = 'tree-item-actions';
-    if (row.type === 'folder') {
-      actions.appendChild(makeActionButton('add-child', 'add', SPRITE, 'Add inside ' + row.name, 'Add inside'));
-    }
+    // Every row gets the full set: a row's type can change under it
+    // (the convert button), and this element is cached by id for the
+    // life of the row, so anything built conditionally here would go
+    // stale. CSS hides add-child on files via .is-file, which
+    // updateRowEl keeps current.
+    actions.appendChild(makeActionButton('add-child', 'add', SPRITE, 'Add inside ' + row.name, 'Add inside'));
     actions.appendChild(makeActionButton('move-up', 'arrow-up', SPRITE, 'Move ' + row.name + ' up', 'Move up'));
     actions.appendChild(makeActionButton('move-down', 'arrow-down', SPRITE, 'Move ' + row.name + ' down', 'Move down'));
     actions.appendChild(makeActionButton('outdent', 'chevron-left', DS_SPRITE, 'Move ' + row.name + ' out of its folder', 'Move out of folder'));
@@ -103,7 +106,8 @@
     divider.setAttribute('aria-hidden', 'true');
     actions.appendChild(divider);
     actions.appendChild(makeActionButton('rename', 'pencil', SPRITE, 'Rename ' + row.name, 'Rename'));
-    actions.appendChild(makeActionButton('delete', 'close-circled', SPRITE, 'Delete ' + row.name, 'Delete'));
+    actions.appendChild(makeActionButton('convert', 'swap', SPRITE, convertLabel(row), convertTooltip(row)));
+    actions.appendChild(makeActionButton('delete', 'trash', SPRITE, 'Delete ' + row.name, 'Delete'));
     overlays.appendChild(actions);
 
     var pill = document.createElement('span');
@@ -174,6 +178,16 @@
     return row.open ? 'folder-open' : 'folder';
   }
 
+  // The convert button keeps one glyph in both directions, so the type
+  // it would produce lives in the label and tooltip instead.
+  function convertLabel(row) {
+    return 'Change ' + row.name + ' to a ' + (row.type === 'folder' ? 'file' : 'folder');
+  }
+
+  function convertTooltip(row) {
+    return row.type === 'folder' ? 'Change to file' : 'Change to folder';
+  }
+
   //
   //------- Reconciliation -------//
   //
@@ -217,6 +231,14 @@
       if (pillDeleteBtn) {
         pillDeleteBtn.setAttribute('aria-label', 'Delete comment on ' + row.name);
       }
+    }
+    // The row's type can change under it, and this element is reused
+    // for the life of the id — so the direction this button offers has
+    // to be re-read on every pass, not fixed at creation.
+    var convertBtn = el.querySelector('[data-action="convert"]');
+    if (convertBtn) {
+      convertBtn.setAttribute('aria-label', convertLabel(row));
+      convertBtn.setAttribute('data-tooltip', convertTooltip(row));
     }
     var iconUse = el.querySelector('.tree-icon use');
     setIconHref(iconUse, SPRITE, iconFor(row));

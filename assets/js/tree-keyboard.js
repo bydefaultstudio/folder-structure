@@ -3,7 +3,7 @@
    ─────────────────────────────
    WAI-ARIA treeview keyboard support with a roving tabindex (the
    focused row is the single tab stop). Navigation works in both
-   modes; editing keys (F2, Delete, a) only in edit mode.
+   modes; editing keys (F2, Delete, a, c, t) only in edit mode.
      ↑/↓        previous / next visible row
      →          open a closed folder, else first child
      ←          close an open folder, else parent
@@ -13,6 +13,7 @@
      Home/End   first / last visible row
      F2         rename    Delete  delete    a  add inside folder
      c          comment on the focused row
+     t          change the focused row between folder and file
      Alt+↑/↓    reorder among siblings
      Alt+→/←    indent into the folder above / outdent to the parent
    Inline-input keys (rename/comment) are handled (and stopped) by
@@ -20,7 +21,7 @@
    ───────────────────────────── */
 
 (function () {
-  var VERSION = '1.4.0';
+  var VERSION = '1.5.0';
 
   function model() { return window.FolderStructure.model; }
 
@@ -96,6 +97,9 @@
     } else if (key === 'c' && editMode &&
                !event.metaKey && !event.ctrlKey && !event.altKey) {
       window.FolderStructure.edit.startComment(id);
+    } else if (key === 't' && editMode &&
+               !event.metaKey && !event.ctrlKey && !event.altKey) {
+      window.FolderStructure.edit.convertNode(id);
     } else {
       handled = false;
     }

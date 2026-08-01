@@ -13,7 +13,7 @@
    ───────────────────────────── */
 
 (function () {
-  var VERSION = '1.5.0';
+  var VERSION = '1.6.0';
   var STORAGE_KEY = 'folder-structure:v1';
   var SAVE_DEBOUNCE_MS = 300;
 
@@ -175,6 +175,40 @@
       delete node.comment;
     }
     emitChange('comment', id);
+    return true;
+  }
+
+  // Changes a node's type in place, so its id, name and comment survive
+  // and the renderer keeps reconciling onto the same row. A folder
+  // becoming a file has to answer for what was inside it: 'keep'
+  // promotes the direct children into the slot right after the node,
+  // so they land at the level the folder occupied; 'discard' drops the
+  // branch. That choice cannot be inferred here — tree-edit's dialog
+  // resolves it first. Every other conversion ignores `contents`.
+  function setType(id, type, contents) {
+    var node = findNode(id);
+    if (!node || node.type === type) { return false; }
+    var parent = findParent(id);
+    if (!parent) { return false; }              // the virtual root stays a folder
+    snapshot();
+    if (type === 'folder') {
+      node.type = 'folder';
+      node.open = true;
+      node.children = [];
+    } else {
+      var kept = contents === 'keep' ? (node.children || []) : [];
+      node.type = 'file';
+      delete node.open;
+      delete node.children;
+      if (kept.length) {
+        var index = -1;
+        for (var i = 0; i < parent.children.length; i++) {
+          if (parent.children[i].id === id) { index = i; break; }
+        }
+        parent.children.splice.apply(parent.children, [index + 1, 0].concat(kept));
+      }
+    }
+    emitChange('set-type', id);
     return true;
   }
 
@@ -482,6 +516,7 @@
       addChild: addChild,
       rename: rename,
       setComment: setComment,
+      setType: setType,
       remove: remove,
       unwrap: unwrap,
       countDescendants: countDescendants,

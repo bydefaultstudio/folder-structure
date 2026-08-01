@@ -7,17 +7,21 @@
    select-then-toggle), comment pills (the pill's own chat/edit +
    delete toolbar, double-click on the comment, or C via
    tree-keyboard — the pill is the single comment control), delete
-   with a one-step Undo toast, and move up/down. Deleting a folder
+   with a one-step Undo toast, move up/down, and folder ⇄ file
+   conversion (the chip's swap button or T). Deleting a folder
    that holds anything raises a dialog first: delete the whole branch,
    or keep the contents and promote them one level (model.unwrap).
-   Files and empty folders skip it. Edit mode is a state
+   Files and empty folders skip it. Converting a folder that holds
+   anything asks the same question for the same reason — a file has
+   nowhere to put them — and both dialogs share their wording.
+   Edit mode is a state
    on the app root (.is-edit-mode) — view mode hides every editing
    affordance via CSS. All wiring is event delegation on document.
    At most one inline input (rename or comment) is open at a time.
    ───────────────────────────── */
 
 (function () {
-  var VERSION = '1.6.0';
+  var VERSION = '1.7.0';
   var NAME_FORBIDDEN = /[\/\\─-╿]/g;
   // Comments allow slashes and #; newlines and tree glyphs would break
   // the `name  # comment` line notation.
@@ -31,6 +35,7 @@
   var renamingId = null;
   var commentingId = null;
   var pendingDeleteId = null;      // folder awaiting a delete-dialog choice
+  var pendingConvertId = null;     // folder awaiting a convert-dialog choice
 
   function model() { return window.FolderStructure.model; }
 
@@ -415,6 +420,91 @@
     if (model().state.focusedId) { refocusRow(model().state.focusedId); }
   }
 
+  //
+  //------- Change type -------//
+  //
+
+  // Folder ⇄ file. A file, or a folder with nothing in it, converts
+  // straight through. A folder that holds something raises the same
+  // question deleting one does — keep the contents or drop them — so
+  // it asks before the type changes.
+  function convertNode(id) {
+    var node = model().findNode(id);
+    if (!node) { return; }
+    if (node.type === 'file') {
+      applyConvert(id, 'folder');
+      return;
+    }
+    var total = model().countDescendants(node);
+    if (total === 0) {
+      applyConvert(id, 'file');
+      return;
+    }
+    openConvertDialog(id, node, total);
+  }
+
+  function applyConvert(id, type, contents) {
+    var node = model().findNode(id);
+    if (!node) { return; }
+    var kept = contents === 'keep' ? (node.children || []).length : 0;
+    var dropped = contents === 'discard' ? model().countDescendants(node) : 0;
+    if (!model().setType(id, type, contents)) { return; }
+    window.FolderStructure.render.render();
+    refocusRow(id);
+    var detail = '';
+    if (kept) { detail = ', kept ' + countLabel(kept); }
+    if (dropped) { detail = ' and deleted ' + countLabel(dropped); }
+    toast('Changed “' + node.name + '” to a ' + type + detail, {
+      actionLabel: 'Undo',
+      onAction: function undoConvert() { model().undo(); }
+    });
+  }
+
+  function openConvertDialog(id, node, total) {
+    var dialog = document.querySelector('#convert-type-dialog');
+    // Same reasoning as the delete dialog: no opener element survives
+    // the action, so this calls showModal() directly rather than going
+    // through the design system's declarative data-dialog-open path.
+    if (!dialog) { applyConvert(id, 'file', 'keep'); return; }
+    var direct = (node.children || []).length;
+
+    dialog.querySelector('#convert-type-title').textContent = 'Change “' + node.name + '” to a file?';
+    dialog.querySelector('.convert-type-summary').textContent =
+      'A file cannot hold anything, and “' + node.name + '” holds ' + countLabel(total) + '.';
+    dialog.querySelector('.convert-type-detail').textContent = keepContentsDetail(total, direct);
+    dialog.querySelector('.convert-type-discard').textContent = 'Delete all ' + countLabel(total);
+
+    pendingConvertId = id;
+    if (!dialog.open) { dialog.showModal(); }
+  }
+
+  function handleConvertDialogClick(event) {
+    var id = pendingConvertId;
+    if (!id) { return; }
+    // Gate on the dialog, not the pending id — close() fires its close
+    // event on a queued task, so the id outlives dismissal by a tick.
+    var dialog = document.querySelector('#convert-type-dialog');
+    if (!dialog || !dialog.open) { return; }
+    if (event.target.closest('.convert-type-keep')) {
+      closeConvertDialog();
+      applyConvert(id, 'file', 'keep');
+    } else if (event.target.closest('.convert-type-discard')) {
+      closeConvertDialog();
+      applyConvert(id, 'file', 'discard');
+    }
+  }
+
+  function closeConvertDialog() {
+    var dialog = document.querySelector('#convert-type-dialog');
+    pendingConvertId = null;
+    if (dialog && dialog.open) { dialog.close(); }
+  }
+
+  function handleConvertDialogClose() {
+    pendingConvertId = null;
+    if (model().state.focusedId) { refocusRow(model().state.focusedId); }
+  }
+
   function nextFocusAfterDelete(id) {
     var parent = model().findParent(id);
     if (!parent) { return null; }
@@ -465,6 +555,7 @@
       }
       if (action === 'comment-delete') { deleteComment(id); }
       if (action === 'delete') { deleteNode(id); }
+      if (action === 'convert') { convertNode(id); }
       if (action === 'move-up') { model().move(id, -1); refocusRow(id); }
       if (action === 'move-down') { model().move(id, 1); refocusRow(id); }
       if (action === 'indent') { model().indent(id); refocusRow(id); }
@@ -550,6 +641,7 @@
     document.addEventListener('click', handleOutsideEditCommit, true);
     document.addEventListener('click', handleDocumentClick);
     document.addEventListener('click', handleDeleteDialogClick);
+    document.addEventListener('click', handleConvertDialogClick);
     document.addEventListener('dblclick', handleDoubleClick);
     document.addEventListener('keydown', handleInlineEditKeydown, true);
 
@@ -561,6 +653,7 @@
       startRename: startRename,
       startComment: startComment,
       deleteNode: deleteNode,
+      convertNode: convertNode,
       addNode: addNode,
       isRenaming: function isRenaming() { return renamingId !== null; },
       isCommenting: function isCommenting() { return commentingId !== null; }
@@ -580,6 +673,8 @@
     setMode(model().state.mode);
     var deleteDialog = document.querySelector('#delete-folder-dialog');
     if (deleteDialog) { deleteDialog.addEventListener('close', handleDeleteDialogClose); }
+    var convertDialog = document.querySelector('#convert-type-dialog');
+    if (convertDialog) { convertDialog.addEventListener('close', handleConvertDialogClose); }
   }
 
   initTreeEdit();
