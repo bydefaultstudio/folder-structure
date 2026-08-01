@@ -9,7 +9,7 @@
    ───────────────────────────── */
 
 (function () {
-  var VERSION = '1.5.0';
+  var VERSION = '1.6.0';
   var TOAST_DURATION_MS = 5000;
   // Hard-coded https: the subdomain serves plain http without a
   // redirect, and an http embed URL is mixed content inside Notion.
@@ -80,7 +80,9 @@
     };
     hint.textContent = format ? 'Detected: ' + labels[format] : 'Paste a structure to auto-detect the format';
     // The keep-comments row doubles as the "comments detected" notice —
-    // it only appears when the paste actually contains # comments.
+    // it only appears when the paste actually contains # comments. It is
+    // checked by default: a pasted comment is content the user wrote, so
+    // keeping it is the safe reading and discarding is the opt-in.
     var commentsRow = importDialog.querySelector('.import-comments-row');
     commentsRow.classList.toggle('is-hidden', !fs().parsers.containsComments(textarea.value));
   }
@@ -99,7 +101,7 @@
     applyImportedTree(result.tree);
     importDialog.close();
     textarea.value = '';
-    keepComments.checked = false;                  // strip is the default each time
+    keepComments.checked = true;                   // keeping comments is the default each time
     updateImportDetection();
     fs().canvas.fit();
     toast('Imported — ' + countNodes(result.tree) + ' items');

@@ -4,6 +4,19 @@ Track what's been done and what still needs doing across sessions. Add a dated s
 
 ---
 
+## 2026-08-01 — Import keeps `# comments` by default
+
+The "Keep `# comments` as annotations" checkbox shipped unchecked, so the default behaviour of a paste containing comments was to silently discard them. Per Erlen, it is now checked. A comment in a pasted structure is content the user wrote; keeping it is the safe reading and discarding is the opt-in.
+
+- **index.html** — `checked` on `.import-comments`
+- **app.js 1.6.0** — `runImport` reset flipped from `false` to `true`, so the default is restored after every import rather than the previous "strip each time"
+- Unticking still works and still applies to that import; it just doesn't persist to the next one
+- **Verified**: headless Chrome 9/9 — checked on load, row still hidden until comments are detected, comments kept with no interaction, checkbox re-checked afterwards, opt-out still strips, and the default restores after an opt-out import
+- **Known caveat, now reachable without opting in**: `docs/tree-notation.md` records that a *name* containing space-then-`#` (e.g. `my #file.txt`) is indistinguishable from a comment in the text notation. With capture on by default, such a name is split into name + comment without the user asking. It stays visible rather than silent — `containsComments()` returns true for that text, so the row is shown and can be unticked — but it is the one case where the new default does something unwanted
+- **Left alone deliberately**: the *export* dialog's "Include comments" is still unchecked by default. Flagged to Erlen rather than changed, since only the import default was asked for
+
+---
+
 ## 2026-08-01 — Click model: select first, toggle on the second click
 
 Selection and disclosure were fused into one gesture — a click selected a row *and* toggled it, so there was no way to reach a row's comment pill or edit chip without collapsing or expanding it. Reading a comment on an open folder destroyed the view you were reading it in; using the edit chip on a folder hid the children you were reorganising. Now: **a click selects, and a click on the already-selected row toggles it.** Inspect, then navigate.
