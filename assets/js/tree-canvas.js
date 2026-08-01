@@ -6,7 +6,9 @@
    (.canvas-surface) is moved with translate(x,y) scale(z). The
    JS-set transform is view state, not styling. A 4px threshold
    separates clicks (select / toggle) from drags (pan); panning
-   swallows the click that would otherwise fire on release.
+   swallows the click that would otherwise fire on release. A gesture
+   that starts inside an open inline input is exempt from both — it
+   belongs to the input (see trackGestureOrigin).
    Wheel gestures follow the design-tool (Figma) model: plain scroll
    pans, Shift+wheel pans horizontally, Ctrl/⌘+wheel zooms at the
    cursor (browsers report a trackpad pinch as Ctrl+wheel, so pinch
@@ -17,7 +19,7 @@
    ───────────────────────────── */
 
 (function () {
-  var VERSION = '1.3.0';
+  var VERSION = '1.4.0';
   var DRAG_THRESHOLD_PX = 4;
   var ZOOM_MIN = 0.25;
   var ZOOM_MAX = 2.5;
@@ -37,6 +39,7 @@
   var pinchStartDist = 0;
   var pinchStartZoom = 1;
   var reducedMotion = false;
+  var gestureInInput = false;   // this gesture began inside an inline input
 
   function view() {
     return window.FolderStructure.model.state.view;
@@ -141,7 +144,21 @@
     return { x: (a.x + b.x) / 2 - rect.left, y: (a.y + b.y) / 2 - rect.top };
   }
 
+  // A pointer gesture that begins inside an open inline input belongs to
+  // that input for its whole life: placing the caret, and dragging to
+  // select text — which readily overshoots the input's narrow edges, so
+  // the click ending such a drag targets an ancestor and can't be judged
+  // on its own target. Recorded on document (capture) rather than on the
+  // viewport so a press anywhere, toolbar included, clears it.
+  function trackGestureOrigin(event) {
+    gestureInInput = !!event.target.closest('.tree-rename-input, .tree-comment-input');
+  }
+
   function handlePointerDown(event) {
+    // Panning must not arm inside an input: crossing the 4px threshold
+    // takes pointer capture, which steals the text selection and
+    // retargets the click away from the input.
+    if (gestureInInput) { return; }
     if (event.button !== 0 && event.pointerType === 'mouse') { return; }
     pointers[event.pointerId] = { x: event.clientX, y: event.clientY };
     pointerCount += 1;
@@ -276,6 +293,9 @@
   }
 
   function handleViewportClick(event) {
+    // Editing a row's name must not double as clicking the row, or
+    // moving the caret would toggle the folder out from under the input.
+    if (gestureInInput) { return; }
     if (event.target.closest('.tree-item-overlays') || event.target.closest('.add-pill')) { return; }
     var rowEl = event.target.closest('.tree-item');
     if (!rowEl) {
@@ -296,6 +316,7 @@
 
     reducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
 
+    document.addEventListener('pointerdown', trackGestureOrigin, true);
     viewportEl.addEventListener('pointerdown', handlePointerDown);
     viewportEl.addEventListener('pointermove', handlePointerMove);
     viewportEl.addEventListener('pointerup', handlePointerUp);
@@ -313,7 +334,8 @@
       zoomOut: function zoomOut() { zoomBy(1 / ZOOM_STEP); },
       zoomTo100: zoomTo100,
       centerOnNode: centerOnNode,
-      activateNode: activateNode
+      activateNode: activateNode,
+      isGestureInInput: function isGestureInInput() { return gestureInInput; }
     };
     console.log('tree-canvas.js v' + VERSION + ' initialised');
   }

@@ -4,6 +4,23 @@ Track what's been done and what still needs doing across sessions. Add a dated s
 
 ---
 
+## 2026-08-01 — A rename input keeps the click that lands inside it
+
+Erlen reported that while renaming, clicking a different letter to move the caret closed the input. Reproduced and worse than reported: on a **folder** row the click also toggled the folder, and the re-render that followed destroyed the input mid-edit and discarded whatever had been typed. On a **file** row the input stayed on screen but lost DOM focus to the row behind it, so the next keystroke was read as a tree shortcut — `a` added a child, `t` changed the row's type.
+
+Three handlers watch a click on a row, and only one of them was wrong. `handleOutsideEditCommit` and `handleDocumentClick` in tree-edit both excluded the input by target. `handleViewportClick` in tree-canvas excluded `.tree-item-overlays` and `.add-pill` but nothing else — and the rename input is appended into `.tree-label`, inside the row itself, so it read as a click on the row and called `activateNode`. The comment input was never affected, but only by accident of position: it lives inside the pill, which is inside the overlays.
+
+Dragging to select text was broken by a second, unrelated mechanism. Pointer events bubble from the input to `.canvas-viewport`, so a drag inside the input crossed the canvas's 4px pan threshold, took `setPointerCapture`, and panned the diagram out from under the caret — and because pointer capture retargets the composed click to the viewport, the target-based guards missed it and the rename committed.
+
+- **The rule made explicit**: a pointer gesture that *begins* inside an open inline input belongs to that input for its whole life. Judging the click by its own target is not enough — a drag that overshoots the input's narrow edges leaves the composed click on an ancestor — so the origin is recorded at `pointerdown` and consulted at click time
+- **tree-canvas.js 1.4.0** — `trackGestureOrigin` on `document` at capture sets `gestureInInput`; bound to the document rather than the viewport so a press anywhere, toolbar included, clears it. `handlePointerDown` returns early on it (the pan never arms) and so does `handleViewportClick` (the row never activates). Exposed as `canvas.isGestureInInput()`
+- **tree-edit.js 1.7.1** — one `isInlineInputClick(event)` helper: the click's own target first, then the canvas's gesture origin. Replaces the target-only guard in `handleOutsideEditCommit` and collapses the two duplicated conditions at the end of `handleDocumentClick` into a single early return. Guarded for `embed.html`, which has no `window.FolderStructure.canvas` if the viewport is missing
+- **The commit path is unchanged where it should be**: clicking another row, clicking empty canvas, the chip's check button, Enter and Escape all still commit or cancel exactly as before. Only gestures that start inside the input are exempt
+- **Verified**: headless Chrome, 33/33. The eight failures reproduced first against unmodified code — caret click on a folder row (input destroyed, folder toggled, typed text lost), the same on a file row (focus stolen), drag-select panning the canvas by 40px, and a drag overshooting the input's edge committing the rename. All pass after the change, alongside controls for select-then-toggle, canvas panning, the chip's start/save toggle, Escape, and the comment input. `embed.html` re-checked at 7/7 with `tree-edit` absent
+- **Arrow keys were already safe** and were not touched — `handleInlineEditKeydown` stops keydown propagation at document capture, so tree navigation never sees them. Only the mouse path was broken
+
+---
+
 ## 2026-08-01 — Change a row between folder and file
 
 A node's type was fixed at creation. The add-pill's folder/file toggle decides what gets inserted, but once a row existed there was no way to change its mind — you deleted it and re-added, losing the comment, the position, and anything inside. Erlen asked for a quick way to switch, with a dialog when a folder holding contents becomes a file. It works in both directions: a file becoming a folder is always safe, so it goes straight through.

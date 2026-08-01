@@ -21,7 +21,7 @@
    ───────────────────────────── */
 
 (function () {
-  var VERSION = '1.7.0';
+  var VERSION = '1.7.1';
   var NAME_FORBIDDEN = /[\/\\─-╿]/g;
   // Comments allow slashes and #; newlines and tree glyphs would break
   // the `name  # comment` line notation.
@@ -539,6 +539,17 @@
     if (rowEl) { rowEl.focus({ preventScroll: true }); }
   }
 
+  // Does this click belong to an open inline input rather than to the
+  // page behind it? Its own target answers for a plain click, but not
+  // for the click that ends a drag-selection: dragging past the input's
+  // edge leaves the composed click on an ancestor, so ask the canvas
+  // where the gesture started. Absent on pages without a canvas.
+  function isInlineInputClick(event) {
+    if (event.target.closest('.tree-rename-input, .tree-comment-input')) { return true; }
+    var canvas = window.FolderStructure.canvas;
+    return !!canvas && canvas.isGestureInInput();
+  }
+
   function handleDocumentClick(event) {
     var actionBtn = event.target.closest('.tree-item-overlays [data-action]');
     if (actionBtn) {
@@ -577,12 +588,9 @@
       window.FolderStructure.render.render();      // refresh pill labels/icons
       return;
     }
-    if (renamingId && !event.target.closest('.tree-rename-input')) {
-      commitRename();
-    }
-    if (commentingId && !event.target.closest('.tree-comment-input')) {
-      commitComment();
-    }
+    if (isInlineInputClick(event)) { return; }
+    if (renamingId) { commitRename(); }
+    if (commentingId) { commitComment(); }
   }
 
   // Capture-phase: commit before tree-canvas's click handler re-renders
@@ -592,7 +600,7 @@
   // instead of re-entering.
   function handleOutsideEditCommit(event) {
     if (!renamingId && !commentingId) { return; }
-    if (event.target.closest('.tree-rename-input, .tree-comment-input')) { return; }
+    if (isInlineInputClick(event)) { return; }
     if (event.target.closest('.tree-item-overlays')) { return; }
     // Read the target row before committing — commits re-render.
     var rowEl = event.target.closest('.tree-item');
