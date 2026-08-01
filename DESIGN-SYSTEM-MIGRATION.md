@@ -49,6 +49,6 @@ Syncs from the sibling "Design System" working tree instead of the published pac
 ## Rules
 
 - Never hand-edit anything `bd-sync` writes — `assets/css/design-system.css`, `assets/css/design-system/`, `assets/js/design-system/`, `assets/icons/icons.svg`, `assets/icons/cursors.svg`, `DESIGN.md`. All of it is regenerated on the next sync.
-- Dialog/toast/tooltip behavior here is still hand-rolled against design-system CSS classes rather than the package's JS modules (`assets/js/design-system/dialog.js`, `toast.js`, etc.). Adopting those is a backlog item, not part of this migration.
+- **Toast** is the last hand-rolled component here: `app.js` builds its own toast against the design-system CSS classes instead of loading `assets/js/design-system/toast.js`. It stays local for now because the module has no action-button support and the delete / share-import toasts depend on **Undo** — adopting it means adding that option upstream first. See the toast entry in `ROADMAP.md`. Dialog was adopted 2026-07-30 (`dialog.js` loads first in `index.html`); tooltips were always the design system's native `data-tooltip`, never hand-rolled.
 
 Full update strategy lives in the design-system repo: `cms/upgrading-docs.md`.

@@ -110,6 +110,17 @@ The cost is real and worth naming: opening a folder now takes two clicks instead
 
 ---
 
+## 2026-07-31 — Cross-session docs split: handover / progress / roadmap
+
+Three docs now carry work across sessions with no overlap, per Erlen: **`HANDOVER.md`** (new) is the live state-of-play, rewritten each session — current state, what to pick up, what's blocked and on whom; this file stays the append-only shipped record; `ROADMAP.md` owns the feature bank and a new **launch checklist**. `CLAUDE.md` updated in both places that mattered — `HANDOVER.md` added at the top of the read order, and the Task Tracking section rewritten to name the three files and their lifecycles.
+
+- **ROADMAP.md** — restructured to Launch checklist / In Progress / Ideas / Done. Comments moved out of In Progress into Done (shipped 2026-07-30; the residual hands-on QA became a launch-checklist item rather than keeping a shipped feature "in progress"). Done also records share/embed links, expand-collapse-all and multi-step undo, so nobody re-proposes them. The four v1 fast-follows that only existed in a 2026-07-29 progress note — drag-to-move, shell/JSON export, minimap, virtualisation — are now real Ideas entries
+- **Launch checklist** — HTTP→HTTPS redirect (re-verified still open: plain http returns 200, not 301), the `noindex` flip, template favicons/`logo.svg` never replaced, the untested Notion paste, and comment-pill QA
+- **New idea: toast variants + position** (Erlen's request) — use the design system's `success`/`warning`/`danger`/`info` types instead of the default black card, and lift the toast container so it stops covering the bottom-right zoom cluster (container is the DS default bottom-right `--space-xl`, `.zoom-controls` is bottom-right `--space-l`, and the project's `z-index: 9999` override puts toasts over the chrome's 700; `.edit-bar` is bottom-left and doesn't collide). Recorded with the blocker found while scoping it: DS `showToast(message, type, duration)` has **no action-button support**, and both the delete and share-link-import toasts rely on Undo — so adoption means adding an `action` option upstream in the design system first, not forking `toast.js` locally
+- **Corrected two stale docs**: `DESIGN-SYSTEM-MIGRATION.md` still claimed dialog/toast/tooltip were all hand-rolled (dialog was adopted 2026-07-30, tooltips were always native, toast alone remains); `PROJECT_PROGRESS.md`'s trailing onboarding checklist still showed GitHub unconnected and hosting as "Cloudflare Pages", and its "Next up" still said build v1 — both retired, with the one genuinely-open item (logo/favicons) moved to the launch checklist
+
+---
+
 ## 2026-07-30 — Adopted the design system's dialog component (tooltips were already native)
 
 Replaced the custom dialog wiring with the delivered `assets/js/design-system/dialog.js` module (v2.1.0 ships it; loaded first in index.html's script block). Tooltips needed no migration — every tooltip already used the system's `data-tooltip`/`data-tooltip-position` on focusable buttons, with no `title=""` doubles and no custom hover CSS.
