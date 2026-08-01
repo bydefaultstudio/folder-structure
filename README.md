@@ -27,7 +27,7 @@ Claude follows the onboarding flow in `CLAUDE.md`: it runs `npm install` to sync
 2. Review `PROJECT_BRIEF.md` for project goals and requirements
 3. Follow the [Setup guide](docs/site/setup.html) to customize brand colors, fonts, and logo
 4. Explore the [Documentation](docs/site/index.html) for template and project guides
-5. Browse the canonical design system docs at [bydefault.design](https://bydefault.design/design-system/what-is-a-design-system.html)
+5. Browse the canonical design system docs at [bydefault.design](https://bydefault.design/website/what-is-a-design-system.html)
 6. Check the [Brand Book](docs/site/brand-book.html) to see the current brand identity
 7. Start building pages at the repo root — edit `index.html`, copy `templates/page-template.html` for new pages, and keep css/js/images in `assets/`
 

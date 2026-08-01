@@ -26,7 +26,7 @@ On dark backgrounds, supply a proper dark-mode logo variant (e.g. `logo-dark.svg
 
 ## Colours
 
-These are the tokens a theme owns. Overriding them in `theme.css` re-colours the whole system — semantic tokens cascade through them. See [Color](https://bydefault.design/design-system/color.html) for the full token reference.
+These are the tokens a theme owns. Overriding them in `theme.css` re-colours the whole system — semantic tokens cascade through them. See [Color](https://bydefault.design/website/color.html) for the full token reference.
 
 ### Accent
 
@@ -170,4 +170,4 @@ For brand values that differ in dark mode, add a `[data-theme="dark"]` block **a
 }
 ```
 
-See [Setup](setup.html) for the full project-branding checklist and [Color](https://bydefault.design/design-system/color.html) for the complete token reference.
+See [Setup](setup.html) for the full project-branding checklist and [Color](https://bydefault.design/website/color.html) for the complete token reference.

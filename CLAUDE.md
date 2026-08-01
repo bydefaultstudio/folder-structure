@@ -32,9 +32,9 @@ Before generating or modifying code, treat the following as authoritative:
 
 **Canonical design system docs** (fetch with WebFetch when needed):
 
-- Tokens: [color](https://bydefault.design/design-system/color.html), [typography](https://bydefault.design/design-system/typography.html), [spacing](https://bydefault.design/design-system/spacing.html), [motion](https://bydefault.design/design-system/motion.html)
-- Components: [button](https://bydefault.design/design-system/button.html), [border](https://bydefault.design/design-system/border.html), [form](https://bydefault.design/design-system/form.html), [callout](https://bydefault.design/design-system/callout.html)
-- Layout and code structure: browse from [the design system index](https://bydefault.design/design-system/)
+- Tokens: [color](https://bydefault.design/website/color.html), [typography](https://bydefault.design/website/typography.html), [spacing](https://bydefault.design/website/spacing.html), [motion](https://bydefault.design/website/motion.html)
+- Components: [button](https://bydefault.design/website/button.html), [border](https://bydefault.design/website/border.html), [form](https://bydefault.design/website/form.html), [callout](https://bydefault.design/website/callout.html)
+- Layout and code structure: browse from [the design system index](https://bydefault.design/website/)
 
 If any instruction conflicts with these documents, **the documents take precedence**.
 
@@ -62,7 +62,7 @@ If something cannot be implemented cleanly using existing patterns, **pause and 
 ## 3. Quick Reference
 
 ### Layout Hierarchy
-See the [canonical design system docs](https://bydefault.design/design-system/) for complete details.
+See the [canonical design system docs](https://bydefault.design/website/) for complete details.
 
 ```
 body → page-wrapper → page-content → section → padding-global → container/max-width → block
@@ -75,7 +75,7 @@ body → page-wrapper → page-content → section → padding-global → contai
 - Never mix responsibilities across layers
 
 ### Design Tokens
-See the canonical [color](https://bydefault.design/design-system/color.html), [typography](https://bydefault.design/design-system/typography.html), and [spacing](https://bydefault.design/design-system/spacing.html) docs for the complete token reference.
+See the canonical [color](https://bydefault.design/website/color.html), [typography](https://bydefault.design/website/typography.html), and [spacing](https://bydefault.design/website/spacing.html) docs for the complete token reference.
 
 **Critical rules:**
 - Use semantic tokens, not primitives
@@ -83,7 +83,7 @@ See the canonical [color](https://bydefault.design/design-system/color.html), [t
 - Semantic tokens (e.g., `--text-primary`, `--background-faded`) are always preferred
 
 ### CSS Structure
-See the [canonical design system docs](https://bydefault.design/design-system/) for complete organization guidelines.
+See the [canonical design system docs](https://bydefault.design/website/) for complete organization guidelines.
 
 **Critical rules:**
 - Design system CSS (`assets/css/design-system.css`) is synced from the `@bydefaultstudio/design-system` npm package on `npm install` — never edit it; it ships neutral engine defaults
@@ -95,7 +95,7 @@ See the [canonical design system docs](https://bydefault.design/design-system/) 
 - Never hardcode values that should use tokens
 
 ### JavaScript Structure
-See the [canonical design system docs](https://bydefault.design/design-system/) for complete patterns.
+See the [canonical design system docs](https://bydefault.design/website/) for complete patterns.
 
 **Critical rules:**
 - One responsibility per file
@@ -106,7 +106,7 @@ See the [canonical design system docs](https://bydefault.design/design-system/) 
 - Log version and init success
 
 ### Border Strategy
-See the canonical [border docs](https://bydefault.design/design-system/border.html) for the complete composable architecture.
+See the canonical [border docs](https://bydefault.design/website/border.html) for the complete composable architecture.
 
 **Critical rules:**
 - Structural classes define position (`.border`, `.border-top`, etc.)
@@ -114,7 +114,7 @@ See the canonical [border docs](https://bydefault.design/design-system/border.ht
 - Never create classes like `.border-top-m` or hardcode border values
 
 ### Components
-See the canonical [button docs](https://bydefault.design/design-system/button.html) for button usage. Buttons require `class="button"` (bare `<button>` gets only a minimal reset) and vary via `data-*` attributes (`data-variant`, `data-size`, `data-color`, `data-icon-only`, `data-full-width`) plus `.is-*` state classes.
+See the canonical [button docs](https://bydefault.design/website/button.html) for button usage. Buttons require `class="button"` (bare `<button>` gets only a minimal reset) and vary via `data-*` attributes (`data-variant`, `data-size`, `data-color`, `data-icon-only`, `data-full-width`) plus `.is-*` state classes.
 
 ---
 
@@ -124,7 +124,7 @@ See the canonical [button docs](https://bydefault.design/design-system/button.ht
 - Always use `templates/page-template.html` as the base
 - Include all SEO meta tags (see `docs/seo-best-practices.md`)
 - Use semantic HTML structure
-- Follow the layout hierarchy (see the [canonical design system docs](https://bydefault.design/design-system/))
+- Follow the layout hierarchy (see the [canonical design system docs](https://bydefault.design/website/))
 
 ### SEO Meta Tags
 See `docs/seo-best-practices.md` for complete requirements.
@@ -283,8 +283,8 @@ Use sub-agents liberally to keep the main context window clean. Offload research
 - For complex problems, throw more compute at it via parallel agents
 
 Example: before building a new section, launch simultaneously:
-- Canonical layout + [spacing](https://bydefault.design/design-system/spacing.html) docs (layout agent)
-- Canonical [color](https://bydefault.design/design-system/color.html) + [typography](https://bydefault.design/design-system/typography.html) docs (tokens agent)
+- Canonical layout + [spacing](https://bydefault.design/website/spacing.html) docs (layout agent)
+- Canonical [color](https://bydefault.design/website/color.html) + [typography](https://bydefault.design/website/typography.html) docs (tokens agent)
 - `docs/brand-book.md` (theming agent)
 
 ### Task Tracking
