@@ -64,7 +64,7 @@
             <main class="docs-main">
                 <article>
                     <blockquote>
-<p>Claude: The rules here must match <code>assets/js/tree-parsers.js</code>. If the parser changes, change this page and <code>docs/tree-notation.md</code> together.</p>
+<p>Claude: The rules here must match <code>assets/js/tree-parsers.js</code>. If the parser changes, change this page, <code>docs/tree-notation.md</code> and the copy in <code>assets/js/tree-prompt.js</code> together — the app ships no markdown, so that module holds a duplicate of the prompt block below and a smoke test asserts the two are byte-identical.</p>
 </blockquote>
 <p>Models produce folder trees readily, but they improvise: two-space indents, bare <code>README</code>, a stray comment line, a summary paragraph underneath. Each of those changes what the parser builds. This page is the prompt that removes the guesswork — hand it to any model alongside your actual request, and the output pastes into the tool without cleanup.</p>
 <p><code>docs/tree-notation.md</code> documents every format the parser accepts. This page picks <strong>one</strong> of them — the Unicode tree — and states it as a contract, because a prompt that offers choices gets inconsistent output.</p>
@@ -122,6 +122,7 @@ Rules:
       </div>
     
 <p>Paste it, then add your request underneath — <em>&quot;Structure for a small marketing site&quot;</em>, <em>&quot;map this repo&quot;</em>, <em>&quot;a photography client&#39;s delivery folders&quot;</em>.</p>
+<p>You do not have to copy it from this page. The import dialog carries a <strong>Copy Prompt</strong> button beside <em>Import</em>, which puts the same text on the clipboard — so the round trip is: open Import → Copy Prompt → paste into a chat with your request → paste the reply back into the same dialog.</p>
 <hr>
 <h2 id="why-each-rule-exists">Why Each Rule Exists</h2>
 <p>Every rule below traces to real parser behaviour in <code>assets/js/tree-parsers.js</code>, verified against the parser rather than inferred from it.</p>

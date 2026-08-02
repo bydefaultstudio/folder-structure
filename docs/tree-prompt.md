@@ -6,7 +6,7 @@ section: "Project"
 order: 6
 ---
 
-> Claude: The rules here must match `assets/js/tree-parsers.js`. If the parser changes, change this page and `docs/tree-notation.md` together.
+> Claude: The rules here must match `assets/js/tree-parsers.js`. If the parser changes, change this page, `docs/tree-notation.md` and the copy in `assets/js/tree-prompt.js` together — the app ships no markdown, so that module holds a duplicate of the prompt block below and a smoke test asserts the two are byte-identical.
 
 Models produce folder trees readily, but they improvise: two-space indents, bare `README`, a stray comment line, a summary paragraph underneath. Each of those changes what the parser builds. This page is the prompt that removes the guesswork — hand it to any model alongside your actual request, and the output pastes into the tool without cleanup.
 
@@ -65,6 +65,8 @@ Rules:
 ````
 
 Paste it, then add your request underneath — *"Structure for a small marketing site"*, *"map this repo"*, *"a photography client's delivery folders"*.
+
+You do not have to copy it from this page. The import dialog carries a **Copy Prompt** button beside *Import*, which puts the same text on the clipboard — so the round trip is: open Import → Copy Prompt → paste into a chat with your request → paste the reply back into the same dialog.
 
 ---
 

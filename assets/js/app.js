@@ -9,7 +9,7 @@
    ───────────────────────────── */
 
 (function () {
-  var VERSION = '1.6.0';
+  var VERSION = '1.7.0';
   var TOAST_DURATION_MS = 5000;
   // Hard-coded https: the subdomain serves plain http without a
   // redirect, and an http embed URL is mixed content inside Notion.
@@ -267,25 +267,49 @@
 
   function copyExport() {
     var output = exportDialog.querySelector('.export-output');
-    var text = output.value;
+    copyText(output.value, 'Copied to clipboard', output);
+  }
+
+  function copyPrompt() {
+    copyText(fs().prompt.TEXT, 'Prompt copied — paste it into any AI chat', null);
+  }
+
+  // sourceEl is the on-screen field already holding this text, or null
+  // when nothing shows it; the fallback needs something selectable.
+  function copyText(text, okMessage, sourceEl) {
     if (navigator.clipboard && navigator.clipboard.writeText) {
       navigator.clipboard.writeText(text).then(
-        function handleCopyOk() { toast('Copied to clipboard'); },
-        function handleCopyFail() { fallbackCopy(output); }
+        function handleCopyOk() { toast(okMessage); },
+        function handleCopyFail() { fallbackCopy(text, okMessage, sourceEl); }
       );
     } else {
-      fallbackCopy(output);
+      fallbackCopy(text, okMessage, sourceEl);
     }
   }
 
-  function fallbackCopy(output) {
-    output.focus();
-    output.select();
+  // execCommand needs a focused selection, so text with no field of its
+  // own borrows a throwaway one. Appending and removing it inside this
+  // one task means it is never painted, but focus has to be handed back.
+  function fallbackCopy(text, okMessage, sourceEl) {
+    var field = sourceEl;
+    var previous = document.activeElement;
+    if (!field) {
+      field = document.createElement('textarea');
+      field.value = text;
+      field.setAttribute('readonly', '');
+      document.body.appendChild(field);
+    }
+    field.focus();
+    field.select();
     try {
       document.execCommand('copy');
-      toast('Copied to clipboard');
+      toast(okMessage);
     } catch (error) {
       toast('Copy failed — select the text and copy manually');
+    }
+    if (field !== sourceEl) {
+      document.body.removeChild(field);
+      if (previous && previous.focus) { previous.focus(); }
     }
   }
 
@@ -387,6 +411,7 @@
     updateToggleAllButton();
     importDialog.querySelector('.import-textarea').addEventListener('input', updateImportDetection);
     importDialog.querySelector('.import-run').addEventListener('click', runImport);
+    importDialog.querySelector('.import-copy-prompt').addEventListener('click', copyPrompt);
     exportDialog.querySelector('.export-formats').addEventListener('click', handleExportFormatClick);
     exportDialog.querySelector('.export-fence').addEventListener('change', updateExportPreview);
     exportDialog.querySelector('.export-comments').addEventListener('change', updateExportPreview);

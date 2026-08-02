@@ -112,6 +112,7 @@ docs/                   → Documentation (markdown sources + generated site)
 <ul>
 <li><code>theme-toggle.js</code> — dark-mode toggle: sets <code>data-theme</code> on <code>&lt;html&gt;</code>, persists to localStorage, defaults to the OS preference, and injects icons into <button type="button" class="token-copy is-class" data-copy=".dark-mode-toggle" aria-label="Copy .dark-mode-toggle"><code>.dark-mode-toggle</code></button> buttons.</li>
 <li><code>tree-share.js</code> — fragment codec for share and embed links (see <code>docs/tree-notation.md</code> → Share-Link Fragment Encoding). Loaded by both <code>index.html</code> and <code>embed.html</code>.</li>
+<li><code>tree-prompt.js</code> — data only: the AI prompt text offered by the import dialog&#39;s <em>Copy Prompt</em> button. A verbatim copy of the prompt block in <code>docs/tree-prompt.md</code>, duplicated here because <code>dist/</code> ships no markdown. Edit the two together.</li>
 <li><code>embed.js</code> — bootstrap for <code>embed.html</code>: decodes the fragment, imports the tree read-only, wires zoom controls and the branding link.</li>
 </ul>
 <h2 id="assetsfonts">assets/fonts/</h2>

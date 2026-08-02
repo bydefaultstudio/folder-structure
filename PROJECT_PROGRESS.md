@@ -4,6 +4,25 @@ Track what's been done and what still needs doing across sessions. Add a dated s
 
 ---
 
+## 2026-08-02 — An AI prompt users can copy from the import dialog
+
+The tool assumes you arrive with text to paste, but the most likely way to get that text is to ask a model for it — and models improvise: two-space indents, bare `README`, a standalone comment line, a summary paragraph underneath. Each produces a diagram that is wrong in a way that looks plausible. The fix is a prompt that states the output contract, and a button that hands it over at the moment it is needed.
+
+The rules were derived by **running the parser, not reading it**. Three behaviours would have been stated wrongly from a reading of the source:
+
+- **Extensionless names import as folders.** `makeNode` takes a trailing `/` first, then a dot with characters either side, then defaults to folder — so `README`, `LICENSE` and `Makefile` all arrive as folders. `.gitignore` too, because its only dot has nothing before it. There is no notation that forces a file type onto such a name, so the prompt asks for extensions rather than pretending the import can be fixed
+- **A two-space indent silently flattens.** Depth is `round(index / 4) + 1`; at two characters per level the arithmetic collides from the third level down and a grandchild lands as a sibling of its own parent. Exact at four
+- **A name starting with `#` is unsafe in tree notation specifically.** `docs/tree-notation.md` says `#hashtag/` survives as a name, which is true only at column 0 — after a `├── ` connector there is always a space in front of the name, so the parser reads the whole tail as a comment and the row disappears. Flagged, not yet fixed in that page
+
+- **`docs/tree-prompt.md`** (new, Project §6) — the prompt itself, plus a section tracing every rule to the parser behaviour it guards, and a table of what normalization already handles so the prompt does not waste tokens policing fences, blank lines, CRLF or heavy box glyphs
+- **`assets/js/tree-prompt.js` 1.0.0** (new) — data only, no DOM, no behaviour. Holds a verbatim copy of the prompt because `scripts/build-dist.js` ships no markdown, so the page cannot be the runtime source. Generated from the markdown rather than retyped, and the smoke test asserts the two are byte-identical, which is what keeps the duplication honest
+- **`index.html`** — *Copy Prompt* in the import dialog footer, `data-variant="faded"`, with a tooltip since the label alone does not say what the prompt is for. Placed left of *Import* at Erlen's direction, which also matches the delete dialog's footer ordering: primary action rightmost
+- **`app.js` 1.7.0** — `copyExport` and `fallbackCopy` generalised into `copyText(text, okMessage, sourceEl)` rather than duplicated. `sourceEl` is the on-screen field already holding the text; the prompt has none, so the fallback borrows a throwaway `<textarea>`, which `execCommand` needs for its selection. Appending and removing it inside one task means it is never painted, but focus has to be handed back explicitly or it lands on `<body>` and the dialog loses its keyboard position
+- **Verified**: headless Chrome, 16/16 — module registration, byte-equality with the markdown, footer placement and DOM order, variant, element type, tooltip, the clipboard-API path capturing exactly the prompt, the toast and its wording, and the fallback path proving it does not throw, leaves no stray textarea, and restores focus. Re-run after the left/right swap and again after the docs edits
+- **Deliberately not done**: the export dialog's *Include comments* default is still unticked while import now keeps comments — the pair remains inconsistent, and that decision is still open from the previous session
+
+---
+
 ## 2026-08-01 — A rename input keeps the click that lands inside it
 
 Erlen reported that while renaming, clicking a different letter to move the caret closed the input. Reproduced and worse than reported: on a **folder** row the click also toggled the folder, and the re-render that followed destroyed the input mid-edit and discarded whatever had been typed. On a **file** row the input stayed on screen but lost DOM focus to the row behind it, so the next keystroke was read as a tree shortcut — `a` added a child, `t` changed the row's type.

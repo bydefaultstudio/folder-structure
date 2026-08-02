@@ -56,6 +56,7 @@ The three-layer CSS contract. Load order matters — every page links them in th
 
 - `theme-toggle.js` — dark-mode toggle: sets `data-theme` on `<html>`, persists to localStorage, defaults to the OS preference, and injects icons into `.dark-mode-toggle` buttons.
 - `tree-share.js` — fragment codec for share and embed links (see `docs/tree-notation.md` → Share-Link Fragment Encoding). Loaded by both `index.html` and `embed.html`.
+- `tree-prompt.js` — data only: the AI prompt text offered by the import dialog's *Copy Prompt* button. A verbatim copy of the prompt block in `docs/tree-prompt.md`, duplicated here because `dist/` ships no markdown. Edit the two together.
 - `embed.js` — bootstrap for `embed.html`: decodes the fragment, imports the tree read-only, wires zoom controls and the branding link.
 
 ## assets/fonts/
