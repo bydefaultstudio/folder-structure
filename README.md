@@ -1,53 +1,49 @@
 # Folder Structure
 
-This project uses a structured design system and layout architecture for building consistent, maintainable front-end experiences.
+A free tool for visualising folder structures as an interactive tree. Paste code or text to auto-generate a diagram, or build one manually — then copy clean, AI-ready text describing the structure to paste into Claude or any other AI tool.
 
-## Overview
+**Live at [folder-structure.bydefault.studio](https://folder-structure.bydefault.studio)**
 
-This project includes:
+## Features
 
-- A complete **design system** with tokens, utility classes, and components — shipping neutral defaults, with dark mode built in
-- A **brand theme** (`assets/css/theme.css`) for per-project visual identity (fonts, colours, logo)
-- Clear **layout and spacing rules** for consistent page structure
-- Documented **best practices** for CSS, JavaScript, and HTML
+- **Paste anything** — ASCII trees (`├── └──`), indented text, or file-path lists are parsed into an interactive tree
+- **Edit visually** — add, rename, nest, convert, and delete files and folders
+- **Copy AI-ready output** — export the structure in clean notations any AI tool can act on (see [the notation spec](docs/tree-notation.md))
+- **Share & embed** — structures encode into the URL fragment; `embed.html` renders a read-only view for embedding
+- **No backend** — pure static HTML/CSS/JS; nothing is uploaded or stored server-side
 
-## Getting Started
+## Development
 
-### With Claude Code (recommended)
+```bash
+npm install   # syncs the design system (assets/css/design-system.css is generated, not committed)
+```
 
-Open the project in Claude Code and say:
+Then serve the repo root at **http://localhost:3100/** (VS Code Live Server is pre-configured to this port in `.vscode/settings.json`, or use `python3 -m http.server 3100 --bind 127.0.0.1`).
 
-> Set up this project
-
-Claude follows the onboarding flow in `CLAUDE.md`: it runs `npm install` to sync the design system, interviews you to fill in `PROJECT_BRIEF.md`, propagates your project name across the template, applies any known brand tokens to `assets/css/theme.css`, and regenerates the docs site.
-
-### Manual setup
-
-1. Run `npm install` — this syncs the design system CSS from the `@bydefaultstudio/design-system` package into `assets/css/design-system.css`
-2. Review `PROJECT_BRIEF.md` for project goals and requirements
-3. Follow the [Setup guide](docs/site/setup.html) to customize brand colors, fonts, and logo
-4. Explore the [Documentation](docs/site/index.html) for template and project guides
-5. Browse the canonical design system docs at [bydefault.design](https://bydefault.design/website/what-is-a-design-system.html)
-6. Check the [Brand Book](docs/site/brand-book.html) to see the current brand identity
-7. Start building pages at the repo root — edit `index.html`, copy `templates/page-template.html` for new pages, and keep css/js/images in `assets/`
-
-> **Note on the lockfile:** this template deliberately ignores `package-lock.json`, so a project created from it resolves the newest compatible design system version at first install. Once your project is under way, feel free to commit your own lockfile for stability.
-
-> **Updating the design system later:** run `npm update @bydefaultstudio/design-system` — the postinstall sync re-copies the updated artefacts into place automatically. Dependabot also opens a PR when a new version is released.
+The UI is built on the [`@bydefaultstudio/design-system`](https://bydefault.design) npm package — tokens and utilities in `assets/css/design-system.css` (synced, gitignored), brand overrides in `assets/css/theme.css`, project styles in `assets/css/style.css`. How updates flow in is documented in the *Design System Sync & Updates* section of `CLAUDE.md`.
 
 ## Deployment
 
-Any static host works (Cloudflare Pages, Netlify, Vercel…). Configure the host with build command `npm install` and publish directory `/` — the install step is required because the design system CSS is synced, not committed. See the [Setup guide](docs/site/setup.html#deployment) for details.
+Deploys to **Cloudflare Workers static assets** via Workers Builds from this repo — every push to `main` deploys; other branches get preview builds. Config lives in `wrangler.jsonc` (`assets.directory` → `./dist`).
+
+- **Build command:** `npm install && npm run build` — the install must run first because the design system CSS only exists after the postinstall sync
+- **Deploy command:** `npx wrangler deploy`
+- `npm run build` copies only `index.html`, `embed.html` and `assets/` into `dist/` — docs and internal markdown never reach the public host
+- `package-lock.json` must stay committed — Cloudflare picks its package manager by lockfile, and without one it falls back to bun, which can't resolve the design system's `#semver:` git range
+
+`npm run deploy` runs the same build-then-deploy locally (needs a one-time `npx wrangler login`); prefer letting CI deploy from `main`.
 
 ## Documentation
 
-Template and project documentation is available in the [Documentation site](docs/site/index.html), including:
+- [Tree notation spec](docs/tree-notation.md) — the input/output notations and share-link fragment encoding
+- [AI prompt spec](docs/tree-prompt.md) — the prompt offered by the import dialog's *Copy Prompt* button
+- [Folder structure](docs/folder-structure.md) — where files live in this repo and why
 
-- **Brand** — Brand book and theming guide
-- **Content** — Markdown style and SEO best practices
-- **Project** — Setup, folder structure, and project overview
+## License
 
-The design system itself arrives via the `@bydefaultstudio/design-system` npm package; its canonical documentation lives at [bydefault.design](https://bydefault.design).
+Copyright © 2026 By Default Studio.
+
+The source is public so you can see how it works, but it is **not open source**: it's licensed under [PolyForm Strict 1.0.0](LICENSE), which permits noncommercial use only and does not permit distributing the software or making changes or new works based on it.
 
 ---
 
