@@ -13,7 +13,7 @@
    ───────────────────────────── */
 
 (function () {
-  var VERSION = '1.7.0';
+  var VERSION = '1.8.0';
   var SPRITE = 'assets/icons/project-icons.svg';
   var DS_SPRITE = 'assets/icons/icons.svg';
   var SVG_NS = 'http://www.w3.org/2000/svg';
@@ -77,7 +77,8 @@
     el.setAttribute('data-id', row.id);
     el.tabIndex = -1;
 
-    el.appendChild(makeIcon(iconFor(row), SPRITE, 'svg-icn tree-icon'));
+    var icon = iconFor(row);
+    el.appendChild(makeIcon(icon.symbol, icon.sprite, 'svg-icn tree-icon'));
 
     var label = document.createElement('span');
     label.className = 'tree-label';
@@ -167,15 +168,20 @@
     typeToggle.type = 'button';
     typeToggle.className = 'add-pill-type';
     typeToggle.tabIndex = -1;
-    typeToggle.appendChild(makeIcon('document', SPRITE, 'svg-icn add-pill-type-icon'));
+    typeToggle.appendChild(makeIcon('file', DS_SPRITE, 'svg-icn add-pill-type-icon'));
     wrapper.appendChild(typeToggle);
 
     return wrapper;
   }
 
+  // Files carry a per-extension mark from the design-system sprite;
+  // folders and structural glyphs stay on the project sprite. Both
+  // callers pass the pair straight to makeIcon/setIconHref.
   function iconFor(row) {
-    if (row.type === 'file') { return 'document'; }
-    return row.open ? 'folder-open' : 'folder';
+    if (row.type === 'file') {
+      return { sprite: DS_SPRITE, symbol: window.FolderStructure.fileIcons.symbolFor(row.name) };
+    }
+    return { sprite: SPRITE, symbol: row.open ? 'folder-open' : 'folder' };
   }
 
   // The convert button keeps one glyph in both directions, so the type
@@ -240,8 +246,9 @@
       convertBtn.setAttribute('aria-label', convertLabel(row));
       convertBtn.setAttribute('data-tooltip', convertTooltip(row));
     }
+    var icon = iconFor(row);
     var iconUse = el.querySelector('.tree-icon use');
-    setIconHref(iconUse, SPRITE, iconFor(row));
+    setIconHref(iconUse, icon.sprite, icon.symbol);
   }
 
   // Ensures containerEl's children are exactly [expected...] in order,
@@ -348,7 +355,13 @@
     var expected = addType === 'file' ? 'Add file here' : 'Add folder here';
     if (text.textContent !== expected) { text.textContent = expected; }
     // The toggle shows what the pill currently adds; clicking flips it.
-    setIconHref(el.querySelector('.add-pill-type-icon use'), SPRITE, addType === 'file' ? 'document' : 'folder');
+    // 'file' (the generic file mark) lives in the DS sprite, 'folder'
+    // in the project sprite — the sprite switches with the symbol.
+    if (addType === 'file') {
+      setIconHref(el.querySelector('.add-pill-type-icon use'), DS_SPRITE, 'file');
+    } else {
+      setIconHref(el.querySelector('.add-pill-type-icon use'), SPRITE, 'folder');
+    }
     var typeToggle = el.querySelector('.add-pill-type');
     var typeLabel = addType === 'file' ? 'Adding files. Switch to folders' : 'Adding folders. Switch to files';
     typeToggle.setAttribute('aria-label', typeLabel);

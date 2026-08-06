@@ -2,7 +2,7 @@
 
 A bank of feature ideas and outstanding work for the folder-structure tool. Ideas start here as rough notes — no commitment implied. When one gets picked up, move it to **In Progress**; when it ships, move it to **Done** and log the detail in `PROJECT_PROGRESS.md`.
 
-**Companion docs:** `HANDOVER.md` is the live state-of-play between sessions (rewritten each time); `PROJECT_PROGRESS.md` is the append-only history of what shipped; `PROJECT_BRIEF.md` holds intent and constraints.
+**Companion docs:** `HANDOVER.md` is the live state-of-play between sessions (rewritten each time); `PROJECT_PROGRESS.md` is the append-only history of what shipped.
 
 ## Launch checklist
 
@@ -20,75 +20,24 @@ _Nothing in flight._
 
 ## Ideas
 
-### File-type icons by extension
+### More file-type icon marks
 
-**Added:** 2026-08-01
+**Added:** 2026-08-06
 
-Every file in the tree draws the same `document` icon. Give it an icon that matches its extension instead — `styles.css` gets the CSS mark, `track.mp3` gets the audio mark — so a structure can be read by shape as well as by name.
+The first batch of eleven file-type icons shipped in design system v2.2.1 and the app now maps extensions to them (see Done). Formats still waiting on a mark fall back to the generic `file` glyph, which is what makes the set safe to grow one icon at a time. Candidates, roughly in order of how often they appear in real structures:
 
-**Blocked on the icons existing.** The design system is at v2.1.1 and its 169-icon library has no file-type icons in it; the four that exist (`.md`, `.html`, `.json`, `.css`) live outside the package so far. Nothing here can be built until they're published upstream — the point of this entry is to settle the format list and the mapping so the design work has a target.
+- `file-js` (`.js` `.mjs` `.cjs` `.jsx`) and `file-ts` (`.ts` `.tsx`) — the biggest gap; code files are everywhere in this tool's likely input
+- `file-code` (`.py` `.rb` `.php` `.go` `.rs` `.java` `.c` `.cpp` `.swift` `.kt` `.sh` `.vue` `.svelte`)
+- `file-config` (`.yml` `.yaml` `.toml` `.ini` `.env` `.lock` + extensionless dotfiles)
+- `file-zip` (`.zip` `.rar` `.7z` `.tar` `.gz` `.tgz`)
+- `file-svg` — currently rides with `file-img`; split it out if the vector/raster distinction earns a mark of its own
+- `file-pdf` — currently rides with `file-doc`
+- `file-design` (`.fig` `.sketch` `.xd` `.psd` `.ai` `.indd`) — or per-app marks; studio call
+- Tier 2 from the original proposal: `file-sheet`, `file-slides`, `file-xml`, `file-3d`, `file-db`, `file-binary`
 
-#### Proposed format list
+When any of these ship upstream: add the name to `icons.manifest.json` (the sole input to the sprite build — nothing scans usage), add the extensions to the table in `assets/js/tree-file-icons.js`, and remove any stretch mapping it supersedes. Stay monochrome — every symbol is `fill="currentColor"`, which is how theming and the planned image export resolve colour.
 
-One icon per **row** below, not per extension — a single mark covers everything on its line. Names are a proposal; the code follows whatever the design system publishes.
-
-**Tier 1 — the batch worth designing first.**
-
-| Icon | Extensions covered |
-| --- | --- |
-| `file-md` ✅ exists | `.md` `.mdx` `.markdown` |
-| `file-html` ✅ exists | `.html` `.htm` |
-| `file-json` ✅ exists | `.json` `.jsonc` |
-| `file-css` ✅ exists | `.css` `.scss` `.sass` `.less` |
-| `file-js` | `.js` `.mjs` `.cjs` `.jsx` |
-| `file-ts` | `.ts` `.tsx` |
-| `file-image` | `.png` `.jpg` `.jpeg` `.gif` `.webp` `.avif` `.heic` `.tif` `.tiff` `.bmp` |
-| `file-svg` | `.svg` |
-| `file-video` | `.mp4` `.mov` `.webm` `.avi` `.mkv` `.m4v` |
-| `file-audio` | `.mp3` `.wav` `.aiff` `.aif` `.m4a` `.flac` `.ogg` |
-| `file-pdf` | `.pdf` |
-| `file-zip` | `.zip` `.rar` `.7z` `.tar` `.gz` `.tgz` |
-| `file-font` | `.woff` `.woff2` `.ttf` `.otf` `.eot` |
-| `file-design` | `.fig` `.sketch` `.xd` `.psd` `.ai` `.indd` `.afdesign` `.afphoto` |
-| `file-text` | `.txt` `.rtf` |
-| `file-config` | `.yml` `.yaml` `.toml` `.ini` `.env` `.lock` + extensionless dotfiles (`.gitignore`, `.npmrc`) |
-| `file-code` | `.py` `.rb` `.php` `.go` `.rs` `.java` `.c` `.h` `.cpp` `.cs` `.swift` `.kt` `.sh` `.zsh` `.vue` `.svelte` |
-
-Thirteen new marks. `file-svg` is split out from `file-image` deliberately — for a design studio's tool the vector/raster distinction is one users actually care about.
-
-**Tier 2 — add if real structures ask for it.** `file-doc` (`.doc` `.docx` `.pages`), `file-sheet` (`.csv` `.tsv` `.xls` `.xlsx` `.numbers`), `file-slides` (`.ppt` `.pptx` `.key`), `file-xml` (`.xml` `.rss` `.plist`), `file-3d` (`.glb` `.gltf` `.obj` `.fbx` `.blend` `.usdz`), `file-db` (`.sql` `.db` `.sqlite`), `file-binary` (`.dmg` `.exe` `.app` `.pkg` `.deb`).
-
-**`document` stays as the fallback** for anything unmatched. That's what makes the list safe to grow one icon at a time and safe to stop anywhere — an unknown extension is never a broken icon, just the generic one.
-
-#### Matching rules
-
-Small print, but each of these is a bug if skipped:
-
-- **Lowercase before lookup** — `IMG_0431.JPG` must match `.jpg`.
-- **Last dot segment only** — `app.min.js` → `js`, `styles.test.css` → `css`. `.tar.gz` resolves to `gz`, which maps to the archive icon anyway, so the simple rule gets the compound case right for free.
-- **Extensionless dotfiles** — split-on-last-dot turns `.gitignore` into the extension `gitignore`. Match the *whole name* first for leading-dot names with no second dot, then fall through to the extension rule.
-- **No extension at all** — `README`, `Makefile`, `LICENSE` → fallback. Worth a whole-name match later if they look bare.
-- Names are already comment-free by the time they reach the model; the parser strips `# comment` suffixes.
-
-#### Implementation
-
-Small, once the icons land. The renderer has exactly one place that decides a row's icon.
-
-1. **Publish the icons upstream** (Erlen). They belong in the `@bydefaultstudio/design-system` icon source, released as a version bump; `npm install` then drops them into `assets/icons/icons.svg` here. Do not hand-add them to `project-icons.svg` — that sprite is for marks this project owns, and these aren't.
-2. **List every new name in `icons.manifest.json`.** The manifest is the sole input to the sprite build and nothing scans usage, so a JS-injected `icons.svg#file-css` that isn't listed builds locally and silently vanishes on deploy. This has already cost the project once.
-3. **New module `assets/js/tree-file-icons.js`** — one responsibility: filename in, sprite + symbol out. It owns the extension table, the matching rules above and the fallback. The table is ~17 entries covering ~80 extensions; that's a data structure, and it doesn't belong inside a rendering module.
-4. **Call it from `iconFor(row)`** in `tree-render.js`. That function is the single hook — used by both the create path and the reconcile path — so a rename from `notes.txt` to `notes.md` repaints the icon with no extra wiring, and `embed.html` picks the whole feature up automatically because it loads the same `tree-render.js`.
-5. **Return the sprite alongside the symbol.** This is the only structurally interesting bit: file-type icons come from `DS_SPRITE` while folders and `document` come from `SPRITE`, but `iconFor` currently returns a bare symbol id and both call sites hardcode `SPRITE`. `makeIcon`/`setIconHref` already take a sprite argument, so the change is to thread it through rather than to invent anything.
-6. **Verify against a fixture** covering every mapped extension plus the edge cases — uppercase, `.tar.gz`, `.gitignore`, extensionless, and a rename that crosses icon types. Then `npm run build` and confirm the symbols are actually present in `dist/assets/icons/icons.svg`, which is the step that catches a missed manifest entry.
-
-#### Open questions
-
-- **Per-format or per-family?** The four existing icons are per-format and all text-ish. Rows like `file-image` and `file-audio` ask for a family mark instead, which is a different design problem. Worth deciding before drawing.
-- **Legibility at 24px.** `.tree-icon` renders at 24×24. If the marks carry lettering, `JSON` is four characters in roughly half that width — check the existing four at size before committing the approach to another thirteen.
-- **Design formats: one mark or several?** `.fig`, `.psd` and `.ai` sharing `file-design` is the economical call, but this is a design studio's tool and per-app marks might earn their keep.
-- **Monochrome.** Every symbol in the sprite is `fill="currentColor"`, which is how tree icons inherit the theme and how the planned image export resolves colour. Per-type tinting would break both — recommend staying monochrome.
-
-**Touches:** the image export idea below inlines "only the referenced `<symbol>`s" (step 4) — with this shipped, that step has to inline from two sprite files rather than one.
+**Touches:** the image export idea below inlines "only the referenced `<symbol>`s" — with file-type icons shipped, that step has to inline from two sprite files (`project-icons.svg` and `icons.svg`) rather than one.
 
 ### Toast notifications: typed variants + clear the bottom chrome
 
@@ -111,7 +60,7 @@ Call sites to map: import succeeded → `success`; couldn't read the shared link
 
 **Position.** The toast container is the design-system default — fixed bottom-**right** at `--space-xl` (24px) — and `.zoom-controls` sits bottom-right at `--space-l` (16px). With the toast container overridden to `z-index: 9999` against the chrome's `700`, toasts land squarely on top of the zoom cluster. Raise the container's `bottom` so it clears the tallest bottom chrome, e.g. `bottom: calc(var(--space-l) + <cluster height> + var(--space-m))`, ideally driven by a shared variable rather than a magic number so the two can't drift. The `.edit-bar` is bottom-**left** and doesn't collide.
 
-**Blocker — the module can't do action buttons.** `showToast` takes only `(message, type, duration)`, but the app's toast supports an action button, and two flows depend on it: **Undo** after a delete, and **Undo** after a share link replaces the visitor's tree. Swapping modules as-is would silently drop the only safety net on a destructive action. `DESIGN-SYSTEM-MIGRATION.md` is upstream-first: add an `action` option to the design system's toast, release it, and pull it down through a version bump — do not fork the module locally.
+**Blocker — the module can't do action buttons.** `showToast` takes only `(message, type, duration)`, but the app's toast supports an action button, and two flows depend on it: **Undo** after a delete, and **Undo** after a share link replaces the visitor's tree. Swapping modules as-is would silently drop the only safety net on a destructive action. The design-system flow is upstream-first (see *Design System Sync & Updates* in `CLAUDE.md`): add an `action` option to the design system's toast, release it, and pull it down through a version bump — do not fork the module locally.
 
 Adopting the module is worth it beyond the colours: it escapes HTML, pauses auto-dismiss on hover and focus (the local one runs a fixed 5s timer regardless, which fails WCAG 2.2.1), sets `role="alert"` for `danger` only, and reparents into an open `dialog:modal` so toasts stay visible above a modal.
 
@@ -177,6 +126,7 @@ The renderer builds a DOM node per row; past roughly 2,000 nodes that will drag.
 
 Detail for each lives in the dated entries in `PROJECT_PROGRESS.md`.
 
+- **File-type icons by extension** — shipped 2026-08-06. Eleven marks from design system v2.2.1 (`file`, `file-audio`, `file-css`, `file-doc`, `file-font`, `file-html`, `file-img`, `file-json`, `file-md`, `file-txt`, `file-video`); `assets/js/tree-file-icons.js` owns the extension table and the matching rules, `iconFor` in `tree-render.js` threads sprite + symbol to both render paths. Natural stretches only (`.svg` → img, `.pdf` → doc, `.log` → txt); everything unmatched — code, configs, archives, design files, dotfiles, extensionless — falls back to the generic `file` mark. The remaining marks live under *More file-type icon marks* in Ideas.
 - **Copyable AI prompt** — shipped 2026-08-02. `docs/tree-prompt.md` states the paste-in contract as a prompt, and a *Copy Prompt* button left of *Import* in the import dialog puts it on the clipboard. `assets/js/tree-prompt.js` holds a byte-identical duplicate because `dist/` ships no markdown; a smoke test asserts they match. Before re-proposing that the app read the markdown at runtime: it can't, for that reason.
 - **Change a row between folder and file** — shipped 2026-08-01. A swap button in the chip (or `t`) converts either way. File → folder and empty folder → file go straight through; a folder holding anything raises a dialog offering *Keep contents* (children promote one level) or *Delete everything*, sharing its wording with the delete dialog. The node keeps its id, name and comment across the change. Before re-proposing the `refresh` glyph for this: it was considered and rejected because ⟳ reads as reload/reset — see `PROJECT_PROGRESS.md`.
 - **Delete a folder: choose branch or contents** — shipped 2026-08-01. Deleting a non-empty folder raises a dialog offering *Delete everything* or *Keep contents* (children promote one level, via the new `model.unwrap`). Files and empty folders skip it. Before re-proposing "just make delete promote children": that was considered and rejected because it removes any way to delete a whole branch in one action — see `PROJECT_PROGRESS.md`.

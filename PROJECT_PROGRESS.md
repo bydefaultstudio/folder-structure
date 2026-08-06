@@ -4,6 +4,22 @@ Track what's been done and what still needs doing across sessions. Add a dated s
 
 ---
 
+## 2026-08-06 — File-type icons by extension
+
+Every file drew the same `document` glyph; now `styles.css` gets the CSS mark and `track.mp3` the audio mark, so a pasted structure reads by shape as well as by name. Unblocked by design system v2.2.1 shipping eleven file-type icons (`file`, `file-audio`, `file-css`, `file-doc`, `file-font`, `file-html`, `file-img`, `file-json`, `file-md`, `file-txt`, `file-video`) — verified against the upstream tag before touching anything. Erlen's call on coverage: **natural stretches only** — `.svg` rides with `file-img`, `.pdf` with `file-doc`, `.log` with `file-txt`; everything without a mark (code, configs, archives, design files, dotfiles, extensionless names) falls back to the new generic `file` glyph rather than borrowing one that lies about the format.
+
+- **`package.json`** — design-system spec bumped `^2.1.0` → `^2.2.0` (the code now depends on 2.2.x symbols); installed 2.2.1
+- **`icons.manifest.json`** — all eleven names added. The manifest is the sole input to the sprite build and nothing scans usage; the deploy check below is what proves none were missed
+- **`assets/js/tree-file-icons.js` 1.0.0** (new) — data only: filename in, symbol id out. Owns the extension table (10 symbols, ~60 extensions), the matching rules and the fallback. Extension = segment after the *last* dot, only when the dot has characters both sides — so `.gitignore`, `README` and trailing-dot names have no extension, and `app.min.js`/`archive.tar.gz` resolve to `js`/`gz` (both currently fallback, correctly). Lowercased first, so `IMG_0431.JPG` matches
+- **`assets/js/tree-render.js` 1.8.0** — `iconFor(row)` now returns `{sprite, symbol}`: files come from the design-system sprite, folders stay on `project-icons.svg`. Both call sites (create in `makeRowEl`, repaint in `updateRowEl`) thread the pair through, so rename and folder⇄file conversion repaint for free — the reconcile pass was already unconditional. The add-pill's type toggle swapped `document` → DS `file` in both its build and update paths so the "adding files" indicator matches the new row fallback; `document` is now unused but stays in the hand-maintained `project-icons.svg`
+- **`index.html` / `embed.html`** — `tree-file-icons.js` loaded before `tree-render.js`; the embed inherits the whole feature by sharing the renderer
+- **No CSS** — `.tree-icon` is already 24×24 and every symbol is `fill="currentColor"`, so theming is untouched
+- **Verified**: headless Chrome, 72/72 — the full extension table, uppercase, compound extensions, dotfiles, extensionless, rename `notes.txt` → `notes.md` repainting across icon families, folder → file → folder conversion swapping sprite as well as symbol. Then `npm run build` and confirmed all eleven ids present in `dist/assets/icons/icons.svg` and the new module + script tags in `dist/` — the step that catches a missed manifest entry
+- **Known trap for future harnesses**: `replaceTree` needs ids assigned first (`model.state.lastId = 0` then `assignIds` per root child, as `applyImportedTree` in `app.js` does) — feeding it a parsed tree raw makes the reconciler throw `HierarchyRequestError`
+- **Not done, deliberately**: no marks were stretched onto code/config/archive/design formats; the follow-up icon list lives in `ROADMAP.md` under *More file-type icon marks*
+
+---
+
 ## 2026-08-02 — An AI prompt users can copy from the import dialog
 
 The tool assumes you arrive with text to paste, but the most likely way to get that text is to ask a model for it — and models improvise: two-space indents, bare `README`, a standalone comment line, a summary paragraph underneath. Each produces a diagram that is wrong in a way that looks plausible. The fix is a prompt that states the output contract, and a button that hands it over at the moment it is needed.
