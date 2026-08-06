@@ -12,6 +12,20 @@ A free tool for visualising folder structures as an interactive tree. Paste code
 - **Share & embed** — structures encode into the URL fragment; `embed.html` renders a read-only view for embedding
 - **No backend** — pure static HTML/CSS/JS; nothing is uploaded or stored server-side
 
+The tool reads and writes plain-text trees like this one:
+
+```
+my-project/
+├── assets/
+│   ├── css/
+│   │   └── style.css
+│   └── js/
+│       └── app.js
+├── docs/
+│   └── setup.md
+└── index.html
+```
+
 ## Development
 
 ```bash
