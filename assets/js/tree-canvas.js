@@ -13,13 +13,19 @@
    pans, Shift+wheel pans horizontally, Ctrl/⌘+wheel zooms at the
    cursor (browsers report a trackpad pinch as Ctrl+wheel, so pinch
    zooms via the same branch).
+   The embed (body.is-embed) swaps that for cooperative gestures —
+   the Google Maps model — because it lives inside someone else's
+   scrolling article: a plain wheel and a lone touch belong to the
+   host page; only Ctrl/⌘+wheel, mouse drags and two-finger touch
+   gestures act on the canvas. Declined gestures raise
+   fs:gesturehint so embed.js can teach the modifier.
    Clicking a row selects it; clicking the already-selected row toggles
    a folder open/closed and centers it at 1/3 viewport width, 1/2
    height. Clicking empty canvas clears the selection.
    ───────────────────────────── */
 
 (function () {
-  var VERSION = '1.5.0';
+  var VERSION = '1.6.0';
   var DRAG_THRESHOLD_PX = 4;
   var ZOOM_MIN = 0.25;
   var ZOOM_MAX = 2.5;
@@ -38,8 +44,10 @@
   var isPanning = false;
   var pinchStartDist = 0;
   var pinchStartZoom = 1;
+  var pinchLastMid = null;  // previous two-finger midpoint, for two-finger pan
   var reducedMotion = false;
   var gestureInInput = false;   // this gesture began inside an inline input
+  var isEmbed = false;          // embed viewer: cooperative gestures
 
   function view() {
     return window.FolderStructure.model.state.view;
@@ -169,9 +177,14 @@
       var v = view();
       panStart = { x: event.clientX, y: event.clientY, viewX: v.x, viewY: v.y };
       isPanning = false;
+      // Cooperative gestures: in the embed a lone touch is the host
+      // page's scroll, so it never arms a canvas pan. Mouse drags
+      // still pan — a drag can't scroll the parent article.
+      if (isEmbed && event.pointerType === 'touch') { panStart = null; }
     } else if (pointerCount === 2) {
       pinchStartDist = pinchDistance();
       pinchStartZoom = view().zoom;
+      pinchLastMid = pinchMidpoint();
       isPanning = true;
     }
   }
@@ -183,8 +196,18 @@
     if (pointerCount === 2) {
       var mid = pinchMidpoint();
       var dist = pinchDistance();
+      // Two fingers both pan (midpoint travel) and zoom (spread) —
+      // on the embed's touch screens this is the only way to move
+      // the diagram, since a lone finger scrolls the host page.
+      var v2 = view();
+      v2.x += mid.x - pinchLastMid.x;
+      v2.y += mid.y - pinchLastMid.y;
+      pinchLastMid = mid;
       if (pinchStartDist > 0) {
         zoomAbout(pinchStartZoom * (dist / pinchStartDist), mid.x, mid.y);
+      } else {
+        applyTransform();
+        window.FolderStructure.model.notifyViewChange();
       }
       return;
     }
@@ -221,13 +244,45 @@
     }
   }
 
+  // A cancelled single touch in the embed means the browser claimed
+  // the gesture for page scrolling (touch-action allows it there) —
+  // exactly the moment to teach the two-finger alternative.
+  function handlePointerCancel(event) {
+    if (isEmbed && pointers[event.pointerId] && event.pointerType === 'touch' && pointerCount === 1) {
+      requestGestureHint('touch');
+    }
+    handlePointerUp(event);
+  }
+
   function swallowClick(event) {
     event.stopPropagation();
     event.preventDefault();
     document.removeEventListener('click', swallowClick, true);
   }
 
+  // touch-action lets the browser own one-finger scrolling in the
+  // embed; two-finger gestures stay ours, and that claim has to be
+  // made on the raw touch events — pointer events can't cancel a
+  // browser scroll.
+  function handleTouchMove(event) {
+    if (event.touches.length >= 2) { event.preventDefault(); }
+  }
+
+  // Declined embed gestures raise a bubbling event; embed.js owns the
+  // hint overlay so the canvas stays free of embed-only UI.
+  function requestGestureHint(kind) {
+    viewportEl.dispatchEvent(new CustomEvent('fs:gesturehint', { bubbles: true, detail: { kind: kind } }));
+  }
+
   function handleWheel(event) {
+    // Cooperative scrolling in the embed: a plain wheel is the host
+    // article's scroll and must chain to the parent page untouched.
+    // Only modifier gestures are claimed — Ctrl/⌘+wheel zooms (a
+    // trackpad pinch arrives as Ctrl+wheel, so pinch still works).
+    if (isEmbed && !event.ctrlKey && !event.metaKey) {
+      requestGestureHint('wheel');
+      return;
+    }
     event.preventDefault();
     var scale = event.deltaMode === 1 ? WHEEL_LINE_PX
       : event.deltaMode === 2 ? viewportEl.clientHeight
@@ -318,13 +373,17 @@
     if (!viewportEl || !surfaceEl) { return; }
 
     reducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+    isEmbed = document.body.classList.contains('is-embed');
 
     document.addEventListener('pointerdown', trackGestureOrigin, true);
     viewportEl.addEventListener('pointerdown', handlePointerDown);
     viewportEl.addEventListener('pointermove', handlePointerMove);
     viewportEl.addEventListener('pointerup', handlePointerUp);
-    viewportEl.addEventListener('pointercancel', handlePointerUp);
+    viewportEl.addEventListener('pointercancel', handlePointerCancel);
     viewportEl.addEventListener('wheel', handleWheel, { passive: false });
+    if (isEmbed) {
+      viewportEl.addEventListener('touchmove', handleTouchMove, { passive: false });
+    }
     viewportEl.addEventListener('click', handleViewportClick);
     surfaceEl.addEventListener('transitionend', handleTransitionEnd);
 

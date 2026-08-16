@@ -487,6 +487,42 @@ body.is-app {
   right: var(--space-s);
 }
 
+/* Cooperative gestures: the embed lives inside someone else's
+   scrolling article, so the browser keeps one-finger touch scrolling
+   (tree-canvas.js declines plain wheel events to match); two-finger
+   gestures and Ctrl/⌘+wheel act on the canvas. */
+.is-embed .canvas-viewport {
+  touch-action: pan-x pan-y;
+}
+
+/* Transient teaching overlay for declined gestures, shown by
+   embed.js via .is-visible. Sits above the branding card, below
+   the error card. */
+.embed-gesture-hint {
+  position: fixed;
+  inset: 0;
+  z-index: 720;
+  display: grid;
+  place-items: center;
+  pointer-events: none;
+  opacity: 0;
+  transition: opacity var(--duration-m) var(--ease-out);
+}
+
+.embed-gesture-hint.is-visible {
+  opacity: 1;
+}
+
+.embed-gesture-hint-text {
+  background-color: var(--background-primary);
+  border: var(--border-s) solid var(--border-faded);
+  border-radius: var(--radius-l);
+  padding: var(--space-2xs) var(--space-s);
+  box-shadow: 0 4px 16px var(--black-alpha-10);
+  color: var(--text-primary);
+  font-size: var(--font-xs);
+}
+
 /* Decode-failure state: centred card over the empty canvas. */
 .embed-error {
   position: fixed;
@@ -570,7 +606,8 @@ body.is-app {
 @media (prefers-reduced-motion: reduce) {
   .canvas-surface.is-animating,
   .tree-item,
-  .tree-connector {
+  .tree-connector,
+  .embed-gesture-hint {
     transition: none;
   }
 }

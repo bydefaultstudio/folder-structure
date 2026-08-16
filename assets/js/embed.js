@@ -6,11 +6,15 @@
    model, and wires the zoom controls and branding round-trip link.
    Loads last — tree-edit and app.js are deliberately absent, which
    is what makes the page read-only.
+   Also owns the gesture-hint overlay: tree-canvas declines plain
+   scrolling in embeds (cooperative gestures) and raises
+   fs:gesturehint, which briefly shows how to zoom or pan instead.
    ───────────────────────────── */
 
 (function () {
-  var VERSION = '1.3.0';
+  var VERSION = '1.4.0';
   var APP_URL = 'https://folder-structure.bydefault.studio/';
+  var HINT_HIDE_MS = 1600;
 
   function fs() { return window.FolderStructure; }
 
@@ -103,6 +107,38 @@
     icon.querySelector('use').setAttribute('href', 'assets/icons/project-icons.svg#' + symbol);
   }
 
+  //
+  //------- Gesture hint -------//
+  //
+
+  // tree-canvas raises fs:gesturehint when it declines a gesture in
+  // favour of the host page's scroll (cooperative gestures). The
+  // overlay is transient teaching UI, so it stays aria-hidden and
+  // pointer-transparent; repeated triggers just extend its life.
+  var hintTimer = null;
+
+  function isApplePlatform() {
+    return /Mac|iPhone|iPad|iPod/.test(navigator.platform);
+  }
+
+  function showGestureHint(event) {
+    var hint = document.querySelector('.embed-gesture-hint');
+    if (!hint) { return; }
+    var kind = event.detail && event.detail.kind;
+    hint.querySelector('.embed-gesture-hint-text').textContent = kind === 'wheel'
+      ? 'Use ' + (isApplePlatform() ? '⌘' : 'Ctrl') + ' + scroll to zoom'
+      : 'Use two fingers to move';
+    hint.classList.add('is-visible');
+    if (hintTimer) { clearTimeout(hintTimer); }
+    hintTimer = setTimeout(hideGestureHint, HINT_HIDE_MS);
+  }
+
+  function hideGestureHint() {
+    var hint = document.querySelector('.embed-gesture-hint');
+    if (hint) { hint.classList.remove('is-visible'); }
+    hintTimer = null;
+  }
+
   function updateBrandingLink() {
     var link = document.querySelector('.embed-branding');
     if (link) { link.href = APP_URL + location.hash; }
@@ -135,6 +171,7 @@
   function initEmbed() {
     document.addEventListener('click', handleZoomClick);
     document.addEventListener('fs:modelchange', updateToggleAllButton);
+    document.addEventListener('fs:gesturehint', showGestureHint);
     window.addEventListener('hashchange', handleHashChange);
     if (document.fonts && document.fonts.ready) {
       document.fonts.ready.then(handleFontsReady);
