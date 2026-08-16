@@ -19,7 +19,7 @@
    ───────────────────────────── */
 
 (function () {
-  var VERSION = '1.4.0';
+  var VERSION = '1.5.0';
   var DRAG_THRESHOLD_PX = 4;
   var ZOOM_MIN = 0.25;
   var ZOOM_MAX = 2.5;
@@ -263,19 +263,22 @@
   // edit chip) without disturbing the diagram; clicking the row that is
   // already selected toggles it. Inspect, then navigate. Keyboard
   // Enter/Space routes here too, so both input methods obey one rule —
-  // ←/→ remain the one-press disclosure shortcut.
-  function activateNode(id) {
+  // ←/→ remain the one-press disclosure shortcut. One exception:
+  // a click landing on the folder mark itself (iconClick) is read as
+  // the disclosure control and toggles in a single press.
+  function activateNode(id, iconClick) {
     var model = window.FolderStructure.model;
     var node = model.findNode(id);
     if (!node) { return; }
-    if (model.state.focusedId !== id) {
+    var wasFocused = model.state.focusedId === id;
+    model.state.focusedId = id;
+    if (node.type === 'folder' && (wasFocused || iconClick)) {
+      model.toggle(id);      // re-renders via fs:modelchange, picking up the focus too
+      centerOnNode(id);      // opening can push children off screen
+    } else if (!wasFocused) {
       // Selecting only reveals furniture — no centering, because the row
       // the user just clicked is by definition already on screen.
-      model.state.focusedId = id;
       window.FolderStructure.render.render();
-    } else if (node.type === 'folder') {
-      model.toggle(id);      // re-renders via fs:modelchange
-      centerOnNode(id);      // opening can push children off screen
     }
     var rowEl = window.FolderStructure.render.getRowEl(id);
     if (rowEl) { rowEl.focus({ preventScroll: true }); }
@@ -302,7 +305,7 @@
       clearSelection();
       return;
     }
-    activateNode(rowEl.getAttribute('data-id'));
+    activateNode(rowEl.getAttribute('data-id'), Boolean(event.target.closest('.tree-icon')));
   }
 
   //
