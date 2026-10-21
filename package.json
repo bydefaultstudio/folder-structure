@@ -7,6 +7,6 @@
     "deploy": "npm run build && npx wrangler deploy"
   },
   "dependencies": {
-    "@bydefaultstudio/design-system": "github:bydefaultstudio/design-system-dist#semver:^2.2.0"
+    "@bydefaultstudio/design-system": "github:bydefaultstudio/design-system-dist#semver:^7.0.0"
   }
 }
