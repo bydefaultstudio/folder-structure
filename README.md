@@ -1,4 +1,9 @@
-# Folder Structure
+<h1>
+<picture>
+  <source media="(prefers-color-scheme: dark)" srcset="assets/images/readme-header_dark.svg">
+  <img alt="folder-structure" src="assets/images/readme-header_light.svg" height="48">
+</picture>
+</h1>
 
 **Visualise any folder tree.** Paste a folder structure as text and see it as an interactive diagram — or build one visually from scratch — then copy clean, AI-ready tree text for Claude and other tools.
 
